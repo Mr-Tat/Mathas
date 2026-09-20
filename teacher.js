@@ -62,7 +62,7 @@
     setMessage(loginMessage, '');
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
+  document.getElementById('logoutBtnTop').addEventListener('click', async () => {
     await client.auth.signOut();
   });
 
@@ -84,12 +84,14 @@
   async function showTeacherPanel() {
     loginPanel.classList.add('hidden');
     teacherPanel.classList.remove('hidden');
+    document.getElementById('logoutBtnTop').classList.remove('hidden');
     await loadData();
   }
 
   function showLogin() {
     teacherPanel.classList.add('hidden');
     loginPanel.classList.remove('hidden');
+    document.getElementById('logoutBtnTop').classList.add('hidden');
   }
 
   async function loadData() {

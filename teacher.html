@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="teacher.css" />
 </head>
 <body>
+  <div class="math-bg" aria-hidden="true"></div>
+
   <main class="shell">
     <header class="topbar">
       <div>
@@ -14,7 +16,8 @@
         <h1>Panneau enseignant</h1>
         <p class="subtitle">Gère rapidement ce qui apparaît dans le hub des élèves.</p>
       </div>
-      <a class="back-link" href="index.html?classe=observation">← Retour au hub</a>
+
+      <button id="logoutBtnTop" class="secondary hidden" type="button">Déconnexion</button>
     </header>
 
     <section id="loginPanel" class="card auth-card">
@@ -38,26 +41,55 @@
     </section>
 
     <section id="teacherPanel" class="hidden">
-      <div class="toolbar card">
+      <section class="quick-links" aria-label="Accès rapide aux hubs élèves">
+        <a class="quick-link obs" href="index.html?classe=observation" target="_blank" rel="noopener noreferrer">
+          <span class="quick-kicker">Hub élève</span>
+          <strong>Observation</strong>
+          <span>Ouvrir ↗</span>
+        </a>
+
+        <a class="quick-link ph1" href="index.html?classe=phase1" target="_blank" rel="noopener noreferrer">
+          <span class="quick-kicker">Hub élève</span>
+          <strong>Phase 1</strong>
+          <span>Ouvrir ↗</span>
+        </a>
+
+        <a class="quick-link ph2" href="index.html?classe=phase2" target="_blank" rel="noopener noreferrer">
+          <span class="quick-kicker">Hub élève</span>
+          <strong>Phase 2</strong>
+          <span>Ouvrir ↗</span>
+        </a>
+      </section>
+
+      <section class="card management-card">
+        <div class="management-head">
+          <div>
+            <p class="section-kicker">Paramètres du hub</p>
+            <h2>Applications</h2>
+            <p class="muted">Choisis d'abord la classe, puis modifie uniquement ce dont tu as besoin.</p>
+          </div>
+
+          <div class="toolbar-actions">
+            <input id="searchInput" type="search" placeholder="Chercher une appli…" />
+            <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
+          </div>
+        </div>
+
         <div class="class-switcher" role="tablist" aria-label="Choisir une classe">
           <button class="class-btn active" data-class="observation" type="button">Observation</button>
           <button class="class-btn" data-class="phase1" type="button">Phase 1</button>
           <button class="class-btn" data-class="phase2" type="button">Phase 2</button>
         </div>
 
-        <div class="toolbar-actions">
-          <input id="searchInput" type="search" placeholder="Chercher une appli…" />
-          <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
-          <button id="logoutBtn" class="secondary" type="button">Déconnexion</button>
+        <div class="legend">
+          <span><b>Visible</b> : l'appli apparaît dans le hub</span>
+          <span><b>Du jour</b> : elle apparaît aussi dans Sélection du jour</span>
+          <span><b>Ordre</b> : plus petit = affiché plus tôt</span>
         </div>
-      </div>
-
-      <div class="notice">
-        Les changements sont enregistrés directement dans Supabase et apparaissent ensuite dans le hub.
-      </div>
+      </section>
 
       <div id="appList" class="app-list"></div>
-      <p id="panelMessage" class="message" role="status"></p>
+      <p id="panelMessage" class="message panel-message" role="status"></p>
     </section>
   </main>
 
