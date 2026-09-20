@@ -71,6 +71,7 @@
 
           <div class="toolbar-actions">
             <input id="searchInput" type="search" placeholder="Chercher une appli…" />
+            <button id="addAppBtn" class="primary" type="button">+ Ajouter une appli</button>
             <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
           </div>
         </div>
@@ -92,6 +93,55 @@
       <p id="panelMessage" class="message panel-message" role="status"></p>
     </section>
   </main>
+
+
+  <dialog id="appDialog" class="app-dialog">
+    <form id="appForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Application Math'as</p>
+          <h2 id="dialogTitle">Ajouter une application</h2>
+        </div>
+        <button id="closeDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <input id="editAppId" type="hidden" />
+
+      <label>
+        Nom
+        <input id="appNameInput" type="text" required />
+      </label>
+
+      <label>
+        URL de l'application
+        <input id="appUrlInput" type="url" placeholder="https://mr-tat.github.io/..." required />
+      </label>
+
+      <label>
+        URL de la miniature
+        <input id="appThumbInput" type="url" placeholder="https://raw.githubusercontent.com/..." />
+      </label>
+
+      <label>
+        Description
+        <textarea id="appDescriptionInput" rows="3" placeholder="Facultatif"></textarea>
+      </label>
+
+      <div id="newAppNote" class="dialog-note">
+        La nouvelle appli sera créée dans <strong>toutes les classes</strong>, mais
+        <strong>invisible par défaut</strong>. Tu pourras ensuite l'activer dans les classes voulues.
+      </div>
+
+      <div class="dialog-actions">
+        <button id="deleteAppBtn" class="danger hidden" type="button">Supprimer partout</button>
+        <span class="dialog-spacer"></span>
+        <button id="cancelDialogBtn" class="secondary" type="button">Annuler</button>
+        <button id="saveAppBtn" class="primary" type="submit">Enregistrer</button>
+      </div>
+
+      <p id="dialogMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
