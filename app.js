@@ -304,6 +304,6 @@
   }
 
   document.getElementById('teacherBtn').addEventListener('click', () => {
-    alert('Le panneau enseignant sera ajouté à l’étape suivante.');
+    window.open('teacher.html', '_blank', 'noopener,noreferrer');
   });
 })();

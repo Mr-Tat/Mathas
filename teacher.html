@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math'as — Enseignant</title>
+  <link rel="stylesheet" href="teacher.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Math'as</p>
+        <h1>Panneau enseignant</h1>
+        <p class="subtitle">Gère rapidement ce qui apparaît dans le hub des élèves.</p>
+      </div>
+      <a class="back-link" href="index.html?classe=observation">← Retour au hub</a>
+    </header>
+
+    <section id="loginPanel" class="card auth-card">
+      <h2>Connexion enseignant</h2>
+      <p class="muted">Utilise le compte enseignant créé dans Supabase.</p>
+
+      <form id="loginForm">
+        <label>
+          Adresse e-mail
+          <input id="email" type="email" autocomplete="username" required />
+        </label>
+
+        <label>
+          Mot de passe
+          <input id="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button class="primary" type="submit">Se connecter</button>
+        <p id="loginMessage" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="teacherPanel" class="hidden">
+      <div class="toolbar card">
+        <div class="class-switcher" role="tablist" aria-label="Choisir une classe">
+          <button class="class-btn active" data-class="observation" type="button">Observation</button>
+          <button class="class-btn" data-class="phase1" type="button">Phase 1</button>
+          <button class="class-btn" data-class="phase2" type="button">Phase 2</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <input id="searchInput" type="search" placeholder="Chercher une appli…" />
+          <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
+          <button id="logoutBtn" class="secondary" type="button">Déconnexion</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        Les changements sont enregistrés directement dans Supabase et apparaissent ensuite dans le hub.
+      </div>
+
+      <div id="appList" class="app-list"></div>
+      <p id="panelMessage" class="message" role="status"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>
