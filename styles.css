@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@600;700;800;900&family=Nunito:wght@500;600;700;800;900&display=swap');
 
 :root {
   --bg: #07101c;
@@ -180,4 +180,60 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
   .level-content { padding-inline: 12px; }
   .daily-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .category-apps, .level-content > .app-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+
+
+/* ===== Ajustements demandés sur la base V3 ===== */
+
+.brand-subtitle {
+  font-family: "Fredoka", "Trebuchet MS", sans-serif;
+}
+
+.level-title {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+
+/* On retire visuellement la couche Calcul / Géométrie / Grandeurs :
+   les cartes sont maintenant regroupées directement par niveau. */
+.level-apps {
+  grid-template-columns: repeat(auto-fill, minmax(115px, 150px));
+  justify-content: start;
+  gap: 12px;
+}
+
+.level-apps .app-meta {
+  padding: 8px 9px 10px;
+  gap: 3px;
+}
+
+.level-apps .app-name {
+  font-size: .86rem;
+  line-height: 1.08;
+}
+
+.level-apps .app-scores {
+  font-size: .7rem;
+}
+
+.level-apps .app-initial {
+  width: 42px;
+  height: 42px;
+  font-size: 1rem;
+}
+
+/* Sélection du jour : garde des cartes nettement plus grandes */
+.daily-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.daily-grid .app-name {
+  font-size: 1rem;
+}
+
+@media (max-width: 700px) {
+  .level-apps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

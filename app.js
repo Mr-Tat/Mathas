@@ -9,16 +9,11 @@
   document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
   const levelsDef = [
-    { key: 'objectif', label: 'Objectif', domains: true, openByDefault: true },
-    { key: 'depassement', label: 'Dépassement', domains: true, openByDefault: false },
-    { key: 'revision', label: 'Révision', domains: true, openByDefault: false },
-    { key: 'outil', label: 'Outils', domains: false, openByDefault: false }
+    { key: 'objectif', label: 'Objectif', openByDefault: true },
+    { key: 'depassement', label: 'Dépassement', openByDefault: false },
+    { key: 'revision', label: 'Révision', openByDefault: false },
+    { key: 'outil', label: 'Outils', openByDefault: true }
   ];
-  const domainLabels = {
-    calcul: 'Calcul',
-    geometrie: 'Géométrie',
-    grandeurs: 'Grandeurs'
-  };
 
   const levelsHost = document.getElementById('levels');
   const dailyHost = document.getElementById('dailyApps');
@@ -40,25 +35,17 @@
       Authorization: `Bearer ${publishableKey}`
     };
 
-    const [classes, applications, classApplications, categories, applicationCategories] = await Promise.all([
+    const [classes, applications, classApplications] = await Promise.all([
       apiGet(`${url}/rest/v1/classes?select=id,slug,nom`, headers),
       apiGet(`${url}/rest/v1/applications?select=id,nom,url,miniature_url,description,actif&actif=eq.true`, headers),
-      apiGet(`${url}/rest/v1/class_applications?select=class_id,application_id,visible,du_jour,niveau,domaine,ordre`, headers),
-      apiGet(`${url}/rest/v1/categories?select=id,nom`, headers),
-      apiGet(`${url}/rest/v1/application_categories?select=application_id,category_id`, headers)
+      apiGet(`${url}/rest/v1/class_applications?select=class_id,application_id,visible,du_jour,niveau,domaine,ordre`, headers)
     ]);
 
-    const classRow = classes.find(row => row.slug === slug) || classes.find(row => row.slug === 'observation');
+    const classRow =
+      classes.find(row => row.slug === slug) ||
+      classes.find(row => row.slug === 'observation');
+
     if (!classRow) throw new Error('Classe introuvable dans Supabase.');
-
-    const categoryById = new Map(categories.map(cat => [cat.id, cat.nom]));
-    const categoriesByApp = new Map();
-
-    applicationCategories.forEach(link => {
-      if (!categoriesByApp.has(link.application_id)) categoriesByApp.set(link.application_id, []);
-      const name = categoryById.get(link.category_id);
-      if (name) categoriesByApp.get(link.application_id).push(name);
-    });
 
     const settingsByApp = new Map(
       classApplications
@@ -70,6 +57,7 @@
       .map(app => {
         const settings = settingsByApp.get(app.id);
         if (!settings) return null;
+
         return {
           id: app.id,
           name: app.nom,
@@ -80,8 +68,7 @@
           daily: settings.du_jour === true,
           level: settings.niveau,
           domain: settings.domaine,
-          order: settings.ordre ?? 0,
-          categories: categoriesByApp.get(app.id) || []
+          order: settings.ordre ?? 0
         };
       })
       .filter(Boolean)
@@ -103,6 +90,7 @@
 
   function renderHub(allApps) {
     levelsHost.innerHTML = '';
+
     const visibleApps = allApps.filter(app => app.visible);
     const dailyApps = visibleApps.filter(app => app.daily);
 
@@ -110,103 +98,37 @@
     renderAppsInto(dailyHost, dailyApps, true);
 
     levelsDef.forEach(levelDef => {
-      const node = document.getElementById('levelTemplate').content.firstElementChild.cloneNode(true);
-
-      if (!levelDef.openByDefault) node.classList.add('collapsed');
-      else node.classList.remove('collapsed');
+      const node = document
+        .getElementById('levelTemplate')
+        .content.firstElementChild
+        .cloneNode(true);
 
       const levelApps = visibleApps.filter(app => app.level === levelDef.key);
+
       node.querySelector('.level-title').textContent = levelDef.label;
       node.querySelector('.level-count').textContent = countLabel(levelApps.length);
 
       const toggle = node.querySelector('.level-toggle');
-      toggle.setAttribute('aria-expanded', String(levelDef.openByDefault));
+
+      if (levelDef.openByDefault) {
+        node.classList.remove('collapsed');
+        toggle.setAttribute('aria-expanded', 'true');
+      } else {
+        node.classList.add('collapsed');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+
       toggle.addEventListener('click', () => {
         const collapsed = node.classList.toggle('collapsed');
         toggle.setAttribute('aria-expanded', String(!collapsed));
       });
 
-      const content = node.querySelector('.level-content');
-
-      if (levelDef.domains) {
-        ['calcul', 'geometrie', 'grandeurs'].forEach(domainKey => {
-          content.appendChild(makeDomain(levelDef.key, domainKey, visibleApps));
-        });
-      } else {
-        const host = document.createElement('div');
-        host.className = 'app-grid';
-        renderAppsInto(host, levelApps, true);
-        content.appendChild(host);
-      }
+      /* Calcul / Géométrie / Grandeurs restent stockés dans Supabase,
+         mais sont volontairement regroupés à l'affichage. */
+      renderAppsInto(node.querySelector('.level-apps'), levelApps, true);
 
       levelsHost.appendChild(node);
     });
-  }
-
-  function makeDomain(levelKey, domainKey, visibleApps) {
-    const node = document.getElementById('domainTemplate').content.firstElementChild.cloneNode(true);
-    const apps = visibleApps.filter(app => app.level === levelKey && app.domain === domainKey);
-
-    node.querySelector('.domain-title').textContent = domainLabels[domainKey];
-    node.querySelector('.domain-count').textContent = countLabel(apps.length);
-
-    const toggle = node.querySelector('.domain-toggle');
-    const content = node.querySelector('.domain-content');
-
-    toggle.setAttribute('aria-expanded', 'false');
-    content.hidden = true;
-
-    toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      content.hidden = open;
-    });
-
-    const categories = new Map();
-
-    apps.forEach(app => {
-      const appCategories = app.categories.length ? app.categories : ['Autres'];
-      appCategories.forEach(cat => {
-        if (!categories.has(cat)) categories.set(cat, []);
-        categories.get(cat).push(app);
-      });
-    });
-
-    const categoryList = node.querySelector('.category-list');
-
-    if (!categories.size) {
-      const p = document.createElement('p');
-      p.className = 'empty-state';
-      p.textContent = 'Aucune application pour le moment.';
-      categoryList.appendChild(p);
-    } else {
-      [...categories.entries()]
-        .sort(([a], [b]) => a.localeCompare(b, 'fr'))
-        .forEach(([name, catApps]) => categoryList.appendChild(makeCategory(name, catApps)));
-    }
-
-    return node;
-  }
-
-  function makeCategory(name, apps) {
-    const node = document.getElementById('categoryTemplate').content.firstElementChild.cloneNode(true);
-    node.querySelector('.category-name').textContent = name;
-    node.querySelector('.category-count').textContent = countLabel(apps.length);
-
-    const toggle = node.querySelector('.category-toggle');
-    const content = node.querySelector('.category-content');
-
-    toggle.setAttribute('aria-expanded', 'true');
-    content.hidden = false;
-
-    toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      content.hidden = open;
-    });
-
-    renderAppsInto(node.querySelector('.category-apps'), apps, false);
-    return node;
   }
 
   function renderAppsInto(host, apps, emptyMessage) {
@@ -222,11 +144,18 @@
       return;
     }
 
-    apps.forEach(app => host.appendChild(makeAppCard(app)));
+    /* Garantie : une application n'apparaît qu'une fois dans un niveau. */
+    const uniqueApps = [...new Map(apps.map(app => [app.id, app])).values()];
+
+    uniqueApps.forEach(app => host.appendChild(makeAppCard(app)));
   }
 
   function makeAppCard(app) {
-    const card = document.getElementById('appTemplate').content.firstElementChild.cloneNode(true);
+    const card = document
+      .getElementById('appTemplate')
+      .content.firstElementChild
+      .cloneNode(true);
+
     card.href = app.url || '#';
     card.target = '_self';
     card.querySelector('.app-name').textContent = app.name;
