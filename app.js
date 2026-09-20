@@ -166,22 +166,91 @@
       card.querySelector('.app-thumb').replaceChildren(img);
     }
 
-    const scores = getScores(app.id);
-    card.querySelector('.app-scores').textContent = scores.length
-      ? scores.slice(0, 3).map(s => `${s.score}/${s.total}`).join(' · ')
-      : 'Pas encore de score';
+    const scoresHost = card.querySelector('.app-scores');
+
+    // Les applis classées dans "Outils" n'affichent jamais de scores.
+    if (app.level === 'outil') {
+      scoresHost.remove();
+      return card;
+    }
+
+    const scores = getScores(app.url);
+
+    if (!scores.length) {
+      scoresHost.textContent = 'Pas encore de score';
+      return card;
+    }
+
+    scoresHost.classList.add('score-list');
+    scoresHost.replaceChildren(
+      ...scores.slice(0, 3).map(score => {
+        const row = document.createElement('span');
+        row.className = 'score-row';
+
+        const scoreText =
+          score.total !== undefined && score.total !== null
+            ? `${score.score}/${score.total}`
+            : String(score.score ?? '');
+
+        const levelText =
+          score.niveau ??
+          score.level ??
+          score.difficulte ??
+          score.difficulty ??
+          '';
+
+        const dateText = formatScoreDate(score.date);
+
+        const parts = [scoreText];
+        if (levelText) parts.push(String(levelText));
+        if (dateText) parts.push(dateText);
+
+        row.textContent = parts.join(' • ');
+        return row;
+      })
+    );
 
     return card;
   }
 
-  function getScores(appId) {
+  function getScores(appUrl) {
     try {
-      const raw = localStorage.getItem(`mathas_scores_${appId}`);
+      const key = getScoreStorageKey(appUrl);
+      if (!key) return [];
+
+      const raw = localStorage.getItem(key);
       const data = raw ? JSON.parse(raw) : [];
+
       return Array.isArray(data) ? data : [];
     } catch {
       return [];
     }
+  }
+
+  function getScoreStorageKey(appUrl) {
+    try {
+      const url = new URL(appUrl, window.location.origin);
+      let path = url.pathname.toLowerCase();
+
+      // Normalisation pour que /MonJeu et /MonJeu/ donnent la même clé.
+      if (!path.endsWith('/')) path += '/';
+
+      return `mathas_scores_${path}`;
+    } catch {
+      return null;
+    }
+  }
+
+  function formatScoreDate(value) {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    return new Intl.DateTimeFormat('fr-BE', {
+      day: '2-digit',
+      month: '2-digit'
+    }).format(date);
   }
 
   function setLoading() {
