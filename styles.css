@@ -213,7 +213,7 @@ h1 {
 }
 
 .level-apps .app-meta { padding: 8px 9px 10px; }
-.level-apps .app-name { font-size: .76rem; }
+.level-apps .app-name { font-size: .88rem; }
 .level-apps .app-scores { font-size: .62rem; }
 
 .app-scores { color: var(--muted); }
@@ -254,14 +254,10 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
 .level-description {
   color: var(--muted);
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
-  font-size: .84rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
-}
-
-.level-description::before {
-  content: "— ";
 }
 
 @media (max-width: 620px) {
