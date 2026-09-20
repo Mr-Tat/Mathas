@@ -244,15 +244,46 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
 
 /* ===== Petites explications des catégories de niveau ===== */
 .level-heading-group {
-  display: grid;
-  gap: 2px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
   text-align: left;
+  min-width: 0;
 }
 
 .level-description {
   color: var(--muted);
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
-  font-size: .72rem;
+  font-size: .84rem;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+}
+
+.level-description::before {
+  content: "— ";
+}
+
+@media (max-width: 620px) {
+  .level-heading-group {
+    gap: 7px;
+  }
+
+  .level-description {
+    font-size: .76rem;
+    white-space: normal;
+  }
+}
+
+/* Les deux informations de score sont toujours sur deux lignes distinctes. */
+.score-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+}
+
+.score-row {
+  display: block;
+  width: 100%;
+  line-height: 1.25;
 }
