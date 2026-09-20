@@ -240,3 +240,24 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
   .daily-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .level-apps { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
+
+
+/* ===== Scores Math'as : 3 derniers résultats ===== */
+.score-list {
+  display: grid;
+  gap: 3px;
+}
+
+.score-row {
+  display: block;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.level-apps .score-list {
+  gap: 2px;
+}
+
+.level-apps .score-row {
+  font-size: .62rem;
+}
