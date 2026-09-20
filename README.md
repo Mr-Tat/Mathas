@@ -1,35 +1,19 @@
-# Math'as Hub — V2 visuelle
+# Math'as Hub — ajustements visuels
 
-Cette version garde la connexion Supabase existante et ajoute :
+Cette version corrige les derniers points :
 
-- titres d'onglets par classe :
-  - Math'as Obs
-  - Math'as Ph1
-  - Math'as Ph2
-- davantage de chiffres, opérations et unités dans le fond ;
-- compteurs d'applications sur :
-  - Sélection du jour
-  - Objectif / Dépassement / Révision / Outils
-  - Calcul / Géométrie / Grandeurs
-  - chaque catégorie
-- compteurs visibles même quand ils valent 0 ;
-- Objectif / Dépassement / Révision / Outils repliés par défaut ;
-- style visuel enrichi : dégradés, motifs, bordures, halos légers ;
-- nouvelle identité typographique ;
-- remplacement de "Hub de mathématiques" par :
-  "Le hub du cours de math de Monsieur Tatas".
+- suppression des symboles affichés dans les barres Objectif / Dépassement / etc. ;
+- davantage de calculs, nombres, unités et formes directement dans le fond ;
+- compteurs déplacés à droite dans les barres ;
+- structure Supabase inchangée ;
+- niveaux repliés par défaut conservés.
 
-## Installation sur GitHub
+## Mise à jour
 
-Dans le dépôt `Mathas`, remplace les fichiers :
+Dans ton dépôt GitHub `Mathas`, remplace :
 
 - `index.html`
 - `styles.css`
-- `app.js`
-- `config.js`
+- `README.md`
 
-Puis valide avec **Commit changes**.
-
-GitHub Pages redéploie ensuite automatiquement le site.
-
-Après quelques instants, recharge chaque hub avec `Ctrl + F5`.
+Tu peux aussi remplacer `app.js` et `config.js` par ceux du zip pour rester parfaitement synchronisé.
