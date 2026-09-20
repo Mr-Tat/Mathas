@@ -6,6 +6,7 @@
 
   document.body.classList.add(currentClass.theme);
   document.getElementById('classLabel').textContent = currentClass.label;
+  document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
   const levelsDef = [
     { key: 'objectif', label: 'Objectif', domains: true },
@@ -21,6 +22,7 @@
 
   const levelsHost = document.getElementById('levels');
   const dailyHost = document.getElementById('dailyApps');
+  const dailyCount = document.getElementById('dailyCount');
 
   try {
     setLoading();
@@ -51,6 +53,7 @@
 
     const categoryById = new Map(categories.map(cat => [cat.id, cat.nom]));
     const categoriesByApp = new Map();
+
     applicationCategories.forEach(link => {
       if (!categoriesByApp.has(link.application_id)) categoriesByApp.set(link.application_id, []);
       const name = categoryById.get(link.category_id);
@@ -94,49 +97,66 @@
     return response.json();
   }
 
+  function countLabel(n) {
+    return `${n} app${n > 1 ? 's' : ''}`;
+  }
+
   function renderHub(allApps) {
     levelsHost.innerHTML = '';
     const visibleApps = allApps.filter(app => app.visible);
     const dailyApps = visibleApps.filter(app => app.daily);
+
+    dailyCount.textContent = countLabel(dailyApps.length);
     renderAppsInto(dailyHost, dailyApps, true);
 
     levelsDef.forEach(levelDef => {
       const node = document.getElementById('levelTemplate').content.firstElementChild.cloneNode(true);
+      node.classList.add('collapsed');
+
+      const levelApps = visibleApps.filter(app => app.level === levelDef.key);
       node.querySelector('.level-title').textContent = levelDef.label;
+      node.querySelector('.level-count').textContent = countLabel(levelApps.length);
+
       const toggle = node.querySelector('.level-toggle');
+      toggle.setAttribute('aria-expanded', 'false');
       toggle.addEventListener('click', () => {
         const collapsed = node.classList.toggle('collapsed');
         toggle.setAttribute('aria-expanded', String(!collapsed));
       });
 
       const content = node.querySelector('.level-content');
+
       if (levelDef.domains) {
         ['calcul', 'geometrie', 'grandeurs'].forEach(domainKey => {
           content.appendChild(makeDomain(levelDef.key, domainKey, visibleApps));
         });
       } else {
-        const apps = visibleApps.filter(app => app.level === 'outil');
         const host = document.createElement('div');
         host.className = 'app-grid';
-        renderAppsInto(host, apps, true);
+        renderAppsInto(host, levelApps, true);
         content.appendChild(host);
       }
+
       levelsHost.appendChild(node);
     });
   }
 
   function makeDomain(levelKey, domainKey, visibleApps) {
     const node = document.getElementById('domainTemplate').content.firstElementChild.cloneNode(true);
+    const apps = visibleApps.filter(app => app.level === levelKey && app.domain === domainKey);
+
     node.querySelector('.domain-title').textContent = domainLabels[domainKey];
+    node.querySelector('.domain-count').textContent = countLabel(apps.length);
+
     const toggle = node.querySelector('.domain-toggle');
     const content = node.querySelector('.domain-content');
+
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!open));
       content.hidden = open;
     });
 
-    const apps = visibleApps.filter(app => app.level === levelKey && app.domain === domainKey);
     const categories = new Map();
 
     apps.forEach(app => {
@@ -148,6 +168,7 @@
     });
 
     const categoryList = node.querySelector('.category-list');
+
     if (!categories.size) {
       const p = document.createElement('p');
       p.className = 'empty-state';
@@ -165,20 +186,24 @@
   function makeCategory(name, apps) {
     const node = document.getElementById('categoryTemplate').content.firstElementChild.cloneNode(true);
     node.querySelector('.category-name').textContent = name;
-    node.querySelector('.category-count').textContent = `${apps.length} app${apps.length > 1 ? 's' : ''}`;
+    node.querySelector('.category-count').textContent = countLabel(apps.length);
+
     const toggle = node.querySelector('.category-toggle');
     const content = node.querySelector('.category-content');
+
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!open));
       content.hidden = open;
     });
+
     renderAppsInto(node.querySelector('.category-apps'), apps, false);
     return node;
   }
 
   function renderAppsInto(host, apps, emptyMessage) {
     host.innerHTML = '';
+
     if (!apps.length) {
       if (emptyMessage) {
         const p = document.createElement('p');
@@ -188,6 +213,7 @@
       }
       return;
     }
+
     apps.forEach(app => host.appendChild(makeAppCard(app)));
   }
 
@@ -227,11 +253,13 @@
   }
 
   function setLoading() {
+    dailyCount.textContent = '…';
     dailyHost.innerHTML = '<p class="empty-state">Chargement des applications…</p>';
     levelsHost.innerHTML = '';
   }
 
   function renderError(message) {
+    dailyCount.textContent = '0 app';
     dailyHost.innerHTML = `<p class="empty-state">${message}</p>`;
     levelsHost.innerHTML = '';
   }

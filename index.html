@@ -10,21 +10,25 @@
   <div class="math-bg" aria-hidden="true"></div>
 
   <header class="topbar">
-    <div>
-      <p class="eyebrow">Hub de mathématiques</p>
+    <div class="brand-block">
       <h1>Math'as</h1>
+      <p class="brand-subtitle">Le hub du cours de math de Monsieur Tatas</p>
       <p id="classLabel" class="class-badge">Classe</p>
     </div>
     <button id="teacherBtn" class="ghost-btn" type="button" title="Accès enseignant">Enseignant</button>
   </header>
 
   <main class="page-shell">
-    <section class="daily-section panel" aria-labelledby="dailyTitle">
-      <div class="section-heading">
+    <section class="daily-section panel panel-hero" aria-labelledby="dailyTitle">
+      <div class="section-heading decorated-heading">
         <div>
           <p class="section-kicker">Aujourd'hui</p>
-          <h2 id="dailyTitle">Sélection du jour</h2>
+          <div class="title-row">
+            <h2 id="dailyTitle">Sélection du jour</h2>
+            <span id="dailyCount" class="count-pill">0 app</span>
+          </div>
         </div>
+        <div class="heading-motif" aria-hidden="true">★ + − × ÷</div>
       </div>
       <div id="dailyApps" class="app-grid empty-grid">
         <p class="empty-state">Aucune application sélectionnée pour le moment.</p>
@@ -35,9 +39,13 @@
   </main>
 
   <template id="levelTemplate">
-    <section class="level panel">
-      <button class="level-toggle" type="button" aria-expanded="true">
-        <span class="level-title"></span>
+    <section class="level panel collapsed">
+      <button class="level-toggle" type="button" aria-expanded="false">
+        <span class="level-main">
+          <span class="level-title"></span>
+          <span class="level-count count-pill">0 app</span>
+        </span>
+        <span class="level-symbols" aria-hidden="true">∑  △  ½</span>
         <span class="chevron">⌄</span>
       </button>
       <div class="level-content"></div>
@@ -47,7 +55,11 @@
   <template id="domainTemplate">
     <section class="domain-card">
       <button class="domain-toggle" type="button" aria-expanded="false">
-        <span class="domain-title"></span>
+        <span class="domain-main">
+          <span class="domain-title"></span>
+          <span class="domain-count count-pill small">0 app</span>
+        </span>
+        <span class="domain-deco" aria-hidden="true"></span>
         <span class="chevron">⌄</span>
       </button>
       <div class="domain-content" hidden>
