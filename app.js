@@ -24,7 +24,7 @@
     const apps = await loadAppsFromSupabase(classKey);
     renderHub(apps);
   } catch (error) {
-    console.error(error);
+    console.error('Mathas loading error:', error);
     renderError('Impossible de charger les applications pour le moment.');
   }
 
@@ -35,17 +35,25 @@
       Authorization: `Bearer ${publishableKey}`
     };
 
-    const [classes, applications, classApplications] = await Promise.all([
+    const [classes, applications, classApplications, categories, applicationCategories] = await Promise.all([
       apiGet(`${url}/rest/v1/classes?select=id,slug,nom`, headers),
       apiGet(`${url}/rest/v1/applications?select=id,nom,url,miniature_url,description,actif&actif=eq.true`, headers),
-      apiGet(`${url}/rest/v1/class_applications?select=class_id,application_id,visible,du_jour,niveau,domaine,ordre`, headers)
+      apiGet(`${url}/rest/v1/class_applications?select=class_id,application_id,visible,du_jour,niveau,domaine,ordre`, headers),
+      apiGet(`${url}/rest/v1/categories?select=id,nom`, headers),
+      apiGet(`${url}/rest/v1/application_categories?select=application_id,category_id`, headers)
     ]);
 
-    const classRow =
-      classes.find(row => row.slug === slug) ||
-      classes.find(row => row.slug === 'observation');
-
+    const classRow = classes.find(row => row.slug === slug) || classes.find(row => row.slug === 'observation');
     if (!classRow) throw new Error('Classe introuvable dans Supabase.');
+
+    const categoryById = new Map(categories.map(cat => [cat.id, cat.nom]));
+    const categoriesByApp = new Map();
+
+    applicationCategories.forEach(link => {
+      if (!categoriesByApp.has(link.application_id)) categoriesByApp.set(link.application_id, []);
+      const name = categoryById.get(link.category_id);
+      if (name) categoriesByApp.get(link.application_id).push(name);
+    });
 
     const settingsByApp = new Map(
       classApplications
@@ -68,7 +76,8 @@
           daily: settings.du_jour === true,
           level: settings.niveau,
           domain: settings.domaine,
-          order: settings.ordre ?? 0
+          order: settings.ordre ?? 0,
+          categories: categoriesByApp.get(app.id) || []
         };
       })
       .filter(Boolean)
@@ -90,7 +99,6 @@
 
   function renderHub(allApps) {
     levelsHost.innerHTML = '';
-
     const visibleApps = allApps.filter(app => app.visible);
     const dailyApps = visibleApps.filter(app => app.daily);
 
@@ -98,11 +106,7 @@
     renderAppsInto(dailyHost, dailyApps, true);
 
     levelsDef.forEach(levelDef => {
-      const node = document
-        .getElementById('levelTemplate')
-        .content.firstElementChild
-        .cloneNode(true);
-
+      const node = document.getElementById('levelTemplate').content.firstElementChild.cloneNode(true);
       const levelApps = visibleApps.filter(app => app.level === levelDef.key);
 
       node.querySelector('.level-title').textContent = levelDef.label;
@@ -123,10 +127,7 @@
         toggle.setAttribute('aria-expanded', String(!collapsed));
       });
 
-      /* Calcul / Géométrie / Grandeurs restent stockés dans Supabase,
-         mais sont volontairement regroupés à l'affichage. */
       renderAppsInto(node.querySelector('.level-apps'), levelApps, true);
-
       levelsHost.appendChild(node);
     });
   }
@@ -144,18 +145,12 @@
       return;
     }
 
-    /* Garantie : une application n'apparaît qu'une fois dans un niveau. */
     const uniqueApps = [...new Map(apps.map(app => [app.id, app])).values()];
-
     uniqueApps.forEach(app => host.appendChild(makeAppCard(app)));
   }
 
   function makeAppCard(app) {
-    const card = document
-      .getElementById('appTemplate')
-      .content.firstElementChild
-      .cloneNode(true);
-
+    const card = document.getElementById('appTemplate').content.firstElementChild.cloneNode(true);
     card.href = app.url || '#';
     card.target = '_self';
     card.querySelector('.app-name').textContent = app.name;
