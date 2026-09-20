@@ -1,12 +1,6 @@
-# Correctif Math'as
+# Ajustement tailles miniatures
 
-Le paquet précédent était incomplet : il manquait `config.js`.
-Cette version contient les 4 fichiers nécessaires et conserve le chargeur Supabase qui fonctionnait.
+- Sélection du jour : miniatures réduites d’environ 30%.
+- Objectif / Dépassement / Révision / Outils : miniatures agrandies d’environ 30%.
 
-Remplace dans GitHub :
-- index.html
-- styles.css
-- app.js
-- config.js
-
-Puis Commit changes, attends le redéploiement GitHub Pages et fais Ctrl + F5.
+Remplace au minimum `styles.css` dans GitHub, puis fais Commit changes et Ctrl + F5.

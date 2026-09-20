@@ -164,11 +164,12 @@ h1 {
 }
 
 .daily-grid {
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 160px));
+  justify-content: start;
 }
 
 .level-apps {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 150px));
+  grid-template-columns: repeat(auto-fill, minmax(155px, 195px));
   justify-content: start;
 }
 
@@ -212,8 +213,8 @@ h1 {
 }
 
 .level-apps .app-meta { padding: 8px 9px 10px; }
-.level-apps .app-name { font-size: .86rem; }
-.level-apps .app-scores { font-size: .7rem; }
+.level-apps .app-name { font-size: .92rem; }
+.level-apps .app-scores { font-size: .74rem; }
 
 .app-scores { color: var(--muted); }
 
@@ -237,5 +238,5 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
 
 @media (max-width: 700px) {
   .daily-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .level-apps { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .level-apps { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
