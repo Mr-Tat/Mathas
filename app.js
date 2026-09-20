@@ -9,10 +9,10 @@
   document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
   const levelsDef = [
-    { key: 'objectif', label: 'Objectif', domains: true },
-    { key: 'depassement', label: 'Dépassement', domains: true },
-    { key: 'revision', label: 'Révision', domains: true },
-    { key: 'outil', label: 'Outils', domains: false }
+    { key: 'objectif', label: 'Objectif', domains: true, openByDefault: true },
+    { key: 'depassement', label: 'Dépassement', domains: true, openByDefault: false },
+    { key: 'revision', label: 'Révision', domains: true, openByDefault: false },
+    { key: 'outil', label: 'Outils', domains: false, openByDefault: false }
   ];
   const domainLabels = {
     calcul: 'Calcul',
@@ -111,14 +111,16 @@
 
     levelsDef.forEach(levelDef => {
       const node = document.getElementById('levelTemplate').content.firstElementChild.cloneNode(true);
-      node.classList.add('collapsed');
+
+      if (!levelDef.openByDefault) node.classList.add('collapsed');
+      else node.classList.remove('collapsed');
 
       const levelApps = visibleApps.filter(app => app.level === levelDef.key);
       node.querySelector('.level-title').textContent = levelDef.label;
       node.querySelector('.level-count').textContent = countLabel(levelApps.length);
 
       const toggle = node.querySelector('.level-toggle');
-      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-expanded', String(levelDef.openByDefault));
       toggle.addEventListener('click', () => {
         const collapsed = node.classList.toggle('collapsed');
         toggle.setAttribute('aria-expanded', String(!collapsed));
@@ -150,6 +152,9 @@
 
     const toggle = node.querySelector('.domain-toggle');
     const content = node.querySelector('.domain-content');
+
+    toggle.setAttribute('aria-expanded', 'false');
+    content.hidden = true;
 
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') === 'true';
@@ -190,6 +195,9 @@
 
     const toggle = node.querySelector('.category-toggle');
     const content = node.querySelector('.category-content');
+
+    toggle.setAttribute('aria-expanded', 'true');
+    content.hidden = false;
 
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') === 'true';

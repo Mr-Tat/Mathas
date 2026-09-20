@@ -21,15 +21,12 @@
   <main class="page-shell">
     <section class="daily-section panel panel-hero" aria-labelledby="dailyTitle">
       <div class="section-heading decorated-heading">
-        <div>
-          <p class="section-kicker">Aujourd'hui</p>
-          <div class="title-row">
-            <h2 id="dailyTitle">Sélection du jour</h2>
-            <span id="dailyCount" class="count-pill">0 app</span>
-          </div>
+        <div class="title-row title-row-large">
+          <h2 id="dailyTitle">Sélection du jour</h2>
+          <span id="dailyCount" class="count-pill">0 app</span>
         </div>
       </div>
-      <div id="dailyApps" class="app-grid empty-grid">
+      <div id="dailyApps" class="app-grid daily-grid empty-grid">
         <p class="empty-state">Aucune application sélectionnée pour le moment.</p>
       </div>
     </section>
@@ -65,11 +62,11 @@
 
   <template id="categoryTemplate">
     <article class="category-card">
-      <button class="category-toggle" type="button" aria-expanded="false">
+      <button class="category-toggle" type="button" aria-expanded="true">
         <span class="category-name"></span>
         <span class="category-count"></span>
       </button>
-      <div class="category-content" hidden>
+      <div class="category-content">
         <div class="app-grid category-apps"></div>
       </div>
     </article>
