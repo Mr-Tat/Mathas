@@ -152,7 +152,8 @@
   function makeAppCard(app) {
     const card = document.getElementById('appTemplate').content.firstElementChild.cloneNode(true);
     card.href = app.url || '#';
-    card.target = '_self';
+    card.target = '_blank';
+    card.rel = 'noopener noreferrer';
     card.querySelector('.app-name').textContent = app.name;
 
     const initial = card.querySelector('.app-initial');
