@@ -5,7 +5,8 @@ window.MATHAS_CONFIG = {
     phase2: { label: "Phase 2", theme: "theme-phase2" }
   },
 
-  // Plus tard, on remplacera ces données par Supabase.
-  // La page est déjà prête pour accueillir les applications.
-  apps: []
+  supabase: {
+    url: "https://jftzuslpelgzbdrftszw.supabase.co",
+    publishableKey: "sb_publishable_gOUoUYR47BWMhub38HBsMQ_IrxyvNMH"
+  }
 };
