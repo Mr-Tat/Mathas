@@ -9,10 +9,10 @@
   document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
   const levelsDef = [
-    { key: 'objectif', label: 'Objectif', openByDefault: true },
-    { key: 'depassement', label: 'Dépassement', openByDefault: false },
-    { key: 'revision', label: 'Révision', openByDefault: false },
-    { key: 'outil', label: 'Outils', openByDefault: true }
+    { key: 'objectif', label: 'Objectif', description: 'Niveau visé', openByDefault: true },
+    { key: 'depassement', label: 'Dépassement', description: 'Niveau futur ou difficile', openByDefault: false },
+    { key: 'revision', label: 'Révision', description: 'Niveau facile ou rappel', openByDefault: false },
+    { key: 'outil', label: 'Outils', description: 'Pour t’aider', openByDefault: true }
   ];
 
   const levelsHost = document.getElementById('levels');
@@ -110,6 +110,7 @@
       const levelApps = visibleApps.filter(app => app.level === levelDef.key);
 
       node.querySelector('.level-title').textContent = levelDef.label;
+      node.querySelector('.level-description').textContent = levelDef.description || '';
       node.querySelector('.level-count').textContent = countLabel(levelApps.length);
 
       const toggle = node.querySelector('.level-toggle');
@@ -178,7 +179,25 @@
     const resultats = getResultats(app.url);
 
     if (!resultats.dernier && !resultats.meilleur) {
-      scoresHost.textContent = 'Pas encore de score';
+      scoresHost.classList.add('score-list');
+
+      const lastRow = document.createElement('span');
+      lastRow.className = 'score-row';
+      const lastLabel = document.createElement('strong');
+      lastLabel.textContent = 'Dernier :';
+      lastLabel.style.textDecoration = 'underline';
+      lastLabel.style.fontWeight = '800';
+      lastRow.append(lastLabel, document.createTextNode(' Pas de score'));
+
+      const bestRow = document.createElement('span');
+      bestRow.className = 'score-row';
+      const bestLabel = document.createElement('strong');
+      bestLabel.textContent = 'Meilleur :';
+      bestLabel.style.textDecoration = 'underline';
+      bestLabel.style.fontWeight = '800';
+      bestRow.append(bestLabel, document.createTextNode(' Pas de score'));
+
+      scoresHost.replaceChildren(lastRow, bestRow);
       return card;
     }
 

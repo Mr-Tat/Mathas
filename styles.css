@@ -242,22 +242,17 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
 }
 
 
-/* ===== Scores Math'as : 3 derniers résultats ===== */
-.score-list {
+/* ===== Petites explications des catégories de niveau ===== */
+.level-heading-group {
   display: grid;
-  gap: 3px;
-}
-
-.score-row {
-  display: block;
-  line-height: 1.2;
-  white-space: normal;
-}
-
-.level-apps .score-list {
   gap: 2px;
+  text-align: left;
 }
 
-.level-apps .score-row {
-  font-size: .62rem;
+.level-description {
+  color: var(--muted);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
