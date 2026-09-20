@@ -303,7 +303,4 @@
     levelsHost.innerHTML = '';
   }
 
-  document.getElementById('teacherBtn').addEventListener('click', () => {
-    window.open('teacher.html', '_blank', 'noopener,noreferrer');
-  });
 })();
