@@ -222,7 +222,12 @@
     if (niveauText) details.push(String(niveauText));
     if (dateText) details.push(dateText);
 
-    row.textContent = `${label} : ${details.join(' • ')}`;
+    const labelEl = document.createElement('strong');
+    labelEl.textContent = `${label} :`;
+    labelEl.style.textDecoration = 'underline';
+    labelEl.style.fontWeight = '800';
+
+    row.append(labelEl, document.createTextNode(` ${details.join(' • ')}`));
     return row;
   }
 
