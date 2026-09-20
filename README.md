@@ -1,23 +1,21 @@
-# Math'as Hub — V4 simplifiée
+# Math'as Hub — V3 affinée
 
-Cette version simplifie temporairement l'affichage tant qu'il y a peu d'applications.
+Cette version corrige les derniers points demandés :
 
-## Changements
+- fond enrichi, plus varié, sans faux calcul ;
+- suppression des symboles décoratifs en fin de ligne ;
+- police plus lisible pour Objectif / Dépassement / Calcul / etc. ;
+- Objectif ouvert par défaut ;
+- Dépassement / Révision / Outils fermés par défaut ;
+- Calcul / Géométrie / Grandeurs fermés par défaut ;
+- catégories (Addition, etc.) ouvertes par défaut quand on ouvre un domaine ;
+- cartes de Sélection du jour conservées grandes ;
+- cartes plus bas environ 40% plus petites ;
+- suppression du petit mot "Aujourd'hui" au-dessus de Sélection du jour.
 
-- suppression de l'affichage séparé Calcul / Géométrie / Grandeurs ;
-- suppression de l'affichage par sous-catégories ;
-- chaque application n'apparaît qu'une seule fois dans son niveau ;
-- les informations Supabase restent conservées pour pouvoir réactiver ces classements plus tard ;
-- Objectif et Outils sont ouverts par défaut ;
-- Dépassement et Révision sont fermés par défaut ;
-- le sous-titre devient : "Le hub de math de Monsieur Tatas" ;
-- Objectif / Dépassement / Révision / Outils utilisent une police Lexend plus lisible ;
-- Sélection du jour reste grande ;
-- les cartes sous les niveaux sont nettement plus petites.
+## Installation
 
-## Mise à jour GitHub
-
-Dans le dépôt `Mathas`, remplace :
+Dans le dépôt `Mathas`, remplace ces fichiers :
 
 - `index.html`
 - `styles.css`
@@ -25,4 +23,4 @@ Dans le dépôt `Mathas`, remplace :
 - `config.js`
 - `README.md`
 
-Puis fais **Commit changes** et recharge avec **Ctrl + F5**.
+Puis valide avec **Commit changes** et recharge le site avec **Ctrl + F5**.
