@@ -175,56 +175,88 @@
       return card;
     }
 
-    const scores = getScores(app.url);
+    const resultats = getResultats(app.url);
 
-    if (!scores.length) {
+    if (!resultats.dernier && !resultats.meilleur) {
       scoresHost.textContent = 'Pas encore de score';
       return card;
     }
 
     scoresHost.classList.add('score-list');
-    scoresHost.replaceChildren(
-      ...scores.slice(0, 3).map(score => {
-        const row = document.createElement('span');
-        row.className = 'score-row';
+    scoresHost.replaceChildren();
 
-        const scoreText =
-          score.total !== undefined && score.total !== null
-            ? `${score.score}/${score.total}`
-            : String(score.score ?? '');
+    if (resultats.dernier) {
+      scoresHost.appendChild(
+        makeScoreRow('Dernier', resultats.dernier)
+      );
+    }
 
-        const levelText =
-          score.niveau ??
-          score.level ??
-          score.difficulte ??
-          score.difficulty ??
-          '';
-
-        const dateText = formatScoreDate(score.date);
-
-        const parts = [scoreText];
-        if (levelText) parts.push(String(levelText));
-        if (dateText) parts.push(dateText);
-
-        row.textContent = parts.join(' • ');
-        return row;
-      })
-    );
+    if (resultats.meilleur) {
+      scoresHost.appendChild(
+        makeScoreRow('Meilleur', resultats.meilleur)
+      );
+    }
 
     return card;
   }
 
-  function getScores(appUrl) {
+  function makeScoreRow(label, resultat) {
+    const row = document.createElement('span');
+    row.className = 'score-row';
+
+    const scoreText =
+      resultat.total !== undefined && resultat.total !== null
+        ? `${resultat.score}/${resultat.total}`
+        : String(resultat.score ?? '');
+
+    const niveauText =
+      resultat.niveau ??
+      resultat.level ??
+      resultat.difficulte ??
+      resultat.difficulty ??
+      '';
+
+    const dateText = formatScoreDate(resultat.date);
+
+    const details = [scoreText];
+    if (niveauText) details.push(String(niveauText));
+    if (dateText) details.push(dateText);
+
+    row.textContent = `${label} : ${details.join(' • ')}`;
+    return row;
+  }
+
+  function getResultats(appUrl) {
     try {
       const key = getScoreStorageKey(appUrl);
-      if (!key) return [];
+      if (!key) return { dernier: null, meilleur: null };
 
       const raw = localStorage.getItem(key);
-      const data = raw ? JSON.parse(raw) : [];
+      if (!raw) return { dernier: null, meilleur: null };
 
-      return Array.isArray(data) ? data : [];
+      const data = JSON.parse(raw);
+
+      // Nouveau format attendu :
+      // { dernier: {...}, meilleur: {...} }
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        return {
+          dernier: data.dernier ?? null,
+          meilleur: data.meilleur ?? null
+        };
+      }
+
+      // Compatibilité provisoire avec l'ancien format en tableau :
+      // le plus récent est affiché comme "Dernier".
+      if (Array.isArray(data) && data.length) {
+        return {
+          dernier: data[0] ?? null,
+          meilleur: null
+        };
+      }
+
+      return { dernier: null, meilleur: null };
     } catch {
-      return [];
+      return { dernier: null, meilleur: null };
     }
   }
 
