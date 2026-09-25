@@ -521,3 +521,126 @@ textarea {
     display: none;
   }
 }
+
+
+/* ===== Miniatures : glisser-déposer vers Supabase Storage ===== */
+.image-field {
+  margin: 16px 0;
+}
+
+.field-title {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 700;
+}
+
+.image-drop-zone {
+  min-height: 170px;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: 2px dashed rgba(42,199,216,.38);
+  border-radius: 16px;
+  background: rgba(42,199,216,.055);
+  cursor: pointer;
+  transition:
+    border-color .15s ease,
+    background .15s ease,
+    transform .15s ease;
+}
+
+.image-drop-zone:hover,
+.image-drop-zone:focus-visible,
+.image-drop-zone.drag-over {
+  outline: none;
+  border-color: rgba(42,199,216,.78);
+  background: rgba(42,199,216,.105);
+}
+
+.image-drop-zone.drag-over {
+  transform: scale(1.01);
+}
+
+.image-drop-prompt {
+  display: grid;
+  gap: 5px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.image-drop-prompt strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.image-drop-prompt small {
+  opacity: .78;
+}
+
+.image-preview-wrap {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.image-preview-wrap img {
+  width: 118px;
+  height: 118px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.04);
+}
+
+.image-preview-meta {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.image-preview-meta strong,
+.image-preview-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-preview-meta span {
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.small-btn {
+  padding: 7px 10px;
+  font-size: .82rem;
+}
+
+.image-url-label {
+  margin-top: 12px;
+}
+
+.image-help {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 520px) {
+  .image-preview-wrap {
+    grid-template-columns: 88px 1fr;
+  }
+
+  .image-preview-wrap img {
+    width: 88px;
+    height: 88px;
+  }
+}

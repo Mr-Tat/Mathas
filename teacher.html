@@ -117,10 +117,48 @@
         <input id="appUrlInput" type="url" placeholder="https://mr-tat.github.io/..." required />
       </label>
 
-      <label>
-        URL de la miniature
-        <input id="appThumbInput" type="url" placeholder="https://raw.githubusercontent.com/..." />
-      </label>
+      <div class="image-field">
+        <span class="field-title">Miniature</span>
+
+        <div id="imageDropZone" class="image-drop-zone" tabindex="0" role="button"
+             aria-label="Choisir ou déposer une miniature">
+          <input id="appImageFile" type="file" accept="image/*" hidden />
+
+          <div id="imageDropPrompt" class="image-drop-prompt">
+            <strong>Glisse une image ici</strong>
+            <span>ou clique pour choisir un fichier</span>
+            <small>PNG, JPG, WEBP…</small>
+          </div>
+
+          <div id="imagePreviewWrap" class="image-preview-wrap hidden">
+            <img id="imagePreview" alt="Aperçu de la miniature" />
+            <div class="image-preview-meta">
+              <strong id="imagePreviewName">Miniature</strong>
+              <span id="imagePreviewStatus">Prête</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-actions">
+          <button id="clearImageBtn" class="secondary small-btn hidden" type="button">
+            Retirer la nouvelle image
+          </button>
+          <button id="copyImageUrlBtn" class="secondary small-btn" type="button">
+            Copier l’URL
+          </button>
+        </div>
+
+        <label class="image-url-label">
+          URL de la miniature
+          <input id="appThumbInput" type="url"
+                 placeholder="Remplie automatiquement après l’envoi, ou colle une URL existante" />
+        </label>
+
+        <p class="image-help">
+          Si tu déposes une image, elle sera envoyée automatiquement dans
+          <strong>mathas-images/miniatures</strong> lors de l’enregistrement.
+        </p>
+      </div>
 
       <label>
         Description

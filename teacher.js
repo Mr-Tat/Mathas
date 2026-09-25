@@ -25,6 +25,23 @@
   const dialogMessage = document.getElementById('dialogMessage');
   const deleteAppBtn = document.getElementById('deleteAppBtn');
   const newAppNote = document.getElementById('newAppNote');
+  const imageDropZone = document.getElementById('imageDropZone');
+  const appImageFile = document.getElementById('appImageFile');
+  const imageDropPrompt = document.getElementById('imageDropPrompt');
+  const imagePreviewWrap = document.getElementById('imagePreviewWrap');
+  const imagePreview = document.getElementById('imagePreview');
+  const imagePreviewName = document.getElementById('imagePreviewName');
+  const imagePreviewStatus = document.getElementById('imagePreviewStatus');
+  const clearImageBtn = document.getElementById('clearImageBtn');
+  const copyImageUrlBtn = document.getElementById('copyImageUrlBtn');
+  const appThumbInput = document.getElementById('appThumbInput');
+
+  const IMAGE_BUCKET = 'mathas-images';
+  const IMAGE_FOLDER = 'miniatures';
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+  let selectedImageFile = null;
+  let selectedImageObjectUrl = null;
 
   let currentClassSlug = 'observation';
   let classRows = [];
@@ -112,6 +129,78 @@
 
     if (!confirmed) return;
     await deleteGlobalApp(app);
+  });
+
+
+  imageDropZone.addEventListener('click', () => {
+    appImageFile.click();
+  });
+
+  imageDropZone.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      appImageFile.click();
+    }
+  });
+
+  appImageFile.addEventListener('change', () => {
+    const file = appImageFile.files?.[0];
+    if (file) selectImageFile(file);
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    imageDropZone.addEventListener(eventName, event => {
+      event.preventDefault();
+      imageDropZone.classList.add('drag-over');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    imageDropZone.addEventListener(eventName, event => {
+      event.preventDefault();
+      imageDropZone.classList.remove('drag-over');
+    });
+  });
+
+  imageDropZone.addEventListener('drop', event => {
+    const file = event.dataTransfer?.files?.[0];
+    if (file) selectImageFile(file);
+  });
+
+  clearImageBtn.addEventListener('click', () => {
+    clearSelectedImage();
+    const currentUrl = appThumbInput.value.trim();
+    if (currentUrl) {
+      showImagePreviewFromUrl(currentUrl);
+    } else {
+      showEmptyImageDropZone();
+    }
+  });
+
+  copyImageUrlBtn.addEventListener('click', async () => {
+    const url = appThumbInput.value.trim();
+
+    if (!url) {
+      setMessage(dialogMessage, 'Aucune URL de miniature à copier.', 'error');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage(dialogMessage, 'URL de la miniature copiée.', 'success');
+    } catch {
+      appThumbInput.select();
+      document.execCommand('copy');
+      setMessage(dialogMessage, 'URL de la miniature copiée.', 'success');
+    }
+  });
+
+  appThumbInput.addEventListener('change', () => {
+    if (!selectedImageFile) {
+      const url = appThumbInput.value.trim();
+      if (url) showImagePreviewFromUrl(url);
+      else showEmptyImageDropZone();
+    }
   });
 
   async function showTeacherPanel() {
@@ -302,12 +391,12 @@
 
   function openAppDialog(app = null) {
     appForm.reset();
+    clearSelectedImage();
     setMessage(dialogMessage, '');
 
     const editId = document.getElementById('editAppId');
     const nameInput = document.getElementById('appNameInput');
     const urlInput = document.getElementById('appUrlInput');
-    const thumbInput = document.getElementById('appThumbInput');
     const descriptionInput = document.getElementById('appDescriptionInput');
 
     if (app) {
@@ -315,21 +404,30 @@
       editId.value = app.id;
       nameInput.value = app.nom || '';
       urlInput.value = app.url || '';
-      thumbInput.value = app.miniature_url || '';
+      appThumbInput.value = app.miniature_url || '';
       descriptionInput.value = app.description || '';
       deleteAppBtn.classList.remove('hidden');
       newAppNote.classList.add('hidden');
+
+      if (app.miniature_url) {
+        showImagePreviewFromUrl(app.miniature_url);
+      } else {
+        showEmptyImageDropZone();
+      }
     } else {
       dialogTitle.textContent = 'Ajouter une application';
       editId.value = '';
+      appThumbInput.value = '';
       deleteAppBtn.classList.add('hidden');
       newAppNote.classList.remove('hidden');
+      showEmptyImageDropZone();
     }
 
     appDialog.showModal();
   }
 
   function closeAppDialog() {
+    clearSelectedImage();
     if (appDialog.open) appDialog.close();
   }
 
@@ -337,10 +435,17 @@
     const idValue = document.getElementById('editAppId').value;
     const appId = idValue ? Number(idValue) : null;
 
+    const existingApp = appId
+      ? appRows.find(item => item.id === appId)
+      : null;
+
+    const previousImageUrl = existingApp?.miniature_url || null;
+    let uploadedImagePath = null;
+
     const payload = {
       nom: document.getElementById('appNameInput').value.trim(),
       url: document.getElementById('appUrlInput').value.trim(),
-      miniature_url: document.getElementById('appThumbInput').value.trim() || null,
+      miniature_url: appThumbInput.value.trim() || null,
       description: document.getElementById('appDescriptionInput').value.trim() || null,
       actif: true
     };
@@ -350,10 +455,23 @@
       return;
     }
 
-    document.getElementById('saveAppBtn').disabled = true;
-    setMessage(dialogMessage, appId ? 'Enregistrement…' : 'Création…');
+    const saveBtn = document.getElementById('saveAppBtn');
+    saveBtn.disabled = true;
 
     try {
+      if (selectedImageFile) {
+        setMessage(dialogMessage, 'Envoi de la miniature…');
+
+        const upload = await uploadImageForApp(selectedImageFile, payload.nom);
+        uploadedImagePath = upload.path;
+        payload.miniature_url = upload.publicUrl;
+        appThumbInput.value = upload.publicUrl;
+
+        imagePreviewStatus.textContent = 'Image envoyée';
+      }
+
+      setMessage(dialogMessage, appId ? 'Enregistrement…' : 'Création…');
+
       if (appId) {
         const { error } = await client
           .from('applications')
@@ -361,6 +479,14 @@
           .eq('id', appId);
 
         if (error) throw error;
+
+        if (
+          uploadedImagePath &&
+          previousImageUrl &&
+          previousImageUrl !== payload.miniature_url
+        ) {
+          await removeStorageImageFromPublicUrl(previousImageUrl);
+        }
 
         setMessage(dialogMessage, 'Application mise à jour.', 'success');
       } else {
@@ -392,8 +518,14 @@
           .insert(classLinks);
 
         if (linksError) {
-          // Évite de laisser une appli orpheline si la création des réglages échoue.
           await client.from('applications').delete().eq('id', created.id);
+
+          if (uploadedImagePath) {
+            await client.storage
+              .from(IMAGE_BUCKET)
+              .remove([uploadedImagePath]);
+          }
+
           throw linksError;
         }
 
@@ -408,16 +540,23 @@
 
       setTimeout(() => {
         closeAppDialog();
-      }, 650);
+      }, 700);
     } catch (error) {
       console.error(error);
+
+      if (uploadedImagePath && !appId) {
+        await client.storage
+          .from(IMAGE_BUCKET)
+          .remove([uploadedImagePath]);
+      }
+
       setMessage(
         dialogMessage,
         `Erreur : ${error.message || 'enregistrement impossible'}`,
         'error'
       );
     } finally {
-      document.getElementById('saveAppBtn').disabled = false;
+      saveBtn.disabled = false;
     }
   }
 
@@ -426,7 +565,6 @@
     setMessage(dialogMessage, 'Suppression…');
 
     try {
-      // On supprime d'abord toutes les relations, puis l'application elle-même.
       const { error: categoryError } = await client
         .from('application_categories')
         .delete()
@@ -448,9 +586,16 @@
 
       if (appError) throw appError;
 
+      // Nettoyage de la miniature uniquement si elle appartient à notre bucket.
+      await removeStorageImageFromPublicUrl(app.miniature_url);
+
       await loadData();
       closeAppDialog();
-      setMessage(panelMessage, `« ${app.nom} » supprimée de toutes les classes.`, 'success');
+      setMessage(
+        panelMessage,
+        `« ${app.nom} » supprimée de toutes les classes.`,
+        'success'
+      );
     } catch (error) {
       console.error(error);
       setMessage(
@@ -462,6 +607,176 @@
       deleteAppBtn.disabled = false;
     }
   }
+
+
+  function selectImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+      setMessage(dialogMessage, 'Choisis un fichier image.', 'error');
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setMessage(dialogMessage, 'L’image dépasse 10 Mo.', 'error');
+      return;
+    }
+
+    clearSelectedImage();
+    selectedImageFile = file;
+    appImageFile.value = '';
+
+    selectedImageObjectUrl = URL.createObjectURL(file);
+
+    imagePreview.src = selectedImageObjectUrl;
+    imagePreviewName.textContent = file.name;
+    imagePreviewStatus.textContent =
+      `${formatFileSize(file.size)} • sera envoyée à l’enregistrement`;
+
+    imageDropPrompt.classList.add('hidden');
+    imagePreviewWrap.classList.remove('hidden');
+    clearImageBtn.classList.remove('hidden');
+
+    setMessage(dialogMessage, 'Miniature prête à être envoyée.', 'success');
+  }
+
+  function clearSelectedImage() {
+    selectedImageFile = null;
+
+    if (selectedImageObjectUrl) {
+      URL.revokeObjectURL(selectedImageObjectUrl);
+      selectedImageObjectUrl = null;
+    }
+
+    clearImageBtn.classList.add('hidden');
+  }
+
+  function showEmptyImageDropZone() {
+    imagePreview.removeAttribute('src');
+    imagePreviewName.textContent = 'Miniature';
+    imagePreviewStatus.textContent = '';
+    imagePreviewWrap.classList.add('hidden');
+    imageDropPrompt.classList.remove('hidden');
+  }
+
+  function showImagePreviewFromUrl(url) {
+    imagePreview.src = url;
+    imagePreviewName.textContent = 'Miniature actuelle';
+    imagePreviewStatus.textContent = 'Image déjà associée à l’application';
+    imageDropPrompt.classList.add('hidden');
+    imagePreviewWrap.classList.remove('hidden');
+    clearImageBtn.classList.add('hidden');
+  }
+
+  async function uploadImageForApp(file, appName) {
+    const extension = getImageExtension(file);
+    const safeName = slugify(appName) || 'application';
+    const uniquePart = `${Date.now()}-${cryptoRandomPart()}`;
+    const path = `${IMAGE_FOLDER}/${safeName}-${uniquePart}.${extension}`;
+
+    const { error } = await client.storage
+      .from(IMAGE_BUCKET)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || undefined
+      });
+
+    if (error) throw error;
+
+    const { data } = client.storage
+      .from(IMAGE_BUCKET)
+      .getPublicUrl(path);
+
+    if (!data?.publicUrl) {
+      await client.storage.from(IMAGE_BUCKET).remove([path]);
+      throw new Error('Impossible de récupérer l’URL publique de la miniature.');
+    }
+
+    return {
+      path,
+      publicUrl: data.publicUrl
+    };
+  }
+
+  async function removeStorageImageFromPublicUrl(url) {
+    const path = getStoragePathFromPublicUrl(url);
+    if (!path) return;
+
+    const { error } = await client.storage
+      .from(IMAGE_BUCKET)
+      .remove([path]);
+
+    // Le nettoyage de l'image ne doit pas bloquer une modification/suppression
+    // déjà réussie dans la base.
+    if (error) {
+      console.warn('Nettoyage miniature impossible :', error);
+    }
+  }
+
+  function getStoragePathFromPublicUrl(url) {
+    if (!url) return null;
+
+    const prefix =
+      `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
+
+    if (!url.startsWith(prefix)) return null;
+
+    const withoutQuery = url.slice(prefix.length).split('?')[0];
+
+    try {
+      return decodeURIComponent(withoutQuery);
+    } catch {
+      return withoutQuery;
+    }
+  }
+
+  function slugify(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+  }
+
+  function getImageExtension(file) {
+    const byName = file.name
+      .split('.')
+      .pop()
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+    if (byName && byName.length <= 5) {
+      return byName === 'jpeg' ? 'jpg' : byName;
+    }
+
+    const mimeMap = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/svg+xml': 'svg'
+    };
+
+    return mimeMap[file.type] || 'png';
+  }
+
+  function cryptoRandomPart() {
+    if (window.crypto?.getRandomValues) {
+      const values = new Uint32Array(1);
+      window.crypto.getRandomValues(values);
+      return values[0].toString(36);
+    }
+
+    return Math.random().toString(36).slice(2, 9);
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} o`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+  }
+
 
   function fieldSelect(labelText, options, value, labels = {}) {
     const wrap = document.createElement('div');
