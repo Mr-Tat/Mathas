@@ -362,3 +362,11 @@ body.theme-partage {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ===== Toutes les applis / Partage : même taille que Sélection du jour ===== */
+.simple-view .simple-app-grid {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 230px));
+  justify-content: start;
+  gap: 12px;
+}
