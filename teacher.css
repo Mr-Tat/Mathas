@@ -768,3 +768,86 @@ textarea {
     grid-template-columns: 58px 1fr;
   }
 }
+
+
+/* ===== Sélecteur visuel : ajouter une appli existante à Partage ===== */
+.share-picker-field {
+  margin: 16px 0 6px;
+}
+
+.existing-share-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.existing-share-card {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  padding: 7px;
+  color: var(--text);
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  text-align: left;
+}
+
+.existing-share-card:hover {
+  border-color: rgba(42,199,216,.5);
+}
+
+.existing-share-card.selected {
+  background: rgba(42,199,216,.14);
+  border-color: rgba(42,199,216,.85);
+  box-shadow: 0 0 0 2px rgba(42,199,216,.12);
+}
+
+.existing-share-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(255,255,255,.055);
+  font-weight: 900;
+}
+
+.existing-share-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.existing-share-name {
+  min-height: 2.4em;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.share-picker-empty {
+  grid-column: 1 / -1;
+  padding: 20px;
+  text-align: center;
+}
+
+@media (max-width: 850px) {
+  .existing-share-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .existing-share-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

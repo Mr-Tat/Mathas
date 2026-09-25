@@ -30,7 +30,7 @@
   const shareActions = document.getElementById('shareActions');
   const existingShareAppDialog = document.getElementById('existingShareAppDialog');
   const existingShareAppForm = document.getElementById('existingShareAppForm');
-  const existingShareAppSelect = document.getElementById('existingShareAppSelect');
+  const existingShareAppGrid = document.getElementById('existingShareAppGrid');
   const existingShareMessage = document.getElementById('existingShareMessage');
   const imageDropZone = document.getElementById('imageDropZone');
   const appImageFile = document.getElementById('appImageFile');
@@ -69,6 +69,7 @@
   let selectedSiteImageObjectUrl = null;
 
   let appDialogMode = 'global';
+  let selectedExistingShareAppId = null;
   let currentClassSlug = 'observation';
   let classRows = [];
   let appRows = [];
@@ -1237,23 +1238,63 @@
       .filter(app => !app.partage_uniquement && !linkedIds.has(app.id))
       .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 
-    existingShareAppSelect.replaceChildren();
+    selectedExistingShareAppId = null;
+    existingShareAppGrid.replaceChildren();
+
+    const confirmBtn = document.getElementById('confirmExistingShareBtn');
+    confirmBtn.disabled = true;
 
     if (!candidates.length) {
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = 'Aucune application disponible';
-      existingShareAppSelect.appendChild(option);
-      document.getElementById('confirmExistingShareBtn').disabled = true;
+      const empty = document.createElement('p');
+      empty.className = 'muted share-picker-empty';
+      empty.textContent = 'Aucune application disponible.';
+      existingShareAppGrid.appendChild(empty);
     } else {
       candidates.forEach(app => {
-        const option = document.createElement('option');
-        option.value = String(app.id);
-        option.textContent = app.nom;
-        existingShareAppSelect.appendChild(option);
-      });
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'existing-share-card';
+        button.dataset.appId = String(app.id);
 
-      document.getElementById('confirmExistingShareBtn').disabled = false;
+        const thumb = document.createElement('div');
+        thumb.className = 'existing-share-thumb';
+
+        if (app.miniature_url) {
+          const img = document.createElement('img');
+          img.src = app.miniature_url;
+          img.alt = '';
+          img.loading = 'lazy';
+          thumb.appendChild(img);
+        } else {
+          const initial = document.createElement('span');
+          initial.textContent = (app.nom || 'M').charAt(0).toUpperCase();
+          thumb.appendChild(initial);
+        }
+
+        const name = document.createElement('span');
+        name.className = 'existing-share-name';
+        name.textContent = app.nom;
+
+        button.append(thumb, name);
+
+        button.addEventListener('click', () => {
+          selectedExistingShareAppId = app.id;
+
+          existingShareAppGrid
+            .querySelectorAll('.existing-share-card')
+            .forEach(card => {
+              card.classList.toggle(
+                'selected',
+                Number(card.dataset.appId) === app.id
+              );
+            });
+
+          confirmBtn.disabled = false;
+          setMessage(existingShareMessage, `« ${app.nom} » sélectionnée.`);
+        });
+
+        existingShareAppGrid.appendChild(button);
+      });
     }
 
     setMessage(existingShareMessage, '');
@@ -1267,7 +1308,7 @@
   }
 
   async function addExistingAppToShare() {
-    const appId = Number(existingShareAppSelect.value);
+    const appId = Number(selectedExistingShareAppId);
     const app = appRows.find(item => item.id === appId);
     const shareClass = classRows.find(cls => cls.slug === 'partage');
 

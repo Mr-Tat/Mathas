@@ -426,3 +426,29 @@ body.theme-partage {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ===== Toutes / Partage : libellé + compteur compact en haut ===== */
+.simple-class-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.simple-class-line .class-badge {
+  margin: 0;
+}
+
+.simple-top-count {
+  margin: 0;
+}
+
+.simple-view .simple-apps-section {
+  padding-top: 18px;
+}
+
+/* La grande case ne contient plus de titre : uniquement les cartes. */
+.simple-view .daily-section > .section-heading[hidden] {
+  display: none !important;
+}

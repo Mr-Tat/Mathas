@@ -32,7 +32,23 @@
   if (isSimpleView) document.body.classList.add('simple-view');
   const classLabel = document.getElementById('classLabel');
   classLabel.textContent = currentClass.label;
-  if (isSimpleView) classLabel.hidden = true;
+
+  let simpleTopCount = null;
+
+  if (isSimpleView) {
+    classLabel.hidden = false;
+
+    const line = document.createElement('div');
+    line.className = 'simple-class-line';
+
+    classLabel.parentNode.insertBefore(line, classLabel);
+    line.appendChild(classLabel);
+
+    simpleTopCount = document.createElement('span');
+    simpleTopCount.className = 'count-pill simple-top-count';
+    simpleTopCount.textContent = '0 app';
+    line.appendChild(simpleTopCount);
+  }
 
   document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
@@ -45,6 +61,7 @@
 
   const levelsHost = document.getElementById('levels');
   const dailySection = document.querySelector('.daily-section');
+  const dailyHeading = dailySection.querySelector('.section-heading');
   const dailyTitle = document.getElementById('dailyTitle');
   const dailyHost = document.getElementById('dailyApps');
   const dailyCount = document.getElementById('dailyCount');
@@ -169,13 +186,18 @@
       levelsHost.hidden = true;
       dailySection.classList.add('simple-apps-section');
       dailyHost.classList.add('simple-app-grid');
-      dailyTitle.textContent = currentClass.label;
+
+      // Pas de grand titre dans la grande case :
+      // le nom de la page et le compteur sont affichés en haut, à côté du petit badge.
+      dailyHeading.hidden = true;
 
       const simpleApps = [...visibleApps].sort(
         (a, b) => a.name.localeCompare(b.name, 'fr')
       );
 
-      dailyCount.textContent = countLabel(simpleApps.length);
+      const count = countLabel(simpleApps.length);
+      dailyCount.textContent = count;
+      if (simpleTopCount) simpleTopCount.textContent = count;
 
       renderAppsInto(
         dailyHost,
