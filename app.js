@@ -2,7 +2,29 @@
   const cfg = window.MATHAS_CONFIG;
   const params = new URLSearchParams(location.search);
   const classKey = (params.get('classe') || 'observation').toLowerCase();
-  const currentClass = cfg.classes[classKey] || cfg.classes.observation;
+
+  const specialViews = {
+    toutes: {
+      label: 'Toutes les applis',
+      theme: 'theme-toutes',
+      tabTitle: "Math'as — Toutes les applis",
+      simpleView: true,
+      showScores: true
+    },
+    partage: {
+      label: 'Partage',
+      theme: 'theme-partage',
+      tabTitle: "Math'as — Partage",
+      simpleView: true,
+      showScores: false
+    }
+  };
+
+  const currentClass =
+    specialViews[classKey] ||
+    cfg.classes[classKey] ||
+    cfg.classes.observation;
+
   const isSimpleView = currentClass.simpleView === true;
   const showScoresInSimpleView = currentClass.showScores !== false;
 
@@ -51,8 +73,42 @@
       apiGet(`${url}/rest/v1/application_categories?select=application_id,category_id`, headers)
     ]);
 
-    const classRow = classes.find(row => row.slug === slug) || classes.find(row => row.slug === 'observation');
-    if (!classRow) throw new Error('Classe introuvable dans Supabase.');
+    const classRow = classes.find(row => row.slug === slug);
+
+    if (!classRow) {
+      if (slug === 'toutes' || slug === 'partage') {
+        throw new Error(
+          `La page "${slug}" n'existe pas encore dans Supabase. Exécute setup_toutes_partage.sql.`
+        );
+      }
+
+      const observation = classes.find(row => row.slug === 'observation');
+      if (!observation) throw new Error('Classe introuvable dans Supabase.');
+      return buildAppsForClass(
+        observation,
+        applications,
+        classApplications,
+        categories,
+        applicationCategories
+      );
+    }
+
+    return buildAppsForClass(
+      classRow,
+      applications,
+      classApplications,
+      categories,
+      applicationCategories
+    );
+  }
+
+  function buildAppsForClass(
+    classRow,
+    applications,
+    classApplications,
+    categories,
+    applicationCategories
+  ) {
 
     const categoryById = new Map(categories.map(cat => [cat.id, cat.nom]));
     const categoriesByApp = new Map();

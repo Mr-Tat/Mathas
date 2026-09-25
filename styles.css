@@ -324,3 +324,41 @@ body.theme-partage {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ===== V2 : Toutes les applis / Partage en grille unique ===== */
+.simple-view .daily-section {
+  margin-bottom: 0;
+}
+
+.simple-view #levels {
+  display: none !important;
+}
+
+.simple-view .simple-apps-section {
+  padding: 24px;
+}
+
+.simple-view .simple-app-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 216px));
+  justify-content: start;
+  gap: 16px;
+}
+
+.simple-view .simple-app-grid .app-card {
+  border-radius: 18px;
+}
+
+.simple-view .simple-app-grid .app-name {
+  font-size: .98rem;
+}
+
+.simple-view .simple-app-grid .app-scores {
+  font-size: .78rem;
+}
+
+@media (max-width: 700px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
