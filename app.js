@@ -233,6 +233,7 @@
     host.innerHTML = '';
 
     if (!apps.length) {
+      host.classList.add('empty-grid');
       if (emptyMessage) {
         const p = document.createElement('p');
         p.className = 'empty-state';
@@ -241,6 +242,10 @@
       }
       return;
     }
+
+    // Dès qu'il y a des applis, on retire le mode 'grille vide'.
+    // Sinon la règle CSS de l'état vide force une seule colonne géante.
+    host.classList.remove('empty-grid');
 
     const uniqueApps = [...new Map(apps.map(app => [app.id, app])).values()];
 

@@ -1,23 +1,22 @@
-MATH'AS — V2 Toutes les applis / Partage
+Math'as — correction miniatures + raccourcis prof
 
-CORRECTIONS
------------
-- Les pages `?classe=toutes` et `?classe=partage` ne peuvent plus retomber
-  silencieusement sur Observation.
-- Si le SQL n'a pas été exécuté, un message d'erreur explicite sera affiché.
-- Les deux pages utilisent une seule grande case contenant toutes les applis.
-- Aucun bloc Sélection du jour / Objectif / Dépassement / Révision / Outils.
-- Les miniatures sont environ 20 % plus grandes.
-- Toutes les applis garde Dernier / Meilleur.
-- Partage n'affiche aucun score.
+CORRECTION HUB
+- Toutes les applis / Partage :
+  les cartes ont maintenant la même taille que Sélection du jour.
+- Plusieurs miniatures tiennent sur une ligne.
+- La cause de la miniature géante a été corrigée :
+  le conteneur gardait par erreur l'état CSS "empty-grid".
 
-À REMPLACER DANS GITHUB
------------------------
-- config.js
+PAGE PROF
+- 5 boutons de même largeur et même hauteur.
+- Plus grands qu'avant.
+- Libellés :
+  Observation / Phase 1 / Phase 2 / Toutes / Partage.
+
+À remplacer dans GitHub :
 - app.js
 - styles.css
+- teacher.html
+- teacher.css
 
-IMPORTANT
----------
-Le SQL `setup_toutes_partage.sql` doit avoir été exécuté dans Supabase.
-Après déploiement : Ctrl + F5.
+Aucun changement Supabase.

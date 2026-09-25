@@ -364,9 +364,29 @@ body.theme-partage {
 }
 
 
-/* ===== Toutes les applis / Partage : même taille que Sélection du jour ===== */
-.simple-view .simple-app-grid {
+/* ===== Correction définitive : vues Toutes / Partage =====
+   Même taille de cartes que "Sélection du jour".
+   Plusieurs cartes peuvent donc tenir sur une ligne. */
+.simple-view .simple-app-grid,
+.simple-view .simple-app-grid.empty-grid:not(:has(.empty-state)) {
   grid-template-columns: repeat(auto-fill, minmax(190px, 230px));
   justify-content: start;
+  align-items: start;
+  justify-items: stretch;
   gap: 12px;
+}
+
+.simple-view .simple-app-grid .app-card {
+  width: 100%;
+  max-width: 230px;
+}
+
+@media (max-width: 700px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simple-view .simple-app-grid .app-card {
+    max-width: none;
+  }
 }
