@@ -36,12 +36,30 @@
   const copyImageUrlBtn = document.getElementById('copyImageUrlBtn');
   const appThumbInput = document.getElementById('appThumbInput');
 
+  const siteImageDialog = document.getElementById('siteImageDialog');
+  const siteImageForm = document.getElementById('siteImageForm');
+  const siteImageFolder = document.getElementById('siteImageFolder');
+  const siteImageDropZone = document.getElementById('siteImageDropZone');
+  const siteImageFile = document.getElementById('siteImageFile');
+  const siteImagePrompt = document.getElementById('siteImagePrompt');
+  const siteImagePreviewWrap = document.getElementById('siteImagePreviewWrap');
+  const siteImagePreview = document.getElementById('siteImagePreview');
+  const siteImagePreviewName = document.getElementById('siteImagePreviewName');
+  const siteImagePreviewStatus = document.getElementById('siteImagePreviewStatus');
+  const siteImageResult = document.getElementById('siteImageResult');
+  const siteImageUrl = document.getElementById('siteImageUrl');
+  const openSiteImageBtn = document.getElementById('openSiteImageBtn');
+  const siteImageMessage = document.getElementById('siteImageMessage');
+
   const IMAGE_BUCKET = 'mathas-images';
   const IMAGE_FOLDER = 'miniatures';
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
   let selectedImageFile = null;
   let selectedImageObjectUrl = null;
+
+  let selectedSiteImageFile = null;
+  let selectedSiteImageObjectUrl = null;
 
   let currentClassSlug = 'observation';
   let classRows = [];
@@ -200,6 +218,108 @@
       const url = appThumbInput.value.trim();
       if (url) showImagePreviewFromUrl(url);
       else showEmptyImageDropZone();
+    }
+  });
+
+
+  document.getElementById('addSiteImageBtn').addEventListener('click', () => {
+    resetSiteImageDialog();
+    siteImageDialog.showModal();
+  });
+
+  document.getElementById('closeSiteImageDialogBtn').addEventListener('click', closeSiteImageDialog);
+  document.getElementById('cancelSiteImageBtn').addEventListener('click', closeSiteImageDialog);
+
+  siteImageDropZone.addEventListener('click', () => {
+    siteImageFile.click();
+  });
+
+  siteImageDropZone.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      siteImageFile.click();
+    }
+  });
+
+  siteImageFile.addEventListener('change', () => {
+    const file = siteImageFile.files?.[0];
+    if (file) selectSiteImageFile(file);
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    siteImageDropZone.addEventListener(eventName, event => {
+      event.preventDefault();
+      siteImageDropZone.classList.add('drag-over');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    siteImageDropZone.addEventListener(eventName, event => {
+      event.preventDefault();
+      siteImageDropZone.classList.remove('drag-over');
+    });
+  });
+
+  siteImageDropZone.addEventListener('drop', event => {
+    const file = event.dataTransfer?.files?.[0];
+    if (file) selectSiteImageFile(file);
+  });
+
+  siteImageForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    if (!selectedSiteImageFile) {
+      setMessage(siteImageMessage, 'Choisis d’abord une image.', 'error');
+      return;
+    }
+
+    const uploadBtn = document.getElementById('uploadSiteImageBtn');
+    uploadBtn.disabled = true;
+    setMessage(siteImageMessage, 'Envoi de l’image…');
+
+    try {
+      const result = await uploadGeneralSiteImage(
+        selectedSiteImageFile,
+        siteImageFolder.value
+      );
+
+      siteImageUrl.value = result.publicUrl;
+      openSiteImageBtn.href = result.publicUrl;
+      siteImageResult.classList.remove('hidden');
+      siteImagePreviewStatus.textContent = 'Image envoyée';
+
+      setMessage(
+        siteImageMessage,
+        'Image envoyée. Tu peux maintenant copier son URL.',
+        'success'
+      );
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        siteImageMessage,
+        `Erreur : ${error.message || 'envoi impossible'}`,
+        'error'
+      );
+    } finally {
+      uploadBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('copySiteImageUrlBtn').addEventListener('click', async () => {
+    const url = siteImageUrl.value.trim();
+
+    if (!url) {
+      setMessage(siteImageMessage, 'Aucune URL à copier.', 'error');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage(siteImageMessage, 'URL copiée.', 'success');
+    } catch {
+      siteImageUrl.select();
+      document.execCommand('copy');
+      setMessage(siteImageMessage, 'URL copiée.', 'success');
     }
   });
 
@@ -775,6 +895,100 @@
     if (bytes < 1024) return `${bytes} o`;
     if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+  }
+
+
+
+  function resetSiteImageDialog() {
+    clearSelectedSiteImage();
+    siteImageForm.reset();
+    siteImageFolder.value = 'logos';
+    siteImageResult.classList.add('hidden');
+    siteImageUrl.value = '';
+    openSiteImageBtn.href = '#';
+    siteImagePreview.removeAttribute('src');
+    siteImagePreviewName.textContent = 'Image';
+    siteImagePreviewStatus.textContent = '';
+    siteImagePreviewWrap.classList.add('hidden');
+    siteImagePrompt.classList.remove('hidden');
+    setMessage(siteImageMessage, '');
+  }
+
+  function closeSiteImageDialog() {
+    clearSelectedSiteImage();
+    if (siteImageDialog.open) siteImageDialog.close();
+  }
+
+  function selectSiteImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+      setMessage(siteImageMessage, 'Choisis un fichier image.', 'error');
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setMessage(siteImageMessage, 'L’image dépasse 10 Mo.', 'error');
+      return;
+    }
+
+    clearSelectedSiteImage();
+    selectedSiteImageFile = file;
+    siteImageFile.value = '';
+
+    selectedSiteImageObjectUrl = URL.createObjectURL(file);
+
+    siteImagePreview.src = selectedSiteImageObjectUrl;
+    siteImagePreviewName.textContent = file.name;
+    siteImagePreviewStatus.textContent =
+      `${formatFileSize(file.size)} • prête à être envoyée`;
+
+    siteImagePrompt.classList.add('hidden');
+    siteImagePreviewWrap.classList.remove('hidden');
+    siteImageResult.classList.add('hidden');
+    siteImageUrl.value = '';
+
+    setMessage(siteImageMessage, 'Image prête à être envoyée.', 'success');
+  }
+
+  function clearSelectedSiteImage() {
+    selectedSiteImageFile = null;
+
+    if (selectedSiteImageObjectUrl) {
+      URL.revokeObjectURL(selectedSiteImageObjectUrl);
+      selectedSiteImageObjectUrl = null;
+    }
+  }
+
+  async function uploadGeneralSiteImage(file, folder) {
+    const extension = getImageExtension(file);
+    const originalBaseName = file.name.replace(/\.[^.]+$/, '');
+    const safeName = slugify(originalBaseName) || 'image';
+    const uniquePart = `${Date.now()}-${cryptoRandomPart()}`;
+    const safeFolder = slugify(folder) || 'autres';
+    const path = `${safeFolder}/${safeName}-${uniquePart}.${extension}`;
+
+    const { error } = await client.storage
+      .from(IMAGE_BUCKET)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || undefined
+      });
+
+    if (error) throw error;
+
+    const { data } = client.storage
+      .from(IMAGE_BUCKET)
+      .getPublicUrl(path);
+
+    if (!data?.publicUrl) {
+      await client.storage.from(IMAGE_BUCKET).remove([path]);
+      throw new Error('Impossible de récupérer l’URL publique de l’image.');
+    }
+
+    return {
+      path,
+      publicUrl: data.publicUrl
+    };
   }
 
 

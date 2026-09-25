@@ -72,6 +72,7 @@
           <div class="toolbar-actions">
             <input id="searchInput" type="search" placeholder="Chercher une appli…" />
             <button id="addAppBtn" class="primary" type="button">+ Ajouter une appli</button>
+            <button id="addSiteImageBtn" class="secondary site-image-btn" type="button">+ Ajouter une image</button>
             <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
           </div>
         </div>
@@ -178,6 +179,75 @@
       </div>
 
       <p id="dialogMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
+
+
+  <dialog id="siteImageDialog" class="app-dialog">
+    <form id="siteImageForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Bibliothèque d’images</p>
+          <h2>Ajouter une image</h2>
+        </div>
+        <button id="closeSiteImageDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <label>
+        Dossier
+        <select id="siteImageFolder">
+          <option value="logos">Logos</option>
+          <option value="backgrounds">Fonds d’écran</option>
+          <option value="interface">Interface</option>
+          <option value="illustrations">Illustrations</option>
+          <option value="autres">Autres</option>
+        </select>
+      </label>
+
+      <div class="image-field">
+        <span class="field-title">Image</span>
+
+        <div id="siteImageDropZone" class="image-drop-zone" tabindex="0" role="button"
+             aria-label="Choisir ou déposer une image">
+          <input id="siteImageFile" type="file" accept="image/*" hidden />
+
+          <div id="siteImagePrompt" class="image-drop-prompt">
+            <strong>Glisse une image ici</strong>
+            <span>ou clique pour choisir un fichier</span>
+            <small>PNG, JPG, WEBP, SVG…</small>
+          </div>
+
+          <div id="siteImagePreviewWrap" class="image-preview-wrap hidden">
+            <img id="siteImagePreview" alt="Aperçu de l’image" />
+            <div class="image-preview-meta">
+              <strong id="siteImagePreviewName">Image</strong>
+              <span id="siteImagePreviewStatus">Prête</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="siteImageResult" class="site-image-result hidden">
+        <label>
+          URL publique
+          <input id="siteImageUrl" type="text" readonly />
+        </label>
+
+        <div class="image-actions">
+          <button id="copySiteImageUrlBtn" class="secondary" type="button">Copier l’URL</button>
+          <a id="openSiteImageBtn" class="link-button" href="#" target="_blank" rel="noopener noreferrer">
+            Ouvrir l’image
+          </a>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <span class="dialog-spacer"></span>
+        <button id="cancelSiteImageBtn" class="secondary" type="button">Fermer</button>
+        <button id="uploadSiteImageBtn" class="primary" type="submit">Envoyer l’image</button>
+      </div>
+
+      <p id="siteImageMessage" class="message" role="status"></p>
     </form>
   </dialog>
 

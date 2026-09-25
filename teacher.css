@@ -644,3 +644,35 @@ textarea {
     height: 88px;
   }
 }
+
+
+/* ===== Upload d'images générales du site ===== */
+.site-image-btn {
+  border-color: rgba(152,103,255,.45);
+  background: rgba(152,103,255,.10);
+}
+
+.site-image-result {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(126,226,168,.07);
+  border: 1px solid rgba(126,226,168,.24);
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 13px;
+  border-radius: 11px;
+  color: var(--text);
+  text-decoration: none;
+  background: rgba(255,255,255,.045);
+  border: 1px solid var(--line);
+  font-weight: 700;
+}
+
+.link-button:hover {
+  border-color: rgba(42,199,216,.55);
+}
