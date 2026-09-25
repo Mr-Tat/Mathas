@@ -19,6 +19,8 @@
   const panelMessage = document.getElementById('panelMessage');
   const appList = document.getElementById('appList');
   const searchInput = document.getElementById('searchInput');
+  const managementHint = document.getElementById('managementHint');
+  const classLegend = document.getElementById('classLegend');
   const appDialog = document.getElementById('appDialog');
   const appForm = document.getElementById('appForm');
   const dialogTitle = document.getElementById('dialogTitle');
@@ -118,6 +120,7 @@
       currentClassSlug = btn.dataset.class;
       document.querySelectorAll('.class-btn').forEach(x => x.classList.remove('active'));
       btn.classList.add('active');
+      updateTeacherViewMode();
       renderApps();
     });
   });
@@ -363,7 +366,28 @@
     classAppRows = linksRes.data || [];
 
     setMessage(panelMessage, '');
+    updateTeacherViewMode();
     renderApps();
+  }
+
+  function isSimpleTeacherView() {
+    return currentClassSlug === 'toutes' || currentClassSlug === 'partage';
+  }
+
+  function updateTeacherViewMode() {
+    const simple = isSimpleTeacherView();
+
+    classLegend.classList.toggle('hidden', simple);
+
+    if (simple) {
+      managementHint.textContent =
+        currentClassSlug === 'toutes'
+          ? 'Choisis simplement quelles applis apparaissent sur ta page Toutes les applis.'
+          : 'Choisis simplement quelles applis tu veux rendre visibles sur la page Partage.';
+    } else {
+      managementHint.textContent =
+        'Choisis d’abord la classe, puis modifie uniquement ce dont tu as besoin.';
+    }
   }
 
   function renderApps() {
@@ -387,10 +411,16 @@
         if (!q) return true;
         return app.nom.toLowerCase().includes(q);
       })
-      .sort((a, b) =>
-        (a.link.ordre ?? 0) - (b.link.ordre ?? 0) ||
-        a.app.nom.localeCompare(b.app.nom, 'fr')
-      );
+      .sort((a, b) => {
+        if (isSimpleTeacherView()) {
+          return a.app.nom.localeCompare(b.app.nom, 'fr');
+        }
+
+        return (
+          (a.link.ordre ?? 0) - (b.link.ordre ?? 0) ||
+          a.app.nom.localeCompare(b.app.nom, 'fr')
+        );
+      });
 
     appList.replaceChildren(...rows.map(createAppRow));
   }
@@ -422,6 +452,70 @@
 
     info.append(name, url);
 
+    const visibleField = checkboxField('Visible', link.visible !== false);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'save-btn';
+    saveBtn.textContent = 'Enregistrer';
+
+    const manageBtn = document.createElement('button');
+    manageBtn.type = 'button';
+    manageBtn.className = 'manage-btn';
+    manageBtn.textContent = 'Modifier';
+    manageBtn.addEventListener('click', () => openAppDialog(app));
+
+    if (isSimpleTeacherView()) {
+      row.classList.add('simple-config-row');
+
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '…';
+
+        const updates = {
+          visible: visibleField.input.checked
+        };
+
+        const { error } = await client
+          .from('class_applications')
+          .update(updates)
+          .eq('class_id', link.class_id)
+          .eq('application_id', link.application_id);
+
+        if (error) {
+          console.error(error);
+          saveBtn.textContent = 'Erreur';
+          setMessage(
+            panelMessage,
+            `Erreur lors de l’enregistrement de « ${app.nom} ».`,
+            'error'
+          );
+        } else {
+          Object.assign(link, updates);
+          saveBtn.textContent = 'Enregistré';
+          saveBtn.classList.add('saved');
+          setMessage(panelMessage, `« ${app.nom} » enregistré.`, 'success');
+
+          setTimeout(() => {
+            saveBtn.textContent = 'Enregistrer';
+            saveBtn.classList.remove('saved');
+          }, 1600);
+        }
+
+        saveBtn.disabled = false;
+      });
+
+      row.append(
+        thumb,
+        info,
+        visibleField.wrap,
+        saveBtn,
+        manageBtn
+      );
+
+      return row;
+    }
+
     const levelField = fieldSelect(
       'Niveau',
       ['objectif', 'depassement', 'revision', 'outil'],
@@ -434,23 +528,19 @@
       }
     );
 
-    const visibleField = checkboxField('Visible', link.visible !== false);
     const dailyField = checkboxField('Du jour', link.du_jour === true);
 
     const orderWrap = document.createElement('div');
     const orderLabel = document.createElement('div');
     orderLabel.className = 'field-label';
     orderLabel.textContent = 'Ordre';
+
     const orderInput = document.createElement('input');
     orderInput.className = 'order-input';
     orderInput.type = 'number';
     orderInput.value = link.ordre ?? 0;
-    orderWrap.append(orderLabel, orderInput);
 
-    const saveBtn = document.createElement('button');
-    saveBtn.type = 'button';
-    saveBtn.className = 'save-btn';
-    saveBtn.textContent = 'Enregistrer';
+    orderWrap.append(orderLabel, orderInput);
 
     saveBtn.addEventListener('click', async () => {
       saveBtn.disabled = true;
@@ -472,7 +562,11 @@
       if (error) {
         console.error(error);
         saveBtn.textContent = 'Erreur';
-        setMessage(panelMessage, `Erreur lors de l’enregistrement de « ${app.nom} ».`, 'error');
+        setMessage(
+          panelMessage,
+          `Erreur lors de l’enregistrement de « ${app.nom} ».`,
+          'error'
+        );
       } else {
         Object.assign(link, updates);
         saveBtn.textContent = 'Enregistré';
@@ -488,12 +582,6 @@
       saveBtn.disabled = false;
     });
 
-    const manageBtn = document.createElement('button');
-    manageBtn.type = 'button';
-    manageBtn.className = 'manage-btn';
-    manageBtn.textContent = 'Modifier';
-    manageBtn.addEventListener('click', () => openAppDialog(app));
-
     row.append(
       thumb,
       info,
@@ -507,7 +595,6 @@
 
     return row;
   }
-
 
   function openAppDialog(app = null) {
     appForm.reset();
@@ -626,7 +713,7 @@
         const classLinks = classRows.map((cls, index) => ({
           class_id: cls.id,
           application_id: created.id,
-          visible: false,
+          visible: cls.slug === 'toutes',
           du_jour: false,
           niveau: 'objectif',
           domaine: 'calcul',
@@ -651,7 +738,7 @@
 
         setMessage(
           dialogMessage,
-          'Application créée dans toutes les classes, invisible par défaut.',
+          'Application créée partout : visible dans Toutes les applis, invisible ailleurs.',
           'success'
         );
       }

@@ -14,6 +14,20 @@ window.MATHAS_CONFIG = {
       label: "Phase 2",
       theme: "theme-phase2",
       tabTitle: "Math'as Ph2"
+    },
+    toutes: {
+      label: "Toutes les applis",
+      theme: "theme-toutes",
+      tabTitle: "Math'as — Toutes les applis",
+      simpleView: true,
+      showScores: true
+    },
+    partage: {
+      label: "Partage",
+      theme: "theme-partage",
+      tabTitle: "Math'as — Partage",
+      simpleView: true,
+      showScores: false
     }
   },
 

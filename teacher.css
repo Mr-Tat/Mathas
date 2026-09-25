@@ -125,73 +125,59 @@ button {
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
+  grid-template-columns: .72fr .72fr .72fr 1.25fr .9fr;
+  gap: 10px;
+  margin: 4px 24px 14px;
 }
 
 .quick-link {
-  position: relative;
-  overflow: hidden;
-  min-height: 132px;
+  min-height: 52px;
   display: grid;
-  align-content: space-between;
-  gap: 6px;
-  padding: 18px;
+  place-items: center;
+  padding: 9px 12px;
   color: var(--text);
   text-decoration: none;
-  border-radius: 20px;
+  border-radius: 13px;
   border: 1px solid var(--line);
-  box-shadow: 0 14px 35px rgba(0,0,0,.24);
-  transition: transform .15s ease, border-color .15s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  transition: transform .15s ease, filter .15s ease, border-color .15s ease;
 }
 
 .quick-link:hover {
   transform: translateY(-2px);
-}
-
-.quick-link::after {
-  content: "";
-  position: absolute;
-  inset: auto -25px -35px auto;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.06);
-}
-
-.quick-link.obs {
-  background: linear-gradient(145deg, rgba(42,199,216,.28), rgba(10,18,30,.94));
-  border-color: rgba(42,199,216,.48);
-}
-
-.quick-link.ph1 {
-  background: linear-gradient(145deg, rgba(152,103,255,.28), rgba(10,18,30,.94));
-  border-color: rgba(152,103,255,.48);
-}
-
-.quick-link.ph2 {
-  background: linear-gradient(145deg, rgba(66,212,134,.25), rgba(10,18,30,.94));
-  border-color: rgba(66,212,134,.45);
-}
-
-.quick-kicker {
-  color: var(--muted);
-  font-size: .77rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  filter: brightness(1.06);
 }
 
 .quick-link strong {
   font-family: "Fredoka", sans-serif;
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: 1.05rem;
+  line-height: 1;
+  text-align: center;
 }
 
-.quick-link > span:last-child {
-  color: rgba(255,255,255,.76);
-  font-size: .86rem;
-  font-weight: 700;
+.quick-link.obs {
+  background: linear-gradient(145deg, rgba(42,199,216,.22), rgba(10,18,30,.94));
+  border-color: rgba(42,199,216,.45);
+}
+
+.quick-link.ph1 {
+  background: linear-gradient(145deg, rgba(152,103,255,.22), rgba(10,18,30,.94));
+  border-color: rgba(152,103,255,.45);
+}
+
+.quick-link.ph2 {
+  background: linear-gradient(145deg, rgba(66,212,134,.20), rgba(10,18,30,.94));
+  border-color: rgba(66,212,134,.42);
+}
+
+.quick-link.all {
+  background: linear-gradient(145deg, rgba(57,191,231,.20), rgba(10,18,30,.94));
+  border-color: rgba(57,191,231,.44);
+}
+
+.quick-link.share {
+  background: linear-gradient(145deg, rgba(240,182,74,.19), rgba(10,18,30,.94));
+  border-color: rgba(240,182,74,.43);
 }
 
 .management-card {
@@ -675,4 +661,44 @@ textarea {
 
 .link-button:hover {
   border-color: rgba(42,199,216,.55);
+}
+
+
+/* ===== Réglages simplifiés pour Toutes les applis / Partage ===== */
+.app-row.simple-config-row {
+  grid-template-columns: 74px minmax(220px, 1fr) 120px 110px 96px;
+}
+
+.simple-config-row .checkbox-wrap {
+  justify-content: center;
+}
+
+@media (max-width: 980px) {
+  .quick-links {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-inline: 0;
+  }
+
+  .quick-link {
+    min-height: 48px;
+    padding-inline: 7px;
+  }
+
+  .quick-link strong {
+    font-size: .92rem;
+  }
+
+  .app-row.simple-config-row {
+    grid-template-columns: 64px 1fr 110px;
+  }
+}
+
+@media (max-width: 650px) {
+  .quick-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-row.simple-config-row {
+    grid-template-columns: 58px 1fr;
+  }
 }

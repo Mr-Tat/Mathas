@@ -3,9 +3,15 @@
   const params = new URLSearchParams(location.search);
   const classKey = (params.get('classe') || 'observation').toLowerCase();
   const currentClass = cfg.classes[classKey] || cfg.classes.observation;
+  const isSimpleView = currentClass.simpleView === true;
+  const showScoresInSimpleView = currentClass.showScores !== false;
 
   document.body.classList.add(currentClass.theme);
-  document.getElementById('classLabel').textContent = currentClass.label;
+  if (isSimpleView) document.body.classList.add('simple-view');
+  const classLabel = document.getElementById('classLabel');
+  classLabel.textContent = currentClass.label;
+  if (isSimpleView) classLabel.hidden = true;
+
   document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
 
   const levelsDef = [
@@ -16,6 +22,8 @@
   ];
 
   const levelsHost = document.getElementById('levels');
+  const dailySection = document.querySelector('.daily-section');
+  const dailyTitle = document.getElementById('dailyTitle');
   const dailyHost = document.getElementById('dailyApps');
   const dailyCount = document.getElementById('dailyCount');
 
@@ -100,13 +108,45 @@
   function renderHub(allApps) {
     levelsHost.innerHTML = '';
     const visibleApps = allApps.filter(app => app.visible);
+
+    if (isSimpleView) {
+      levelsHost.hidden = true;
+      dailySection.classList.add('simple-apps-section');
+      dailyHost.classList.add('simple-app-grid');
+      dailyTitle.textContent = currentClass.label;
+
+      const simpleApps = [...visibleApps].sort(
+        (a, b) => a.name.localeCompare(b.name, 'fr')
+      );
+
+      dailyCount.textContent = countLabel(simpleApps.length);
+
+      renderAppsInto(
+        dailyHost,
+        simpleApps,
+        true,
+        {
+          showScores: showScoresInSimpleView,
+          respectToolLevel: false
+        }
+      );
+
+      return;
+    }
+
+    levelsHost.hidden = false;
+
     const dailyApps = visibleApps.filter(app => app.daily);
 
     dailyCount.textContent = countLabel(dailyApps.length);
     renderAppsInto(dailyHost, dailyApps, true);
 
     levelsDef.forEach(levelDef => {
-      const node = document.getElementById('levelTemplate').content.firstElementChild.cloneNode(true);
+      const node = document
+        .getElementById('levelTemplate')
+        .content.firstElementChild
+        .cloneNode(true);
+
       const levelApps = visibleApps.filter(app => app.level === levelDef.key);
 
       node.querySelector('.level-title').textContent = levelDef.label;
@@ -133,7 +173,7 @@
     });
   }
 
-  function renderAppsInto(host, apps, emptyMessage) {
+  function renderAppsInto(host, apps, emptyMessage, options = {}) {
     host.innerHTML = '';
 
     if (!apps.length) {
@@ -147,10 +187,13 @@
     }
 
     const uniqueApps = [...new Map(apps.map(app => [app.id, app])).values()];
-    uniqueApps.forEach(app => host.appendChild(makeAppCard(app)));
+
+    uniqueApps.forEach(app => {
+      host.appendChild(makeAppCard(app, options));
+    });
   }
 
-  function makeAppCard(app) {
+  function makeAppCard(app, options = {}) {
     const card = document.getElementById('appTemplate').content.firstElementChild.cloneNode(true);
     card.href = app.url || '#';
     card.target = '_blank';
@@ -169,9 +212,11 @@
     }
 
     const scoresHost = card.querySelector('.app-scores');
+    const showScores = options.showScores !== false;
+    const respectToolLevel = options.respectToolLevel !== false;
 
-    // Les applis classées dans "Outils" n'affichent jamais de scores.
-    if (app.level === 'outil') {
+    // Pages sans scores (Partage), ou Outils dans les hubs élèves.
+    if (!showScores || (respectToolLevel && app.level === 'outil')) {
       scoresHost.remove();
       return card;
     }

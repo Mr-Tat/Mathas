@@ -41,23 +41,21 @@
     </section>
 
     <section id="teacherPanel" class="hidden">
-      <section class="quick-links" aria-label="Accès rapide aux hubs élèves">
+      <section class="quick-links" aria-label="Accès rapide aux pages Math'as">
         <a class="quick-link obs" href="index.html?classe=observation" target="_blank" rel="noopener noreferrer">
-          <span class="quick-kicker">Hub élève</span>
-          <strong>Observation</strong>
-          <span>Ouvrir ↗</span>
+          <strong>Obs</strong>
         </a>
-
         <a class="quick-link ph1" href="index.html?classe=phase1" target="_blank" rel="noopener noreferrer">
-          <span class="quick-kicker">Hub élève</span>
-          <strong>Phase 1</strong>
-          <span>Ouvrir ↗</span>
+          <strong>Ph1</strong>
         </a>
-
         <a class="quick-link ph2" href="index.html?classe=phase2" target="_blank" rel="noopener noreferrer">
-          <span class="quick-kicker">Hub élève</span>
-          <strong>Phase 2</strong>
-          <span>Ouvrir ↗</span>
+          <strong>Ph2</strong>
+        </a>
+        <a class="quick-link all" href="index.html?classe=toutes" target="_blank" rel="noopener noreferrer">
+          <strong>Toutes les applis</strong>
+        </a>
+        <a class="quick-link share" href="index.html?classe=partage" target="_blank" rel="noopener noreferrer">
+          <strong>Partage</strong>
         </a>
       </section>
 
@@ -66,7 +64,7 @@
           <div>
             <p class="section-kicker">Paramètres du hub</p>
             <h2>Applications</h2>
-            <p class="muted">Choisis d'abord la classe, puis modifie uniquement ce dont tu as besoin.</p>
+            <p id="managementHint" class="muted">Choisis d'abord la classe, puis modifie uniquement ce dont tu as besoin.</p>
           </div>
 
           <div class="toolbar-actions">
@@ -77,13 +75,15 @@
           </div>
         </div>
 
-        <div class="class-switcher" role="tablist" aria-label="Choisir une classe">
+        <div class="class-switcher" role="tablist" aria-label="Choisir une page à régler">
           <button class="class-btn active" data-class="observation" type="button">Observation</button>
           <button class="class-btn" data-class="phase1" type="button">Phase 1</button>
           <button class="class-btn" data-class="phase2" type="button">Phase 2</button>
+          <button class="class-btn" data-class="toutes" type="button">Toutes les applis</button>
+          <button class="class-btn" data-class="partage" type="button">Partage</button>
         </div>
 
-        <div class="legend">
+        <div id="classLegend" class="legend">
           <span><b>Visible</b> : l'appli apparaît dans le hub</span>
           <span><b>Du jour</b> : elle apparaît aussi dans Sélection du jour</span>
           <span><b>Ordre</b> : plus petit = affiché plus tôt</span>

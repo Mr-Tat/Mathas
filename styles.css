@@ -283,3 +283,44 @@ body.theme-phase2 { --accent: #42d486; --accent-rgb: 66,212,134; }
   width: 100%;
   line-height: 1.25;
 }
+
+
+/* ===== Vues spéciales : Toutes les applis / Partage ===== */
+body.theme-toutes {
+  --accent: #39bfe7;
+  --accent-rgb: 57,191,231;
+}
+
+body.theme-partage {
+  --accent: #f0b64a;
+  --accent-rgb: 240,182,74;
+}
+
+.simple-view .simple-apps-section {
+  padding: 22px;
+}
+
+.simple-view .simple-app-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 180px));
+  justify-content: start;
+  gap: 14px;
+}
+
+.simple-view .simple-app-grid .app-name {
+  font-size: .9rem;
+  line-height: 1.12;
+}
+
+.simple-view .simple-app-grid .app-scores {
+  font-size: .72rem;
+}
+
+.simple-view .simple-app-grid.empty-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 700px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
