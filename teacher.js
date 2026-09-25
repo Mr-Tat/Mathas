@@ -27,6 +27,11 @@
   const dialogMessage = document.getElementById('dialogMessage');
   const deleteAppBtn = document.getElementById('deleteAppBtn');
   const newAppNote = document.getElementById('newAppNote');
+  const shareActions = document.getElementById('shareActions');
+  const existingShareAppDialog = document.getElementById('existingShareAppDialog');
+  const existingShareAppForm = document.getElementById('existingShareAppForm');
+  const existingShareAppSelect = document.getElementById('existingShareAppSelect');
+  const existingShareMessage = document.getElementById('existingShareMessage');
   const imageDropZone = document.getElementById('imageDropZone');
   const appImageFile = document.getElementById('appImageFile');
   const imageDropPrompt = document.getElementById('imageDropPrompt');
@@ -63,6 +68,7 @@
   let selectedSiteImageFile = null;
   let selectedSiteImageObjectUrl = null;
 
+  let appDialogMode = 'global';
   let currentClassSlug = 'observation';
   let classRows = [];
   let appRows = [];
@@ -326,6 +332,26 @@
     }
   });
 
+
+  document.getElementById('addExistingShareAppBtn').addEventListener('click', () => {
+    openExistingShareDialog();
+  });
+
+  document.getElementById('addSpecificShareAppBtn').addEventListener('click', () => {
+    openAppDialog(null, 'share-specific');
+  });
+
+  document.getElementById('closeExistingShareDialogBtn')
+    .addEventListener('click', closeExistingShareDialog);
+
+  document.getElementById('cancelExistingShareBtn')
+    .addEventListener('click', closeExistingShareDialog);
+
+  existingShareAppForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    await addExistingAppToShare();
+  });
+
   async function showTeacherPanel() {
     loginPanel.classList.add('hidden');
     teacherPanel.classList.remove('hidden');
@@ -345,7 +371,7 @@
 
     const [classesRes, appsRes, linksRes] = await Promise.all([
       client.from('classes').select('id,slug,nom').order('id'),
-      client.from('applications').select('id,nom,url,miniature_url,description,actif').eq('actif', true).order('nom'),
+      client.from('applications').select('id,nom,url,miniature_url,description,actif,partage_uniquement').eq('actif', true).order('nom'),
       client.from('class_applications').select('class_id,application_id,visible,du_jour,niveau,domaine,ordre')
     ]);
 
@@ -376,14 +402,16 @@
 
   function updateTeacherViewMode() {
     const simple = isSimpleTeacherView();
+    const isShare = currentClassSlug === 'partage';
 
     classLegend.classList.toggle('hidden', simple);
+    shareActions.classList.toggle('hidden', !isShare);
 
     if (simple) {
       managementHint.textContent =
         currentClassSlug === 'toutes'
-          ? 'Choisis simplement quelles applis apparaissent sur ta page Toutes les applis.'
-          : 'Choisis simplement quelles applis tu veux rendre visibles sur la page Partage.';
+          ? 'Cette page reprend les applications générales de Math’as.'
+          : 'Ajoute ici uniquement les applications que tu veux proposer aux collègues.';
     } else {
       managementHint.textContent =
         'Choisis d’abord la classe, puis modifie uniquement ce dont tu as besoin.';
@@ -408,6 +436,12 @@
       })
       .filter(({ app, link }) => {
         if (!link) return false;
+
+        // Une appli spécifique au partage ne doit jamais apparaître dans les autres pages.
+        if (app.partage_uniquement && currentClassSlug !== 'partage') {
+          return false;
+        }
+
         if (!q) return true;
         return app.nom.toLowerCase().includes(q);
       })
@@ -452,6 +486,13 @@
 
     info.append(name, url);
 
+    if (app.partage_uniquement) {
+      const badge = document.createElement('span');
+      badge.className = 'share-only-badge';
+      badge.textContent = 'Spécifique au partage';
+      info.appendChild(badge);
+    }
+
     const visibleField = checkboxField('Visible', link.visible !== false);
 
     const saveBtn = document.createElement('button');
@@ -463,7 +504,7 @@
     manageBtn.type = 'button';
     manageBtn.className = 'manage-btn';
     manageBtn.textContent = 'Modifier';
-    manageBtn.addEventListener('click', () => openAppDialog(app));
+    manageBtn.addEventListener('click', () => openAppDialog(app, 'edit'));
 
     if (isSimpleTeacherView()) {
       row.classList.add('simple-config-row');
@@ -504,6 +545,50 @@
 
         saveBtn.disabled = false;
       });
+
+      if (currentClassSlug === 'partage') {
+        row.classList.add('share-row');
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-share-btn';
+
+        if (app.partage_uniquement) {
+          removeBtn.textContent = 'Supprimer';
+          removeBtn.classList.add('danger-lite');
+          removeBtn.addEventListener('click', async () => {
+            const confirmed = confirm(
+              `Supprimer définitivement « ${app.nom} » ?\n\n` +
+              `Cette application est spécifique à la page Partage.`
+            );
+
+            if (!confirmed) return;
+            await deleteGlobalApp(app);
+          });
+        } else {
+          removeBtn.textContent = 'Retirer';
+          removeBtn.addEventListener('click', async () => {
+            const confirmed = confirm(
+              `Retirer « ${app.nom} » de la page Partage ?\n\n` +
+              `L'application restera disponible dans Math’as.`
+            );
+
+            if (!confirmed) return;
+            await removeAppFromShare(app, link);
+          });
+        }
+
+        row.append(
+          thumb,
+          info,
+          visibleField.wrap,
+          saveBtn,
+          manageBtn,
+          removeBtn
+        );
+
+        return row;
+      }
 
       row.append(
         thumb,
@@ -596,7 +681,9 @@
     return row;
   }
 
-  function openAppDialog(app = null) {
+  function openAppDialog(app = null, mode = 'global') {
+    appDialogMode = app ? 'edit' : mode;
+
     appForm.reset();
     clearSelectedImage();
     setMessage(dialogMessage, '');
@@ -621,12 +708,25 @@
       } else {
         showEmptyImageDropZone();
       }
+    } else if (mode === 'share-specific') {
+      dialogTitle.textContent = 'Ajouter une appli spécifique au partage';
+      editId.value = '';
+      appThumbInput.value = '';
+      deleteAppBtn.classList.add('hidden');
+      newAppNote.classList.remove('hidden');
+      newAppNote.innerHTML =
+        'Cette appli sera créée <strong>uniquement pour la page Partage</strong>. ' +
+        'Elle ne sera ajoutée ni à Observation, ni à Phase 1, ni à Phase 2, ni à Toutes.';
+      showEmptyImageDropZone();
     } else {
       dialogTitle.textContent = 'Ajouter une application';
       editId.value = '';
       appThumbInput.value = '';
       deleteAppBtn.classList.add('hidden');
       newAppNote.classList.remove('hidden');
+      newAppNote.innerHTML =
+        'La nouvelle appli sera créée dans <strong>Observation, Phase 1, Phase 2 et Toutes</strong>, ' +
+        'mais <strong>pas automatiquement dans Partage</strong>.';
       showEmptyImageDropZone();
     }
 
@@ -656,6 +756,10 @@
       description: document.getElementById('appDescriptionInput').value.trim() || null,
       actif: true
     };
+
+    if (!appId) {
+      payload.partage_uniquement = appDialogMode === 'share-specific';
+    }
 
     if (!payload.nom || !payload.url) {
       setMessage(dialogMessage, 'Le nom et l’URL sont obligatoires.', 'error');
@@ -710,15 +814,38 @@
           0
         );
 
-        const classLinks = classRows.map((cls, index) => ({
-          class_id: cls.id,
-          application_id: created.id,
-          visible: cls.slug === 'toutes',
-          du_jour: false,
-          niveau: 'objectif',
-          domaine: 'calcul',
-          ordre: maxOrder + 10 + index
-        }));
+        let classLinks;
+
+        if (appDialogMode === 'share-specific') {
+          const shareClass = classRows.find(cls => cls.slug === 'partage');
+
+          if (!shareClass) {
+            await client.from('applications').delete().eq('id', created.id);
+            throw new Error('La page Partage est introuvable dans Supabase.');
+          }
+
+          classLinks = [{
+            class_id: shareClass.id,
+            application_id: created.id,
+            visible: true,
+            du_jour: false,
+            niveau: 'objectif',
+            domaine: 'calcul',
+            ordre: maxOrder + 10
+          }];
+        } else {
+          classLinks = classRows
+            .filter(cls => cls.slug !== 'partage')
+            .map((cls, index) => ({
+              class_id: cls.id,
+              application_id: created.id,
+              visible: cls.slug === 'toutes',
+              du_jour: false,
+              niveau: 'objectif',
+              domaine: 'calcul',
+              ordre: maxOrder + 10 + index
+            }));
+        }
 
         const { error: linksError } = await client
           .from('class_applications')
@@ -736,11 +863,19 @@
           throw linksError;
         }
 
-        setMessage(
-          dialogMessage,
-          'Application créée partout : visible dans Toutes les applis, invisible ailleurs.',
-          'success'
-        );
+        if (appDialogMode === 'share-specific') {
+          setMessage(
+            dialogMessage,
+            'Application créée uniquement dans Partage.',
+            'success'
+          );
+        } else {
+          setMessage(
+            dialogMessage,
+            'Application créée dans Math’as. Elle n’est pas ajoutée automatiquement à Partage.',
+            'success'
+          );
+        }
       }
 
       await loadData();
@@ -1076,6 +1211,129 @@
       path,
       publicUrl: data.publicUrl
     };
+  }
+
+
+
+  function openExistingShareDialog() {
+    const shareClass = classRows.find(cls => cls.slug === 'partage');
+
+    if (!shareClass) {
+      setMessage(
+        panelMessage,
+        'La page Partage est introuvable dans Supabase.',
+        'error'
+      );
+      return;
+    }
+
+    const linkedIds = new Set(
+      classAppRows
+        .filter(row => row.class_id === shareClass.id)
+        .map(row => row.application_id)
+    );
+
+    const candidates = appRows
+      .filter(app => !app.partage_uniquement && !linkedIds.has(app.id))
+      .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+
+    existingShareAppSelect.replaceChildren();
+
+    if (!candidates.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Aucune application disponible';
+      existingShareAppSelect.appendChild(option);
+      document.getElementById('confirmExistingShareBtn').disabled = true;
+    } else {
+      candidates.forEach(app => {
+        const option = document.createElement('option');
+        option.value = String(app.id);
+        option.textContent = app.nom;
+        existingShareAppSelect.appendChild(option);
+      });
+
+      document.getElementById('confirmExistingShareBtn').disabled = false;
+    }
+
+    setMessage(existingShareMessage, '');
+    existingShareAppDialog.showModal();
+  }
+
+  function closeExistingShareDialog() {
+    if (existingShareAppDialog.open) {
+      existingShareAppDialog.close();
+    }
+  }
+
+  async function addExistingAppToShare() {
+    const appId = Number(existingShareAppSelect.value);
+    const app = appRows.find(item => item.id === appId);
+    const shareClass = classRows.find(cls => cls.slug === 'partage');
+
+    if (!app || !shareClass) {
+      setMessage(existingShareMessage, 'Application introuvable.', 'error');
+      return;
+    }
+
+    document.getElementById('confirmExistingShareBtn').disabled = true;
+    setMessage(existingShareMessage, 'Ajout…');
+
+    const { error } = await client
+      .from('class_applications')
+      .insert({
+        class_id: shareClass.id,
+        application_id: app.id,
+        visible: true,
+        du_jour: false,
+        niveau: 'objectif',
+        domaine: 'calcul',
+        ordre: 0
+      });
+
+    if (error) {
+      console.error(error);
+      setMessage(
+        existingShareMessage,
+        `Ajout impossible : ${error.message || 'erreur Supabase'}`,
+        'error'
+      );
+      document.getElementById('confirmExistingShareBtn').disabled = false;
+      return;
+    }
+
+    await loadData();
+    closeExistingShareDialog();
+    setMessage(
+      panelMessage,
+      `« ${app.nom} » a été ajoutée à Partage.`,
+      'success'
+    );
+  }
+
+  async function removeAppFromShare(app, link) {
+    const { error } = await client
+      .from('class_applications')
+      .delete()
+      .eq('class_id', link.class_id)
+      .eq('application_id', link.application_id);
+
+    if (error) {
+      console.error(error);
+      setMessage(
+        panelMessage,
+        `Impossible de retirer « ${app.nom} » de Partage.`,
+        'error'
+      );
+      return;
+    }
+
+    await loadData();
+    setMessage(
+      panelMessage,
+      `« ${app.nom} » a été retirée de Partage.`,
+      'success'
+    );
   }
 
 

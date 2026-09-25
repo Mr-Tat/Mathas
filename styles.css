@@ -390,3 +390,39 @@ body.theme-partage {
     max-width: none;
   }
 }
+
+
+/* ===== Toutes / Partage : jusqu'à 6 cartes sur une ligne ===== */
+.simple-view .topbar,
+.simple-view .page-shell {
+  width: min(1500px, calc(100% - 28px));
+}
+
+.simple-view .simple-app-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  justify-content: stretch;
+}
+
+.simple-view .simple-app-grid .app-card {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 1250px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .simple-view .simple-app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

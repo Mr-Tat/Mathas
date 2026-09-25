@@ -83,6 +83,15 @@
           <button class="class-btn" data-class="partage" type="button">Partage</button>
         </div>
 
+        <div id="shareActions" class="share-actions hidden">
+          <button id="addExistingShareAppBtn" class="secondary" type="button">
+            + Ajouter appli existante
+          </button>
+          <button id="addSpecificShareAppBtn" class="primary" type="button">
+            + Ajouter appli spécifique
+          </button>
+        </div>
+
         <div id="classLegend" class="legend">
           <span><b>Visible</b> : l'appli apparaît dans le hub</span>
           <span><b>Du jour</b> : elle apparaît aussi dans Sélection du jour</span>
@@ -248,6 +257,37 @@
       </div>
 
       <p id="siteImageMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
+
+
+  <dialog id="existingShareAppDialog" class="app-dialog">
+    <form id="existingShareAppForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Page Partage</p>
+          <h2>Ajouter une appli existante</h2>
+        </div>
+        <button id="closeExistingShareDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <p class="muted">
+        Choisis une application déjà présente dans Math’as. Elle sera ajoutée uniquement
+        à la page Partage ; ses autres réglages ne changeront pas.
+      </p>
+
+      <label>
+        Application
+        <select id="existingShareAppSelect"></select>
+      </label>
+
+      <div class="dialog-actions">
+        <span class="dialog-spacer"></span>
+        <button id="cancelExistingShareBtn" class="secondary" type="button">Annuler</button>
+        <button id="confirmExistingShareBtn" class="primary" type="submit">Ajouter au partage</button>
+      </div>
+
+      <p id="existingShareMessage" class="message" role="status"></p>
     </form>
   </dialog>
 
