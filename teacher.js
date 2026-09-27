@@ -411,11 +411,11 @@
     if (simple) {
       managementHint.textContent =
         currentClassSlug === 'toutes'
-          ? 'Cette page reprend les applications générales de Math’as.'
-          : 'Ajoute ici uniquement les applications que tu veux proposer aux collègues.';
+          ? 'Cette page reprend les applications générales de Math’as. Les changements sont enregistrés automatiquement.'
+          : 'Ajoute ici uniquement les applications que tu veux proposer aux collègues. Les changements sont enregistrés automatiquement.';
     } else {
       managementHint.textContent =
-        'Choisis d’abord la classe, puis modifie uniquement ce dont tu as besoin.';
+        'Choisis d’abord la classe, puis modifie ce dont tu as besoin : chaque changement est enregistré automatiquement.';
     }
   }
 
@@ -496,10 +496,11 @@
 
     const visibleField = checkboxField('Visible', link.visible !== false);
 
-    const saveBtn = document.createElement('button');
-    saveBtn.type = 'button';
-    saveBtn.className = 'save-btn';
-    saveBtn.textContent = 'Enregistrer';
+    const autoStatus = document.createElement('div');
+    autoStatus.className = 'autosave-status';
+    autoStatus.setAttribute('role', 'status');
+    autoStatus.setAttribute('aria-live', 'polite');
+    autoStatus.textContent = 'Auto';
 
     const manageBtn = document.createElement('button');
     manageBtn.type = 'button';
@@ -507,16 +508,28 @@
     manageBtn.textContent = 'Modifier';
     manageBtn.addEventListener('click', () => openAppDialog(app, 'edit'));
 
-    if (isSimpleTeacherView()) {
-      row.classList.add('simple-config-row');
+    let saveQueue = Promise.resolve();
+    let statusTimer = null;
+    let orderTimer = null;
 
-      saveBtn.addEventListener('click', async () => {
-        saveBtn.disabled = true;
-        saveBtn.textContent = '…';
+    function showAutoStatus(text, state = '') {
+      if (statusTimer) clearTimeout(statusTimer);
 
-        const updates = {
-          visible: visibleField.input.checked
-        };
+      autoStatus.textContent = text;
+      autoStatus.classList.remove('saving', 'saved', 'error');
+      if (state) autoStatus.classList.add(state);
+
+      if (state === 'saved') {
+        statusTimer = setTimeout(() => {
+          autoStatus.textContent = 'Auto';
+          autoStatus.classList.remove('saved');
+        }, 1500);
+      }
+    }
+
+    function queueSettingSave(updates, onError = null) {
+      saveQueue = saveQueue.then(async () => {
+        showAutoStatus('Enregistrement…', 'saving');
 
         const { error } = await client
           .from('class_applications')
@@ -524,28 +537,39 @@
           .eq('class_id', link.class_id)
           .eq('application_id', link.application_id);
 
-        if (error) {
-          console.error(error);
-          saveBtn.textContent = 'Erreur';
-          setMessage(
-            panelMessage,
-            `Erreur lors de l’enregistrement de « ${app.nom} ».`,
-            'error'
-          );
-        } else {
-          Object.assign(link, updates);
-          saveBtn.textContent = 'Enregistré';
-          saveBtn.classList.add('saved');
-          setMessage(panelMessage, `« ${app.nom} » enregistré.`, 'success');
+        if (error) throw error;
 
-          setTimeout(() => {
-            saveBtn.textContent = 'Enregistrer';
-            saveBtn.classList.remove('saved');
-          }, 1600);
-        }
+        Object.assign(link, updates);
+        showAutoStatus('✓ Enregistré', 'saved');
+      }).catch(error => {
+        console.error(error);
 
-        saveBtn.disabled = false;
+        if (typeof onError === 'function') onError();
+
+        showAutoStatus('Erreur', 'error');
+        setMessage(
+          panelMessage,
+          `Erreur lors de l’enregistrement de « ${app.nom} ».`,
+          'error'
+        );
       });
+
+      return saveQueue;
+    }
+
+    visibleField.input.addEventListener('change', () => {
+      const newValue = visibleField.input.checked;
+
+      queueSettingSave(
+        { visible: newValue },
+        () => {
+          visibleField.input.checked = link.visible !== false;
+        }
+      );
+    });
+
+    if (isSimpleTeacherView()) {
+      row.classList.add('simple-config-row');
 
       if (currentClassSlug === 'partage') {
         row.classList.add('share-row');
@@ -583,7 +607,7 @@
           thumb,
           info,
           visibleField.wrap,
-          saveBtn,
+          autoStatus,
           manageBtn,
           removeBtn
         );
@@ -595,7 +619,7 @@
         thumb,
         info,
         visibleField.wrap,
-        saveBtn,
+        autoStatus,
         manageBtn
       );
 
@@ -628,45 +652,52 @@
 
     orderWrap.append(orderLabel, orderInput);
 
-    saveBtn.addEventListener('click', async () => {
-      saveBtn.disabled = true;
-      saveBtn.textContent = '…';
+    levelField.select.addEventListener('change', () => {
+      const newValue = levelField.select.value;
 
-      const updates = {
-        visible: visibleField.input.checked,
-        du_jour: dailyField.input.checked,
-        niveau: levelField.select.value,
-        ordre: Number(orderInput.value) || 0
-      };
+      queueSettingSave(
+        { niveau: newValue },
+        () => {
+          levelField.select.value = link.niveau || 'objectif';
+        }
+      );
+    });
 
-      const { error } = await client
-        .from('class_applications')
-        .update(updates)
-        .eq('class_id', link.class_id)
-        .eq('application_id', link.application_id);
+    dailyField.input.addEventListener('change', () => {
+      const newValue = dailyField.input.checked;
 
-      if (error) {
-        console.error(error);
-        saveBtn.textContent = 'Erreur';
-        setMessage(
-          panelMessage,
-          `Erreur lors de l’enregistrement de « ${app.nom} ».`,
-          'error'
-        );
-      } else {
-        Object.assign(link, updates);
-        saveBtn.textContent = 'Enregistré';
-        saveBtn.classList.add('saved');
-        setMessage(panelMessage, `« ${app.nom} » enregistré.`, 'success');
+      queueSettingSave(
+        { du_jour: newValue },
+        () => {
+          dailyField.input.checked = link.du_jour === true;
+        }
+      );
+    });
 
-        setTimeout(() => {
-          saveBtn.textContent = 'Enregistrer';
-          saveBtn.classList.remove('saved');
-        }, 1600);
+    function saveOrderNow() {
+      if (orderTimer) {
+        clearTimeout(orderTimer);
+        orderTimer = null;
       }
 
-      saveBtn.disabled = false;
+      const newValue = Number(orderInput.value) || 0;
+
+      if (newValue === Number(link.ordre || 0)) return;
+
+      queueSettingSave(
+        { ordre: newValue },
+        () => {
+          orderInput.value = link.ordre ?? 0;
+        }
+      );
+    }
+
+    orderInput.addEventListener('input', () => {
+      if (orderTimer) clearTimeout(orderTimer);
+      orderTimer = setTimeout(saveOrderNow, 600);
     });
+
+    orderInput.addEventListener('change', saveOrderNow);
 
     row.append(
       thumb,
@@ -675,7 +706,7 @@
       visibleField.wrap,
       dailyField.wrap,
       orderWrap,
-      saveBtn,
+      autoStatus,
       manageBtn
     );
 
