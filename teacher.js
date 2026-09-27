@@ -509,7 +509,6 @@
     manageBtn.addEventListener('click', () => openAppDialog(app, 'edit'));
 
     let saveQueue = Promise.resolve();
-    let statusTimer = null;
     let orderTimer = null;
 
     function showAutoStatus(text, state = '') {
@@ -529,8 +528,6 @@
 
     function queueSettingSave(updates, onError = null) {
       saveQueue = saveQueue.then(async () => {
-        showAutoStatus('Enregistrement…', 'saving');
-
         const { error } = await client
           .from('class_applications')
           .update(updates)
@@ -540,13 +537,11 @@
         if (error) throw error;
 
         Object.assign(link, updates);
-        showAutoStatus('✓ Enregistré', 'saved');
       }).catch(error => {
         console.error(error);
 
         if (typeof onError === 'function') onError();
 
-        showAutoStatus('Erreur', 'error');
         setMessage(
           panelMessage,
           `Erreur lors de l’enregistrement de « ${app.nom} ».`,
@@ -607,7 +602,6 @@
           thumb,
           info,
           visibleField.wrap,
-          autoStatus,
           manageBtn,
           removeBtn
         );
@@ -619,7 +613,6 @@
         thumb,
         info,
         visibleField.wrap,
-        autoStatus,
         manageBtn
       );
 
