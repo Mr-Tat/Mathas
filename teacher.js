@@ -496,12 +496,6 @@
 
     const visibleField = checkboxField('Visible', link.visible !== false);
 
-    const autoStatus = document.createElement('div');
-    autoStatus.className = 'autosave-status';
-    autoStatus.setAttribute('role', 'status');
-    autoStatus.setAttribute('aria-live', 'polite');
-    autoStatus.textContent = 'Auto';
-
     const manageBtn = document.createElement('button');
     manageBtn.type = 'button';
     manageBtn.className = 'manage-btn';
@@ -510,21 +504,6 @@
 
     let saveQueue = Promise.resolve();
     let orderTimer = null;
-
-    function showAutoStatus(text, state = '') {
-      if (statusTimer) clearTimeout(statusTimer);
-
-      autoStatus.textContent = text;
-      autoStatus.classList.remove('saving', 'saved', 'error');
-      if (state) autoStatus.classList.add(state);
-
-      if (state === 'saved') {
-        statusTimer = setTimeout(() => {
-          autoStatus.textContent = 'Auto';
-          autoStatus.classList.remove('saved');
-        }, 1500);
-      }
-    }
 
     function queueSettingSave(updates, onError = null) {
       saveQueue = saveQueue.then(async () => {
@@ -621,13 +600,14 @@
 
     const levelField = fieldSelect(
       'Niveau',
-      ['objectif', 'depassement', 'revision', 'outil'],
+      ['objectif', 'depassement', 'revision', 'outil', 'jeux'],
       link.niveau || 'objectif',
       {
         objectif: 'Objectif',
         depassement: 'Dépassement',
         revision: 'Révision',
-        outil: 'Outils'
+        outil: 'Outils',
+        jeux: 'Jeux'
       }
     );
 
@@ -699,7 +679,6 @@
       visibleField.wrap,
       dailyField.wrap,
       orderWrap,
-      autoStatus,
       manageBtn
     );
 

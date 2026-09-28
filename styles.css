@@ -452,3 +452,69 @@ body.theme-partage {
 .simple-view .daily-section > .section-heading[hidden] {
   display: none !important;
 }
+
+
+/* ===== Section Jeux : double confirmation avant ouverture ===== */
+.jeux-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 8, 18, .58);
+  backdrop-filter: blur(7px);
+}
+
+.jeux-confirm-bubble {
+  width: min(430px, 92vw);
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(var(--accent-rgb), .55);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), .18), transparent 55%),
+    rgba(9, 20, 35, .98);
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.5),
+    0 0 28px rgba(var(--accent-rgb), .13);
+  text-align: center;
+}
+
+.jeux-confirm-question {
+  margin: 0;
+  font-family: "Fredoka", sans-serif;
+  font-size: clamp(1.65rem, 5vw, 2.15rem);
+  line-height: 1.08;
+}
+
+.jeux-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.jeux-confirm-btn {
+  min-height: 52px;
+  border-radius: 15px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.jeux-confirm-no {
+  color: var(--text);
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+.jeux-confirm-yes {
+  color: #06111d;
+  background: var(--accent);
+  border: 1px solid rgba(255,255,255,.32);
+}
+
+.jeux-confirm-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+}

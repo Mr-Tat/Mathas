@@ -1,28 +1,34 @@
-Math'as — Partage / Toutes : interface V2
+MATH'AS — SECTION JEUX
 
-MODIFICATIONS
-=============
+NOUVEAU
+=======
+Dans les hubs élèves classiques :
+- nouvelle section "Jeux", sous les autres sections ;
+- elle est fermée par défaut ;
+- lorsqu'un élève essaie de l'ouvrir :
+  1. bulle : "Ton prof est d'accord ?" Oui / Non
+  2. si Oui : bulle "Tu es sûr ?" Oui / Non
+  3. seulement après le deuxième Oui, la section s'ouvre ;
+- fermer Jeux est immédiat ;
+- chaque nouvelle tentative d'ouverture redemande les deux confirmations.
 
-1. Page Partage / Toutes les applis
-- le grand titre à l'intérieur de la grande case a été supprimé ;
-- le petit badge en haut reste : Partage ou Toutes les applis ;
-- le nombre d'applications est maintenant affiché juste à côté de ce petit badge ;
-- la grande case contient uniquement les cartes d'applications.
+Dans la page prof :
+- "Jeux" est disponible dans le menu Niveau ;
+- le changement est enregistré automatiquement comme les autres niveaux ;
+- l'ancien bloc visuel "Auto" est réellement supprimé.
 
-2. Page prof > Partage > Ajouter appli existante
-- plus de liste déroulante ;
-- affichage visuel avec petites miniatures ;
-- 6 applications par ligne sur écran large ;
-- nom de l'application sous chaque miniature ;
-- clic sur une carte pour la sélectionner ;
-- puis bouton "Ajouter au partage".
+ÉTAPES
+======
+1. Supabase > SQL Editor > New query
+   Copier/coller puis exécuter : setup_jeux.sql
 
-À REMPLACER DANS GITHUB
-=======================
-- app.js
-- styles.css
-- teacher.html
-- teacher.css
-- teacher.js
+2. GitHub : remplacer
+   - app.js
+   - styles.css
+   - teacher.js
+   - teacher.css
 
-Aucun changement Supabase.
+3. Commit changes, attendre le déploiement, puis Ctrl + F5.
+
+Aucune application n'est déplacée automatiquement dans Jeux :
+tu choisis toi-même lesquelles y mettre depuis la page prof.

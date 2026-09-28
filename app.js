@@ -56,7 +56,14 @@
     { key: 'objectif', label: 'Objectif', description: 'Niveau visé', openByDefault: true },
     { key: 'depassement', label: 'Dépassement', description: 'Niveau futur ou difficile', openByDefault: false },
     { key: 'revision', label: 'Révision', description: 'Niveau facile ou rappel', openByDefault: false },
-    { key: 'outil', label: 'Outils', description: 'Pour t’aider', openByDefault: true }
+    { key: 'outil', label: 'Outils', description: 'Pour t’aider', openByDefault: true },
+    {
+      key: 'jeux',
+      label: 'Jeux',
+      description: 'Pour jouer',
+      openByDefault: false,
+      confirmBeforeOpen: true
+    }
   ];
 
   const levelsHost = document.getElementById('levels');
@@ -241,13 +248,91 @@
         toggle.setAttribute('aria-expanded', 'false');
       }
 
-      toggle.addEventListener('click', () => {
-        const collapsed = node.classList.toggle('collapsed');
-        toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.addEventListener('click', async () => {
+        const isCollapsed = node.classList.contains('collapsed');
+
+        // Fermer une section déjà ouverte reste immédiat.
+        if (!isCollapsed) {
+          node.classList.add('collapsed');
+          toggle.setAttribute('aria-expanded', 'false');
+          return;
+        }
+
+        // Pour "Jeux", deux confirmations sont nécessaires à chaque ouverture.
+        if (levelDef.confirmBeforeOpen) {
+          const teacherOk = await askJeuxQuestion("Ton prof est d'accord ?");
+          if (!teacherOk) return;
+
+          const reallySure = await askJeuxQuestion('Tu es sûr ?');
+          if (!reallySure) return;
+        }
+
+        node.classList.remove('collapsed');
+        toggle.setAttribute('aria-expanded', 'true');
       });
 
       renderAppsInto(node.querySelector('.level-apps'), levelApps, true);
       levelsHost.appendChild(node);
+    });
+  }
+
+
+  function askJeuxQuestion(message) {
+    return new Promise(resolve => {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'jeux-confirm-backdrop';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'jeux-confirm-bubble';
+      bubble.setAttribute('role', 'dialog');
+      bubble.setAttribute('aria-modal', 'true');
+      bubble.setAttribute('aria-label', message);
+
+      const question = document.createElement('p');
+      question.className = 'jeux-confirm-question';
+      question.textContent = message;
+
+      const actions = document.createElement('div');
+      actions.className = 'jeux-confirm-actions';
+
+      const noBtn = document.createElement('button');
+      noBtn.type = 'button';
+      noBtn.className = 'jeux-confirm-btn jeux-confirm-no';
+      noBtn.textContent = 'Non';
+
+      const yesBtn = document.createElement('button');
+      yesBtn.type = 'button';
+      yesBtn.className = 'jeux-confirm-btn jeux-confirm-yes';
+      yesBtn.textContent = 'Oui';
+
+      actions.append(noBtn, yesBtn);
+      bubble.append(question, actions);
+      backdrop.appendChild(bubble);
+      document.body.appendChild(backdrop);
+
+      let finished = false;
+
+      function finish(answer) {
+        if (finished) return;
+        finished = true;
+        document.removeEventListener('keydown', onKeyDown);
+        backdrop.remove();
+        resolve(answer);
+      }
+
+      function onKeyDown(event) {
+        if (event.key === 'Escape') finish(false);
+      }
+
+      noBtn.addEventListener('click', () => finish(false));
+      yesBtn.addEventListener('click', () => finish(true));
+
+      backdrop.addEventListener('click', event => {
+        if (event.target === backdrop) finish(false);
+      });
+
+      document.addEventListener('keydown', onKeyDown);
+      yesBtn.focus();
     });
   }
 
