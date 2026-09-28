@@ -518,3 +518,10 @@ body.theme-partage {
   transform: translateY(-1px);
   filter: brightness(1.07);
 }
+
+
+/* ===== Classe 2 ECO ===== */
+body.theme-2eco {
+  --accent: #ff8a5b;
+  --accent-rgb: 255,138,91;
+}

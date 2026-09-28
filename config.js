@@ -15,6 +15,11 @@ window.MATHAS_CONFIG = {
       theme: "theme-phase2",
       tabTitle: "Math'as Ph2"
     },
+    "2eco": {
+      label: "2 ECO",
+      theme: "theme-2eco",
+      tabTitle: "Math'as 2 ECO"
+    },
     toutes: {
       label: "Toutes les applis",
       theme: "theme-toutes",

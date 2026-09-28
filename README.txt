@@ -1,34 +1,63 @@
-MATH'AS — SECTION JEUX
+MATH'AS — FIX JEUX + NOUVELLE CLASSE 2 ECO
 
-NOUVEAU
-=======
-Dans les hubs élèves classiques :
-- nouvelle section "Jeux", sous les autres sections ;
-- elle est fermée par défaut ;
-- lorsqu'un élève essaie de l'ouvrir :
-  1. bulle : "Ton prof est d'accord ?" Oui / Non
-  2. si Oui : bulle "Tu es sûr ?" Oui / Non
-  3. seulement après le deuxième Oui, la section s'ouvre ;
-- fermer Jeux est immédiat ;
-- chaque nouvelle tentative d'ouverture redemande les deux confirmations.
+1) BUG "JEUX"
+=============
+Le front-end savait déjà afficher "Jeux".
+Le problème le plus probable est Supabase : l'ancienne contrainte de la
+colonne `niveau` refusait encore la valeur `jeux`.
 
-Dans la page prof :
-- "Jeux" est disponible dans le menu Niveau ;
-- le changement est enregistré automatiquement comme les autres niveaux ;
-- l'ancien bloc visuel "Auto" est réellement supprimé.
+Le nouveau SQL la remplace de façon robuste et autorise :
+- objectif
+- depassement
+- revision
+- outil
+- jeux
 
-ÉTAPES
-======
-1. Supabase > SQL Editor > New query
-   Copier/coller puis exécuter : setup_jeux.sql
+2) CLASSE 2 ECO
+===============
+Nouvelle URL élève :
+https://mr-tat.github.io/Mathas/?classe=2eco
 
-2. GitHub : remplacer
-   - app.js
-   - styles.css
-   - teacher.js
-   - teacher.css
+Elle fonctionne comme Observation / Phase 1 / Phase 2 :
+- Sélection du jour
+- Objectif
+- Dépassement
+- Révision
+- Outils
+- Jeux
 
-3. Commit changes, attendre le déploiement, puis Ctrl + F5.
+Toutes les applications générales existantes sont ajoutées à 2 ECO,
+mais INVISIBLES par défaut. Tu choisis ensuite lesquelles afficher
+depuis la page prof.
 
-Aucune application n'est déplacée automatiquement dans Jeux :
-tu choisis toi-même lesquelles y mettre depuis la page prof.
+Les futures applications générales seront automatiquement créées pour
+2 ECO aussi, car la page prof crée déjà les liens pour toutes les classes
+sauf Partage.
+
+3) PAGE PROF
+============
+Ajout :
+- raccourci "2 ECO"
+- onglet de réglage "2 ECO"
+
+Les 6 raccourcis sont de largeur égale.
+
+INSTALLATION
+============
+A. Supabase
+-----------
+Ouvrir `setup_fix_jeux_et_2eco.sql`, copier tout dans :
+Supabase > SQL Editor > New query
+puis Run.
+
+B. GitHub
+---------
+Remplacer :
+- config.js
+- app.js
+- styles.css
+- teacher.html
+- teacher.css
+- teacher.js
+
+Puis Commit changes, attendre le déploiement et faire Ctrl + F5.
