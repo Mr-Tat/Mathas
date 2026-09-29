@@ -68,10 +68,10 @@
 
   const simpleLevelsDef = [
     { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
-    { key: 'niveau2', label: 'Niveau 2', openByDefault: false },
-    { key: 'niveau3', label: 'Niveau 3', openByDefault: false },
-    { key: 'autre', label: 'Autre', openByDefault: false },
-    { key: 'exterieur', label: 'Extérieur', openByDefault: false }
+    { key: 'niveau2', label: 'Niveau 2', openByDefault: true },
+    { key: 'niveau3', label: 'Niveau 3', openByDefault: true },
+    { key: 'autre', label: 'Autre', openByDefault: true },
+    { key: 'exterieur', label: 'Extérieur', openByDefault: true }
   ];
 
   const levelsHost = document.getElementById('levels');
