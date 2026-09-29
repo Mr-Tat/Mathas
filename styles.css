@@ -502,16 +502,10 @@ body.theme-partage {
   cursor: pointer;
 }
 
-.jeux-confirm-no {
+.jeux-confirm-btn {
   color: var(--text);
-  background: rgba(255,255,255,.055);
-  border: 1px solid rgba(255,255,255,.18);
-}
-
-.jeux-confirm-yes {
-  color: #06111d;
-  background: var(--accent);
-  border: 1px solid rgba(255,255,255,.32);
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.22);
 }
 
 .jeux-confirm-btn:hover {
@@ -524,4 +518,60 @@ body.theme-partage {
 body.theme-2eco {
   --accent: #ff8a5b;
   --accent-rgb: 255,138,91;
+}
+
+
+/* ===== Sections de classement pour Toutes / Partage ===== */
+.simple-view .daily-section {
+  display: none !important;
+}
+
+.simple-view #levels {
+  display: block !important;
+}
+
+.simple-view .simple-level {
+  margin: 14px 0;
+}
+
+.simple-view .simple-level .level-content {
+  padding: 0 18px 20px;
+}
+
+.simple-view .simple-level .level-apps {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: 14px;
+}
+
+.simple-view .simple-level .app-card {
+  width: 100%;
+  max-width: none;
+}
+
+.simple-view .simple-level .app-name {
+  font-size: .92rem;
+  line-height: 1.15;
+}
+
+.simple-view .simple-level .app-scores {
+  font-size: .75rem;
+}
+
+@media (max-width: 1250px) {
+  .simple-view .simple-level .level-apps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .simple-view .simple-level .level-apps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .simple-view .simple-level .level-apps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

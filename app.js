@@ -66,6 +66,14 @@
     }
   ];
 
+  const simpleLevelsDef = [
+    { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
+    { key: 'niveau2', label: 'Niveau 2', openByDefault: false },
+    { key: 'niveau3', label: 'Niveau 3', openByDefault: false },
+    { key: 'autre', label: 'Autre', openByDefault: false },
+    { key: 'exterieur', label: 'Extérieur', openByDefault: false }
+  ];
+
   const levelsHost = document.getElementById('levels');
   const dailySection = document.querySelector('.daily-section');
   const dailyHeading = dailySection.querySelector('.section-heading');
@@ -190,31 +198,57 @@
     const visibleApps = allApps.filter(app => app.visible);
 
     if (isSimpleView) {
-      levelsHost.hidden = true;
-      dailySection.classList.add('simple-apps-section');
-      dailyHost.classList.add('simple-app-grid');
+      // "Toutes" et "Partage" utilisent maintenant leurs propres sections.
+      dailySection.hidden = true;
+      levelsHost.hidden = false;
 
-      // Pas de grand titre dans la grande case :
-      // le nom de la page et le compteur sont affichés en haut, à côté du petit badge.
-      dailyHeading.hidden = true;
-
-      const simpleApps = [...visibleApps].sort(
-        (a, b) => a.name.localeCompare(b.name, 'fr')
-      );
-
-      const count = countLabel(simpleApps.length);
+      const count = countLabel(visibleApps.length);
       dailyCount.textContent = count;
       if (simpleTopCount) simpleTopCount.textContent = count;
 
-      renderAppsInto(
-        dailyHost,
-        simpleApps,
-        true,
-        {
-          showScores: showScoresInSimpleView,
-          respectToolLevel: false
+      simpleLevelsDef.forEach(levelDef => {
+        const node = document
+          .getElementById('levelTemplate')
+          .content.firstElementChild
+          .cloneNode(true);
+
+        node.classList.add('simple-level');
+
+        const levelApps = visibleApps
+          .filter(app => app.level === levelDef.key)
+          .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+
+        node.querySelector('.level-title').textContent = levelDef.label;
+        node.querySelector('.level-description').textContent = '';
+        node.querySelector('.level-count').textContent = countLabel(levelApps.length);
+
+        const toggle = node.querySelector('.level-toggle');
+
+        if (levelDef.openByDefault) {
+          node.classList.remove('collapsed');
+          toggle.setAttribute('aria-expanded', 'true');
+        } else {
+          node.classList.add('collapsed');
+          toggle.setAttribute('aria-expanded', 'false');
         }
-      );
+
+        toggle.addEventListener('click', () => {
+          const collapsed = node.classList.toggle('collapsed');
+          toggle.setAttribute('aria-expanded', String(!collapsed));
+        });
+
+        renderAppsInto(
+          node.querySelector('.level-apps'),
+          levelApps,
+          true,
+          {
+            showScores: showScoresInSimpleView,
+            respectToolLevel: false
+          }
+        );
+
+        levelsHost.appendChild(node);
+      });
 
       return;
     }
@@ -260,10 +294,11 @@
 
         // Pour "Jeux", deux confirmations sont nécessaires à chaque ouverture.
         if (levelDef.confirmBeforeOpen) {
-          const teacherOk = await askJeuxQuestion("Ton prof est d'accord ?");
+          const teacherOk = await askJeuxQuestion("Ton prof est d'accord ?", false);
           if (!teacherOk) return;
 
-          const reallySure = await askJeuxQuestion('Tu es sûr ?');
+          // Deuxième question : ordre inversé des boutons.
+          const reallySure = await askJeuxQuestion('Tu es sûr ?', true);
           if (!reallySure) return;
         }
 
@@ -277,7 +312,7 @@
   }
 
 
-  function askJeuxQuestion(message) {
+  function askJeuxQuestion(message, reverseButtons = false) {
     return new Promise(resolve => {
       const backdrop = document.createElement('div');
       backdrop.className = 'jeux-confirm-backdrop';
@@ -297,15 +332,19 @@
 
       const noBtn = document.createElement('button');
       noBtn.type = 'button';
-      noBtn.className = 'jeux-confirm-btn jeux-confirm-no';
+      noBtn.className = 'jeux-confirm-btn';
       noBtn.textContent = 'Non';
 
       const yesBtn = document.createElement('button');
       yesBtn.type = 'button';
-      yesBtn.className = 'jeux-confirm-btn jeux-confirm-yes';
+      yesBtn.className = 'jeux-confirm-btn';
       yesBtn.textContent = 'Oui';
 
-      actions.append(noBtn, yesBtn);
+      if (reverseButtons) {
+        actions.append(yesBtn, noBtn);
+      } else {
+        actions.append(noBtn, yesBtn);
+      }
       bubble.append(question, actions);
       backdrop.appendChild(bubble);
       document.body.appendChild(backdrop);
