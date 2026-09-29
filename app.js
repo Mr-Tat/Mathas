@@ -294,11 +294,10 @@
 
         // Pour "Jeux", deux confirmations sont nécessaires à chaque ouverture.
         if (levelDef.confirmBeforeOpen) {
-          const teacherOk = await askJeuxQuestion("Ton prof est d'accord ?", false);
+          const teacherOk = await askJeuxQuestion("Ton prof est d'accord ?");
           if (!teacherOk) return;
 
-          // Deuxième question : ordre inversé des boutons.
-          const reallySure = await askJeuxQuestion('Tu es sûr ?', true);
+          const reallySure = await askJeuxQuestion('Tu es sûr ?');
           if (!reallySure) return;
         }
 
@@ -312,7 +311,7 @@
   }
 
 
-  function askJeuxQuestion(message, reverseButtons = false) {
+  function askJeuxQuestion(message) {
     return new Promise(resolve => {
       const backdrop = document.createElement('div');
       backdrop.className = 'jeux-confirm-backdrop';
@@ -322,6 +321,7 @@
       bubble.setAttribute('role', 'dialog');
       bubble.setAttribute('aria-modal', 'true');
       bubble.setAttribute('aria-label', message);
+      bubble.tabIndex = -1;
 
       const question = document.createElement('p');
       question.className = 'jeux-confirm-question';
@@ -340,11 +340,13 @@
       yesBtn.className = 'jeux-confirm-btn';
       yesBtn.textContent = 'Oui';
 
-      if (reverseButtons) {
-        actions.append(yesBtn, noBtn);
-      } else {
+      // L'ordre Oui / Non est tiré au hasard à chaque bulle.
+      if (Math.random() < 0.5) {
         actions.append(noBtn, yesBtn);
+      } else {
+        actions.append(yesBtn, noBtn);
       }
+
       bubble.append(question, actions);
       backdrop.appendChild(bubble);
       document.body.appendChild(backdrop);
@@ -371,7 +373,10 @@
       });
 
       document.addEventListener('keydown', onKeyDown);
-      yesBtn.focus();
+
+      // Le focus va sur la bulle, pas sur Oui ou Non :
+      // aucun bouton n'est visuellement favorisé à l'ouverture.
+      bubble.focus();
     });
   }
 

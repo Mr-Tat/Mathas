@@ -545,6 +545,37 @@
     if (isSimpleTeacherView()) {
       row.classList.add('simple-config-row');
 
+      const simpleSections = ['niveau1', 'niveau2', 'niveau3', 'autre', 'exterieur'];
+      const currentSimpleSection = simpleSections.includes(link.niveau)
+        ? link.niveau
+        : 'niveau1';
+
+      const sectionField = fieldSelect(
+        'Section',
+        simpleSections,
+        currentSimpleSection,
+        {
+          niveau1: 'Niveau 1',
+          niveau2: 'Niveau 2',
+          niveau3: 'Niveau 3',
+          autre: 'Autre',
+          exterieur: 'Extérieur'
+        }
+      );
+
+      sectionField.select.addEventListener('change', () => {
+        const newValue = sectionField.select.value;
+
+        queueSettingSave(
+          { niveau: newValue },
+          () => {
+            sectionField.select.value = simpleSections.includes(link.niveau)
+              ? link.niveau
+              : 'niveau1';
+          }
+        );
+      });
+
       if (currentClassSlug === 'partage') {
         row.classList.add('share-row');
 
@@ -580,6 +611,7 @@
         row.append(
           thumb,
           info,
+          sectionField.wrap,
           visibleField.wrap,
           manageBtn,
           removeBtn
@@ -591,6 +623,7 @@
       row.append(
         thumb,
         info,
+        sectionField.wrap,
         visibleField.wrap,
         manageBtn
       );
@@ -833,7 +866,7 @@
             application_id: created.id,
             visible: true,
             du_jour: false,
-            niveau: 'objectif',
+            niveau: 'niveau1',
             domaine: 'calcul',
             ordre: maxOrder + 10
           }];
@@ -845,7 +878,7 @@
               application_id: created.id,
               visible: cls.slug === 'toutes',
               du_jour: false,
-              niveau: 'objectif',
+              niveau: cls.slug === 'toutes' ? 'niveau1' : 'objectif',
               domaine: 'calcul',
               ordre: maxOrder + 10 + index
             }));
@@ -1330,7 +1363,7 @@
         application_id: app.id,
         visible: true,
         du_jour: false,
-        niveau: 'objectif',
+        niveau: 'niveau1',
         domaine: 'calcul',
         ordre: 0
       });

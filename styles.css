@@ -502,12 +502,6 @@ body.theme-partage {
   cursor: pointer;
 }
 
-.jeux-confirm-btn {
-  color: var(--text);
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.22);
-}
-
 .jeux-confirm-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.07);
@@ -574,4 +568,17 @@ body.theme-2eco {
   .simple-view .simple-level .level-apps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+
+/* Les choix Oui / Non sont volontairement visuellement identiques. */
+.jeux-confirm-btn {
+  color: var(--text);
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.22);
+}
+
+.jeux-confirm-btn:focus-visible {
+  outline: 2px solid rgba(255,255,255,.58);
+  outline-offset: 2px;
 }
