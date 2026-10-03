@@ -1829,3 +1829,175 @@ textarea {
   align-self: center;
   justify-self: end;
 }
+
+
+/* ==========================================================================
+   BRANDING + SÉPARATEUR + AUTRES + BIBLIOTHÈQUE IMAGES
+   ========================================================================== */
+
+.teacher-wordmark {
+  display: block;
+  width: clamp(210px, 21vw, 330px);
+  max-height: 108px;
+  object-fit: contain;
+  object-position: left center;
+  margin: 0 0 5px;
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,.26));
+}
+
+/* Barre simple : bleu vers mauve sombre, sans gravures. */
+.major-separator {
+  height: 22px !important;
+  margin: 11px 0 17px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(122, 132, 205, .20) !important;
+  background: linear-gradient(
+    90deg,
+    #183451 0%,
+    #202d51 30%,
+    #292243 60%,
+    #241d3b 78%,
+    #173147 100%
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 -1px 0 rgba(0,0,0,.28),
+    0 7px 20px rgba(0,0,0,.14) !important;
+}
+
+.major-separator::before,
+.major-separator::after {
+  display: none !important;
+}
+
+/* Une vraie couleur différente par page spéciale. */
+.other-home-grid > .other-home-card.eco {
+  border-color: rgba(255,145,93,.50);
+  background: linear-gradient(145deg, rgba(121,55,38,.55), rgba(31,27,37,.96));
+}
+
+.other-home-grid > .other-home-card.share-one {
+  border-color: rgba(235,177,73,.50);
+  background: linear-gradient(145deg, rgba(105,77,28,.55), rgba(29,28,39,.96));
+}
+
+.other-home-grid > .other-home-card.share-two {
+  border-color: rgba(80,166,230,.54);
+  background: linear-gradient(145deg, rgba(30,74,113,.62), rgba(24,28,46,.96));
+}
+
+.other-home-grid > .other-home-card.thibault {
+  border-color: rgba(139,117,244,.56);
+  background: linear-gradient(145deg, rgba(67,49,123,.58), rgba(28,25,46,.96));
+}
+
+.other-home-grid > .other-home-card.lise {
+  border-color: rgba(231,105,174,.53);
+  background: linear-gradient(145deg, rgba(112,43,82,.56), rgba(35,24,43,.96));
+}
+
+.other-home-grid > .other-home-card.images {
+  border-color: rgba(71,200,161,.52);
+  background: linear-gradient(145deg, rgba(27,92,75,.58), rgba(22,34,39,.96));
+}
+
+.other-home-grid > .other-home-card:hover,
+.other-home-grid > .other-home-card.active {
+  filter: brightness(1.12);
+  transform: translateY(-2px);
+}
+
+/* Galerie : environ 40 % plus petite qu'avant (8 colonnes au lieu de 5). */
+.image-gallery {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.image-library-card {
+  border-radius: 14px;
+}
+
+.image-library-meta {
+  padding: 8px 9px 5px;
+}
+
+.image-library-meta strong {
+  font-size: .78rem;
+}
+
+.image-library-meta span {
+  font-size: .68rem;
+}
+
+.image-library-actions {
+  gap: 5px;
+  padding: 5px 7px 8px;
+}
+
+.image-library-actions .tiny-btn {
+  min-height: 30px;
+  padding: 5px 6px !important;
+  font-size: .68rem !important;
+}
+
+.image-usage-badge {
+  width: 29px;
+  height: 29px;
+  font-size: .78rem;
+}
+
+/* Dialogue "Modifier l'image". */
+.image-edit-dialog {
+  width: min(620px, 94vw);
+}
+
+.image-edit-preview-wrap {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+}
+
+.image-edit-preview {
+  display: block;
+  width: min(270px, 70vw);
+  max-height: 270px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.image-edit-note {
+  margin-top: 10px;
+  font-size: .82rem;
+}
+
+@media (max-width: 1400px) {
+  .image-gallery {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .image-gallery {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .image-gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .teacher-wordmark {
+    width: min(280px, 74vw);
+  }
+
+  .image-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

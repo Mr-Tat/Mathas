@@ -617,3 +617,21 @@ body.theme-partage {
   color: var(--muted);
   font-size: 1.05rem;
 }
+
+
+/* ===== Nouveau logo Math'as ===== */
+.brand-wordmark {
+  display: block;
+  width: min(560px, 82vw);
+  max-height: 190px;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,.28));
+}
+
+@media (max-width: 650px) {
+  .brand-wordmark {
+    width: min(470px, 90vw);
+    max-height: 150px;
+  }
+}

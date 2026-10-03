@@ -12,6 +12,8 @@
   const IMAGE_FOLDER = 'miniatures';
   const IMAGE_FOLDERS = ['miniatures', 'logos', 'backgrounds', 'interface', 'illustrations', 'autres'];
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  const MATHAS_ICON_PATH = 'logos/lettre-m-3d-de-mathematiques-en-collage-1791015091641-1oed9jb.png';
+  const MATHAS_WORDMARK_PATH = 'logos/logo-3d-mathematiques-colore-1791015093060-1256uhr.png';
 
   const STANDARD_LEVELS = {
     objectif: 'Objectif',
@@ -34,11 +36,11 @@
       url: 'index.html?classe=2eco'
     },
     'partage-n1': {
-      kind: 'share', slug: 'partage-n1', title: 'Partage Niveau 1', mode: 'simple', daily: false,
+      kind: 'share', slug: 'partage-n1', title: 'Partage 1', mode: 'simple', daily: false,
       hint: 'Page de partage indépendante. Le visiteur voit simplement “Partage”. Le lien peut être remplacé à tout moment.'
     },
     'partage-n2': {
-      kind: 'share', slug: 'partage-n2', title: 'Partage Niveau 2', mode: 'simple', daily: false,
+      kind: 'share', slug: 'partage-n2', title: 'Partage 2', mode: 'simple', daily: false,
       hint: 'Page de partage indépendante. Le visiteur voit simplement “Partage”. Le lien peut être remplacé à tout moment.'
     },
     thibault: {
@@ -108,6 +110,13 @@
   const usageLabel = document.getElementById('usageLabel');
   const usageMessage = document.getElementById('usageMessage');
 
+  const imageEditDialog = document.getElementById('imageEditDialog');
+  const imageEditForm = document.getElementById('imageEditForm');
+  const editImageName = document.getElementById('editImageName');
+  const editImagePreview = document.getElementById('editImagePreview');
+  const editImageFolder = document.getElementById('editImageFolder');
+  const imageEditMessage = document.getElementById('imageEditMessage');
+
   let currentViewKey = null;
   let classRows = [];
   let appRows = [];
@@ -123,6 +132,7 @@
   let appDialogMode = 'edit';
   let selectedBulkFiles = [];
   let currentUsageImage = null;
+  let currentEditImage = null;
 
   window.addEventListener('error', event => {
     console.error('Mathas teacher-other error:', event.error || event.message);
@@ -294,6 +304,18 @@
   usageForm.addEventListener('submit', async event => {
     event.preventDefault();
     await addManualUsage();
+  });
+
+  document.getElementById('closeImageEditDialogBtn').addEventListener('click', closeImageEditDialog);
+  document.getElementById('cancelImageEditBtn').addEventListener('click', closeImageEditDialog);
+  document.getElementById('deleteImageFromEditBtn').addEventListener('click', async () => {
+    if (!currentEditImage) return;
+    const deleted = await deleteLibraryImage(currentEditImage);
+    if (deleted) closeImageEditDialog();
+  });
+  imageEditForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    await moveLibraryImage();
   });
 
   async function showTeacherPanel() {
@@ -878,9 +900,18 @@
   }
 
   function automaticMUsages(path) {
-    return appRows
+    const usages = appRows
       .filter(app => getStoragePathFromPublicUrl(app.miniature_url) === path)
       .map(app => ({ kind: 'M', label: `Miniature — ${app.nom}`, automatic: true }));
+
+    if (path === MATHAS_ICON_PATH) {
+      usages.push({ kind: 'M', label: 'Logo / favicon — Math’as', automatic: true });
+    }
+    if (path === MATHAS_WORDMARK_PATH) {
+      usages.push({ kind: 'M', label: 'Mot Math’as — en-têtes du site', automatic: true });
+    }
+
+    return usages;
   }
 
   function manualUsages(path) {
@@ -957,9 +988,9 @@
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     open.textContent = 'Ouvrir';
-    const del = button('Supprimer', 'danger-lite tiny-btn');
-    del.addEventListener('click', () => deleteLibraryImage(image));
-    actions.append(usage, copy, open, del);
+    const edit = button('Modifier', 'secondary tiny-btn');
+    edit.addEventListener('click', () => openImageEditDialog(image));
+    actions.append(usage, copy, open, edit);
 
     card.append(preview, meta, actions);
     return card;
@@ -987,13 +1018,126 @@
     } else {
       message += '\n\nElle n’est actuellement marquée comme utilisée nulle part.';
     }
-    if (!confirm(message)) return;
+    if (!confirm(message)) return false;
 
     const { error } = await client.storage.from(IMAGE_BUCKET).remove([image.path]);
-    if (error) return setMessage(panelMessage, `Erreur : ${error.message}`, 'error');
+    if (error) {
+      setMessage(panelMessage, `Erreur : ${error.message}`, 'error');
+      return false;
+    }
     await client.from('image_usages').delete().eq('image_path', image.path);
     await loadImages();
     setMessage(panelMessage, 'Image supprimée.', 'success');
+    return true;
+  }
+
+  function openImageEditDialog(image) {
+    currentEditImage = image;
+    editImageName.textContent = image.name;
+    editImagePreview.src = image.publicUrl;
+    editImageFolder.value = image.folder;
+    setMessage(imageEditMessage, '');
+    imageEditDialog.showModal();
+  }
+
+  function closeImageEditDialog() {
+    currentEditImage = null;
+    editImagePreview.removeAttribute('src');
+    if (imageEditDialog.open) imageEditDialog.close();
+  }
+
+  function uniqueMovedPath(targetFolder, image) {
+    let targetPath = `${targetFolder}/${image.name}`;
+    if (!storageImages.some(item => item.path === targetPath)) return targetPath;
+
+    const dot = image.name.lastIndexOf('.');
+    const base = dot > 0 ? image.name.slice(0, dot) : image.name;
+    const ext = dot > 0 ? image.name.slice(dot) : '';
+    return `${targetFolder}/${base}-${Date.now()}${ext}`;
+  }
+
+  async function moveLibraryImage() {
+    if (!currentEditImage) return;
+
+    const image = currentEditImage;
+    const targetFolder = editImageFolder.value;
+
+    if (targetFolder === image.folder) {
+      return setMessage(imageEditMessage, 'Cette image est déjà dans ce dossier.', 'error');
+    }
+
+    if (image.path === MATHAS_ICON_PATH || image.path === MATHAS_WORDMARK_PATH) {
+      return setMessage(
+        imageEditMessage,
+        'Ce logo est utilisé directement par les fichiers du site. Déplace-le seulement après avoir modifié les URLs du site.',
+        'error'
+      );
+    }
+
+    const summary = usageSummary(image.path);
+    if (summary.manual.length) {
+      const ok = confirm(
+        'Cette image possède au moins une utilisation déclarée manuellement.\n\n' +
+        'La déplacer changera son URL. Les utilisations extérieures ou ajoutées manuellement ne peuvent pas être corrigées automatiquement.\n\nContinuer ?'
+      );
+      if (!ok) return;
+    }
+
+    const targetPath = uniqueMovedPath(targetFolder, image);
+    const oldPath = image.path;
+
+    setMessage(imageEditMessage, 'Déplacement…');
+
+    const { error: moveError } = await client.storage.from(IMAGE_BUCKET).move(oldPath, targetPath);
+    if (moveError) {
+      return setMessage(imageEditMessage, `Impossible de déplacer l’image : ${moveError.message}`, 'error');
+    }
+
+    const { data: publicData } = client.storage.from(IMAGE_BUCKET).getPublicUrl(targetPath);
+    const newPublicUrl = publicData.publicUrl;
+
+    try {
+      // Les miniatures d'applications Math'as sont corrigées automatiquement.
+      const affectedApps = appRows.filter(app => getStoragePathFromPublicUrl(app.miniature_url) === oldPath);
+      if (affectedApps.length) {
+        const ids = affectedApps.map(app => app.id);
+        const { error: appError } = await client
+          .from('applications')
+          .update({ miniature_url: newPublicUrl })
+          .in('id', ids);
+        if (appError) throw appError;
+
+        affectedApps.forEach(app => {
+          app.miniature_url = newPublicUrl;
+        });
+      }
+
+      // Les indications manuelles M/A suivent également le nouveau chemin.
+      const { error: usageError } = await client
+        .from('image_usages')
+        .update({ image_path: targetPath })
+        .eq('image_path', oldPath);
+      if (usageError) throw usageError;
+
+      imageUsageRows.forEach(row => {
+        if (row.image_path === oldPath) row.image_path = targetPath;
+      });
+
+      closeImageEditDialog();
+      await loadImages();
+      setMessage(panelMessage, `Image déplacée vers « ${targetFolder} ».`, 'success');
+    } catch (error) {
+      console.error(error);
+      // On tente de remettre le fichier à sa place si la mise à jour BDD échoue.
+      try {
+        await client.storage.from(IMAGE_BUCKET).move(targetPath, oldPath);
+      } catch {}
+      setMessage(
+        imageEditMessage,
+        `Le déplacement n’a pas pu être finalisé : ${error.message}`,
+        'error'
+      );
+    }
   }
 
   function openUsageDialog(image) {
