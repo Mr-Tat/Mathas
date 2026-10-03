@@ -1,11 +1,14 @@
-MATH'AS — LOGO PLUS PETIT SUR LES PAGES ÉLÈVES
+MATH'AS — SÉPARATIONS DU TABLEAU GLOBAL
 
-Changement :
-- le mot Math'as affiché en haut des pages élèves est réduit d'environ 40 % ;
-- le panneau prof n'est pas modifié.
+Changements :
+- séparation entre les applications beaucoup plus visible ;
+- trait bleu-mauve épais entre chaque ligne ;
+- très légère alternance de fond entre les lignes ;
+- survol d'une ligne un peu plus marqué pour la suivre plus facilement.
 
 À remplacer dans GitHub :
-- index.html
-- styles.css
+- teacher.css
+- teacher.html
+- teacher-other.html
 
 Aucun changement Supabase.
