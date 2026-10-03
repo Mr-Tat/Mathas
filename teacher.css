@@ -1723,3 +1723,109 @@ textarea {
     min-height: 88px;
   }
 }
+
+
+/* ==========================================================================
+   BANDE DE SÉPARATION MATH'AS — version sombre gravée
+   ========================================================================== */
+
+.major-separator {
+  position: relative;
+  height: 42px;
+  width: 100%;
+  margin: 12px 0 18px;
+  border-radius: 13px;
+  border: 1px solid rgba(127, 139, 220, .28);
+  overflow: hidden;
+
+  background:
+    radial-gradient(circle at 18% 50%, rgba(77, 184, 213, .10), transparent 24%),
+    radial-gradient(circle at 76% 50%, rgba(126, 91, 200, .13), transparent 28%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 38%),
+    linear-gradient(100deg, #111d32 0%, #151a35 44%, #21183c 72%, #121d31 100%);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.45),
+    inset 0 0 22px rgba(0,0,0,.26),
+    0 7px 20px rgba(0,0,0,.16);
+}
+
+/* Gravure principale : nombres et symboles mathématiques. */
+.major-separator::before {
+  content: "7   +   24   ×   3   =   72      π   √   10²      5   −   2   =   3      ∑   ∞   ÷      4²   +   9      ½   %   8   ×   6      1   2   3";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 0 22px;
+
+  font-family: "Lexend", "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 4px;
+
+  color: rgba(185, 194, 238, .14);
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.055),
+    0 -1px 0 rgba(0,0,0,.72);
+
+  transform: translateY(1px);
+  pointer-events: none;
+}
+
+/* Fines gravures géométriques par-dessus le texte. */
+.major-separator::after {
+  content: "";
+  position: absolute;
+  inset: 4px 10px;
+  border-radius: 9px;
+  pointer-events: none;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 54px,
+      rgba(147,157,219,.055) 54px 55px,
+      transparent 55px 108px
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,.018) 0 1px,
+      transparent 1px 12px
+    );
+
+  border-top: 1px solid rgba(164,176,235,.06);
+  border-bottom: 1px solid rgba(0,0,0,.24);
+  opacity: .95;
+}
+
+
+/* ==========================================================================
+   GLOBAL — centrage miniature + nom dans l'espace restant
+   ========================================================================== */
+
+.global-app-info {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.global-app-stack {
+  width: 100%;
+  min-width: 0;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.global-app-name {
+  width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.global-edit-action {
+  align-self: center;
+  justify-self: end;
+}
