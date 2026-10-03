@@ -124,6 +124,21 @@
   let selectedBulkFiles = [];
   let currentUsageImage = null;
 
+  window.addEventListener('error', event => {
+    console.error('Mathas teacher-other error:', event.error || event.message);
+    if (panelMessage) {
+      setMessage(panelMessage, `Erreur de la page Autres : ${event.message || 'erreur inconnue'}`, 'error');
+    }
+  });
+
+  window.addEventListener('unhandledrejection', event => {
+    console.error('Mathas teacher-other promise error:', event.reason);
+    if (panelMessage) {
+      const message = event.reason?.message || String(event.reason || 'erreur inconnue');
+      setMessage(panelMessage, `Erreur de chargement : ${message}`, 'error');
+    }
+  });
+
   init();
 
   async function init() {
@@ -437,6 +452,7 @@
       titleLine.appendChild(badge);
     }
     const url = document.createElement('span');
+    url.className = 'app-url';
     url.textContent = app.url || '';
     info.append(titleLine, url);
     row.appendChild(info);
@@ -1060,7 +1076,7 @@
 
   function makeThumb(app) {
     const thumb = document.createElement('div');
-    thumb.className = 'app-thumb-admin';
+    thumb.className = 'app-thumb';
     if (app.miniature_url) {
       const img = document.createElement('img');
       img.src = app.miniature_url;

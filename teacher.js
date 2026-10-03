@@ -69,6 +69,21 @@
   let selectedImageFile = null;
   let selectedImageObjectUrl = null;
 
+  window.addEventListener('error', event => {
+    console.error('Mathas teacher error:', event.error || event.message);
+    if (panelMessage) {
+      setMessage(panelMessage, `Erreur de la page prof : ${event.message || 'erreur inconnue'}`, 'error');
+    }
+  });
+
+  window.addEventListener('unhandledrejection', event => {
+    console.error('Mathas teacher promise error:', event.reason);
+    if (panelMessage) {
+      const message = event.reason?.message || String(event.reason || 'erreur inconnue');
+      setMessage(panelMessage, `Erreur de chargement : ${message}`, 'error');
+    }
+  });
+
   init();
 
   async function init() {
@@ -707,7 +722,7 @@
 
   function makeThumb(app) {
     const thumb = document.createElement('div');
-    thumb.className = 'app-thumb-admin';
+    thumb.className = 'app-thumb';
     if (app.miniature_url) {
       const img = document.createElement('img');
       img.src = app.miniature_url;
