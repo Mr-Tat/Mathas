@@ -12,8 +12,8 @@
   const IMAGE_FOLDER = 'miniatures';
   const IMAGE_FOLDERS = ['miniatures', 'logos', 'backgrounds', 'interface', 'illustrations', 'autres'];
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-  const MATHAS_ICON_PATH = 'logos/lettre-m-3d-de-mathematiques-en-collage-1791015091641-1oed9jb.png';
-  const MATHAS_WORDMARK_PATH = 'logos/logo-3d-mathematiques-colore-1791015093060-1256uhr.png';
+  const MATHAS_ICON_PATH = 'logos/logo-m-1791065253498-qussoz.png';
+  const MATHAS_WORDMARK_PATH = 'logos/logo-mot-1791065255634-jznxux.png';
 
   const STANDARD_LEVELS = {
     objectif: 'Objectif',
