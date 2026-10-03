@@ -318,16 +318,26 @@
   function makeGlobalAppCell(app) {
     const td = document.createElement('td');
     td.className = 'global-app-cell';
+
     const wrap = document.createElement('div');
     wrap.className = 'global-app-info';
-    wrap.append(makeThumb(app));
-    const meta = document.createElement('div');
+
+    const stack = document.createElement('div');
+    stack.className = 'global-app-stack';
+
+    const thumb = makeThumb(app);
+    thumb.classList.add('global-app-thumb');
+
     const name = document.createElement('strong');
+    name.className = 'global-app-name';
     name.textContent = app.nom;
-    const edit = button('Modifier', 'text-action');
+
+    stack.append(thumb, name);
+
+    const edit = button('Modifier', 'text-action global-edit-action');
     edit.addEventListener('click', () => openAppDialog(app));
-    meta.append(name, edit);
-    wrap.appendChild(meta);
+
+    wrap.append(stack, edit);
     td.appendChild(wrap);
     return td;
   }
