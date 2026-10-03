@@ -635,3 +635,17 @@ body.theme-partage {
     max-height: 150px;
   }
 }
+
+
+/* ===== Mot Math'as plus compact sur les pages élèves ===== */
+.brand-wordmark {
+  width: min(336px, 50vw);
+  max-height: 114px;
+}
+
+@media (max-width: 650px) {
+  .brand-wordmark {
+    width: min(282px, 72vw);
+    max-height: 90px;
+  }
+}

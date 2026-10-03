@@ -1,14 +1,11 @@
-MATH'AS — CENTRAGE DE LA PREMIÈRE COLONNE GLOBAL
+MATH'AS — LOGO PLUS PETIT SUR LES PAGES ÉLÈVES
 
 Changement :
-- la miniature et le nom de l'application sont centrés dans tout l'espace
-  restant de la première colonne ;
-- le bouton Modifier conserve sa place à droite ;
-- le centrage tient donc compte de l'espace occupé par Modifier.
+- le mot Math'as affiché en haut des pages élèves est réduit d'environ 40 % ;
+- le panneau prof n'est pas modifié.
 
 À remplacer dans GitHub :
-- teacher.css
-- teacher.html
-- teacher-other.html
+- index.html
+- styles.css
 
 Aucun changement Supabase.
