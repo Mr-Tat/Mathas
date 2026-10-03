@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prof Math'as — Autres</title>
+  <link rel="stylesheet" href="teacher.css" />
+</head>
+<body>
+  <div class="math-bg" aria-hidden="true"></div>
+
+  <main class="shell shell-wide">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Math'as</p>
+        <h1>Autres</h1>
+        <p class="subtitle">Pages indépendantes, partages et bibliothèque d’images.</p>
+      </div>
+      <div class="top-actions">
+        <a class="secondary link-button" href="teacher.html">← GLOBAL</a>
+        <button id="logoutBtnTop" class="secondary hidden" type="button">Déconnexion</button>
+      </div>
+    </header>
+
+    <section id="loginPanel" class="card auth-card">
+      <h2>Connexion enseignant</h2>
+      <p class="muted">Utilise le compte enseignant créé dans Supabase.</p>
+      <form id="loginForm">
+        <label>
+          Adresse e-mail
+          <input id="email" type="email" autocomplete="username" required />
+        </label>
+        <label>
+          Mot de passe
+          <input id="password" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="primary" type="submit">Se connecter</button>
+        <p id="loginMessage" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="teacherPanel" class="hidden">
+      <section class="other-home-grid" aria-label="Pages spéciales">
+        <button class="other-home-card eco" data-other-view="2eco" type="button"><strong>2 ECO</strong><span>Classe indépendante</span></button>
+        <button class="other-home-card share" data-other-view="partage-n1" type="button"><strong>Partage Niveau 1</strong><span>Lien révocable</span></button>
+        <button class="other-home-card share" data-other-view="partage-n2" type="button"><strong>Partage Niveau 2</strong><span>Lien révocable</span></button>
+        <button class="other-home-card thibault" data-other-view="thibault" type="button"><strong>Thibault</strong><span>Page indépendante</span></button>
+        <button class="other-home-card lise" data-other-view="lise" type="button"><strong>Lise</strong><span>Page indépendante</span></button>
+        <button class="other-home-card images" data-other-view="images" type="button"><strong>Images</strong><span>Bibliothèque</span></button>
+      </section>
+
+      <div class="major-separator" aria-hidden="true"></div>
+
+      <section id="specialManager" class="card management-card hidden">
+        <div class="management-head">
+          <div>
+            <p class="section-kicker">Page indépendante</p>
+            <h2 id="specialTitle">2 ECO</h2>
+            <p id="specialHint" class="muted"></p>
+          </div>
+          <div class="toolbar-actions">
+            <input id="specialSearchInput" type="search" placeholder="Chercher une appli…" />
+            <button id="addExistingBtn" class="secondary" type="button">+ Ajouter appli existante</button>
+            <button id="addSpecificBtn" class="primary" type="button">+ Ajouter appli spécifique</button>
+            <button id="specialRefreshBtn" class="secondary" type="button">Actualiser</button>
+          </div>
+        </div>
+
+        <div id="shareLinkPanel" class="share-link-panel hidden">
+          <div>
+            <span class="field-label">Lien de partage actif</span>
+            <input id="shareLinkInput" type="text" readonly />
+          </div>
+          <button id="copyShareLinkBtn" class="primary" type="button">Copier le lien de partage</button>
+          <button id="rotateShareLinkBtn" class="danger-lite" type="button">Changer le lien de partage</button>
+        </div>
+
+        <div id="specialLegend" class="legend"></div>
+      </section>
+
+      <div id="specialAppList" class="app-list hidden"></div>
+
+      <section id="imageManager" class="hidden">
+        <section class="card management-card image-manager-card">
+          <div class="management-head">
+            <div>
+              <p class="section-kicker">Bibliothèque d’images</p>
+              <h2>Images</h2>
+              <p class="muted">Parcours les images du bucket Math'as, ajoute-en plusieurs à la fois et vérifie où elles sont utilisées.</p>
+            </div>
+            <div class="toolbar-actions">
+              <button id="refreshImagesBtn" class="secondary" type="button">Actualiser</button>
+            </div>
+          </div>
+
+          <div class="bulk-upload-box">
+            <label>
+              Dossier pour tout le lot
+              <select id="bulkImageFolder">
+                <option value="miniatures">Miniatures</option>
+                <option value="logos">Logos</option>
+                <option value="backgrounds">Fonds d’écran</option>
+                <option value="interface">Interface</option>
+                <option value="illustrations">Illustrations</option>
+                <option value="autres">Autres</option>
+              </select>
+            </label>
+
+            <div id="bulkImageDropZone" class="image-drop-zone bulk-drop-zone" tabindex="0" role="button" aria-label="Choisir ou déposer plusieurs images">
+              <input id="bulkImageFiles" type="file" accept="image/*" multiple hidden />
+              <div>
+                <strong>Glisse plusieurs images ici</strong>
+                <span>ou clique pour les choisir</span>
+                <small id="bulkImageSelection">Aucun fichier sélectionné</small>
+              </div>
+            </div>
+
+            <button id="uploadBulkImagesBtn" class="primary" type="button">Envoyer les images</button>
+          </div>
+        </section>
+
+        <div class="image-filter-row">
+          <input id="imageSearchInput" type="search" placeholder="Chercher une image…" />
+          <select id="imageFolderFilter">
+            <option value="all">Tous les dossiers</option>
+            <option value="miniatures">Miniatures</option>
+            <option value="logos">Logos</option>
+            <option value="backgrounds">Fonds d’écran</option>
+            <option value="interface">Interface</option>
+            <option value="illustrations">Illustrations</option>
+            <option value="autres">Autres</option>
+          </select>
+        </div>
+
+        <div id="imageGallery" class="image-gallery"></div>
+      </section>
+
+      <p id="panelMessage" class="message panel-message" role="status"></p>
+    </section>
+  </main>
+
+  <dialog id="appDialog" class="app-dialog">
+    <form id="appForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Application Math'as</p>
+          <h2 id="dialogTitle">Ajouter une application</h2>
+        </div>
+        <button id="closeDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <input id="editAppId" type="hidden" />
+      <label>Nom<input id="appNameInput" type="text" required /></label>
+      <label>URL de l'application<input id="appUrlInput" type="url" placeholder="https://mr-tat.github.io/..." required /></label>
+
+      <div class="image-field">
+        <span class="field-title">Miniature</span>
+        <div id="imageDropZone" class="image-drop-zone" tabindex="0" role="button" aria-label="Choisir ou déposer une miniature">
+          <input id="appImageFile" type="file" accept="image/*" hidden />
+          <div id="imageDropPrompt" class="image-drop-prompt">
+            <strong>Glisse une image ici</strong><span>ou clique pour choisir un fichier</span><small>PNG, JPG, WEBP…</small>
+          </div>
+          <div id="imagePreviewWrap" class="image-preview-wrap hidden">
+            <img id="imagePreview" alt="Aperçu de la miniature" />
+            <div class="image-preview-meta"><strong id="imagePreviewName">Miniature</strong><span id="imagePreviewStatus">Prête</span></div>
+          </div>
+        </div>
+        <div class="image-actions">
+          <button id="clearImageBtn" class="secondary small-btn hidden" type="button">Retirer la nouvelle image</button>
+          <button id="copyImageUrlBtn" class="secondary small-btn" type="button">Copier l’URL</button>
+        </div>
+        <label class="image-url-label">URL de la miniature<input id="appThumbInput" type="url" /></label>
+      </div>
+
+      <label>Description<textarea id="appDescriptionInput" rows="3" placeholder="Facultatif"></textarea></label>
+      <div id="newAppNote" class="dialog-note"></div>
+
+      <div class="dialog-actions">
+        <button id="deleteAppBtn" class="danger hidden" type="button">Supprimer partout</button>
+        <span class="dialog-spacer"></span>
+        <button id="cancelDialogBtn" class="secondary" type="button">Annuler</button>
+        <button id="saveAppBtn" class="primary" type="submit">Enregistrer</button>
+      </div>
+      <p id="dialogMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
+
+  <dialog id="existingAppDialog" class="app-dialog wide-dialog">
+    <form id="existingAppForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Application existante</p>
+          <h2 id="existingDialogTitle">Ajouter une appli existante</h2>
+        </div>
+        <button id="closeExistingDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+      <p class="muted">Clique sur une miniature. La liste est scrollable si elle devient longue.</p>
+      <div id="existingAppGrid" class="existing-share-grid independent-picker-grid"></div>
+      <div class="dialog-actions">
+        <span class="dialog-spacer"></span>
+        <button id="cancelExistingBtn" class="secondary" type="button">Annuler</button>
+        <button id="confirmExistingBtn" class="primary" type="submit" disabled>Ajouter</button>
+      </div>
+      <p id="existingMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
+
+  <dialog id="usageDialog" class="app-dialog usage-dialog">
+    <form id="usageForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">Utilisation de l’image</p>
+          <h2 id="usageImageName">Image</h2>
+        </div>
+        <button id="closeUsageDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <div id="usageList" class="usage-list"></div>
+
+      <div class="usage-add-box">
+        <h3>Ajouter une utilisation manuelle</h3>
+        <div class="usage-add-grid">
+          <label>
+            Badge
+            <select id="usageKind">
+              <option value="M">M — Math'as / application</option>
+              <option value="A">A — Autre</option>
+            </select>
+          </label>
+          <label>
+            Où est-elle utilisée ?
+            <input id="usageLabel" type="text" placeholder="Ex. fond de l'appli Boulier, document X…" required />
+          </label>
+        </div>
+        <button id="addUsageBtn" class="primary" type="submit">Ajouter cette utilisation</button>
+      </div>
+
+      <div class="dialog-actions">
+        <span class="dialog-spacer"></span>
+        <button id="closeUsageBtn" class="secondary" type="button">Fermer</button>
+      </div>
+      <p id="usageMessage" class="message" role="status"></p>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="teacher-other.js"></script>
+</body>
+</html>

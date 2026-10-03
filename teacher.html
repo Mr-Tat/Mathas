@@ -9,105 +9,78 @@
 <body>
   <div class="math-bg" aria-hidden="true"></div>
 
-  <main class="shell">
+  <main class="shell shell-wide">
     <header class="topbar">
       <div>
         <p class="eyebrow">Math'as</p>
         <h1>Panneau enseignant</h1>
-        <p class="subtitle">Gère rapidement ce qui apparaît dans le hub des élèves.</p>
+        <p class="subtitle">Gère les classes principales et l’ensemble des applications depuis un seul endroit.</p>
       </div>
-
       <button id="logoutBtnTop" class="secondary hidden" type="button">Déconnexion</button>
     </header>
 
     <section id="loginPanel" class="card auth-card">
       <h2>Connexion enseignant</h2>
       <p class="muted">Utilise le compte enseignant créé dans Supabase.</p>
-
       <form id="loginForm">
         <label>
           Adresse e-mail
           <input id="email" type="email" autocomplete="username" required />
         </label>
-
         <label>
           Mot de passe
           <input id="password" type="password" autocomplete="current-password" required />
         </label>
-
         <button class="primary" type="submit">Se connecter</button>
         <p id="loginMessage" class="message" role="status"></p>
       </form>
     </section>
 
     <section id="teacherPanel" class="hidden">
-      <section class="quick-links" aria-label="Accès rapide aux pages Math'as">
-        <a class="quick-link obs" href="index.html?classe=observation" target="_blank" rel="noopener noreferrer">
-          <strong>Observation</strong>
-        </a>
-        <a class="quick-link ph1" href="index.html?classe=phase1" target="_blank" rel="noopener noreferrer">
-          <strong>Phase 1</strong>
-        </a>
-        <a class="quick-link ph2" href="index.html?classe=phase2" target="_blank" rel="noopener noreferrer">
-          <strong>Phase 2</strong>
-        </a>
-        <a class="quick-link eco2" href="index.html?classe=2eco" target="_blank" rel="noopener noreferrer">
-          <strong>2 ECO</strong>
-        </a>
-        <a class="quick-link all" href="index.html?classe=toutes" target="_blank" rel="noopener noreferrer">
-          <strong>Toutes</strong>
-        </a>
-        <a class="quick-link share" href="index.html?classe=partage" target="_blank" rel="noopener noreferrer">
-          <strong>Partage</strong>
-        </a>
+      <section class="quick-links core-quick-links" aria-label="Accès rapide aux pages Math'as">
+        <a class="quick-link obs" href="index.html?classe=observation" target="_blank" rel="noopener noreferrer"><strong>Observation</strong></a>
+        <a class="quick-link ph1" href="index.html?classe=phase1" target="_blank" rel="noopener noreferrer"><strong>Phase 1</strong></a>
+        <a class="quick-link ph2" href="index.html?classe=phase2" target="_blank" rel="noopener noreferrer"><strong>Phase 2</strong></a>
+        <a class="quick-link all" href="index.html?classe=toutes" target="_blank" rel="noopener noreferrer"><strong>Toutes</strong></a>
+        <a class="quick-link other" href="teacher-other.html"><strong>Autres</strong></a>
       </section>
+
+      <div class="major-separator" aria-hidden="true"></div>
 
       <section class="card management-card">
         <div class="management-head">
           <div>
             <p class="section-kicker">Paramètres du hub</p>
             <h2>Applications</h2>
-            <p id="managementHint" class="muted">Choisis d'abord la classe, puis modifie uniquement ce dont tu as besoin.</p>
+            <p id="managementHint" class="muted">GLOBAL permet de régler les quatre pages principales en un seul tableau.</p>
           </div>
-
           <div class="toolbar-actions">
             <input id="searchInput" type="search" placeholder="Chercher une appli…" />
             <button id="addAppBtn" class="primary" type="button">+ Ajouter une appli</button>
-            <button id="addSiteImageBtn" class="secondary site-image-btn" type="button">+ Ajouter une image</button>
             <button id="refreshBtn" class="secondary" type="button">Actualiser</button>
           </div>
         </div>
 
-        <div class="class-switcher" role="tablist" aria-label="Choisir une page à régler">
-          <button class="class-btn active" data-class="observation" type="button">Observation</button>
-          <button class="class-btn" data-class="phase1" type="button">Phase 1</button>
-          <button class="class-btn" data-class="phase2" type="button">Phase 2</button>
-          <button class="class-btn" data-class="2eco" type="button">2 ECO</button>
-          <button class="class-btn" data-class="toutes" type="button">Toutes les applis</button>
-          <button class="class-btn" data-class="partage" type="button">Partage</button>
-        </div>
-
-        <div id="shareActions" class="share-actions hidden">
-          <button id="addExistingShareAppBtn" class="secondary" type="button">
-            + Ajouter appli existante
-          </button>
-          <button id="addSpecificShareAppBtn" class="primary" type="button">
-            + Ajouter appli spécifique
-          </button>
+        <div class="class-switcher core-switcher" role="tablist" aria-label="Choisir une vue">
+          <button class="class-btn global-btn active" data-view="global" type="button">GLOBAL</button>
+          <button class="class-btn" data-view="observation" type="button">Observation</button>
+          <button class="class-btn" data-view="phase1" type="button">Phase 1</button>
+          <button class="class-btn" data-view="phase2" type="button">Phase 2</button>
+          <button class="class-btn" data-view="toutes" type="button">Toutes les applis</button>
         </div>
 
         <div id="classLegend" class="legend">
-          <span><b>Visible</b> : l'appli apparaît dans le hub</span>
-          <span><b>Du jour</b> : elle apparaît aussi dans Sélection du jour</span>
+          <span><b>Visible</b> : l'appli apparaît sur la page</span>
+          <span id="dailyLegend"><b>Du jour</b> : elle apparaît aussi dans Sélection du jour</span>
           <span><b>Ordre</b> : plus petit = affiché plus tôt</span>
         </div>
       </section>
 
-      <div id="appList" class="app-list"></div>
+      <section id="globalView" class="global-view"></section>
+      <div id="classView" class="app-list hidden"></div>
       <p id="panelMessage" class="message panel-message" role="status"></p>
     </section>
   </main>
-
 
   <dialog id="appDialog" class="app-dialog">
     <form id="appForm" method="dialog">
@@ -133,17 +106,13 @@
 
       <div class="image-field">
         <span class="field-title">Miniature</span>
-
-        <div id="imageDropZone" class="image-drop-zone" tabindex="0" role="button"
-             aria-label="Choisir ou déposer une miniature">
+        <div id="imageDropZone" class="image-drop-zone" tabindex="0" role="button" aria-label="Choisir ou déposer une miniature">
           <input id="appImageFile" type="file" accept="image/*" hidden />
-
           <div id="imageDropPrompt" class="image-drop-prompt">
             <strong>Glisse une image ici</strong>
             <span>ou clique pour choisir un fichier</span>
             <small>PNG, JPG, WEBP…</small>
           </div>
-
           <div id="imagePreviewWrap" class="image-preview-wrap hidden">
             <img id="imagePreview" alt="Aperçu de la miniature" />
             <div class="image-preview-meta">
@@ -154,24 +123,14 @@
         </div>
 
         <div class="image-actions">
-          <button id="clearImageBtn" class="secondary small-btn hidden" type="button">
-            Retirer la nouvelle image
-          </button>
-          <button id="copyImageUrlBtn" class="secondary small-btn" type="button">
-            Copier l’URL
-          </button>
+          <button id="clearImageBtn" class="secondary small-btn hidden" type="button">Retirer la nouvelle image</button>
+          <button id="copyImageUrlBtn" class="secondary small-btn" type="button">Copier l’URL</button>
         </div>
 
         <label class="image-url-label">
           URL de la miniature
-          <input id="appThumbInput" type="url"
-                 placeholder="Remplie automatiquement après l’envoi, ou colle une URL existante" />
+          <input id="appThumbInput" type="url" placeholder="Remplie automatiquement après l’envoi, ou colle une URL existante" />
         </label>
-
-        <p class="image-help">
-          Si tu déposes une image, elle sera envoyée automatiquement dans
-          <strong>mathas-images/miniatures</strong> lors de l’enregistrement.
-        </p>
       </div>
 
       <label>
@@ -180,8 +139,7 @@
       </label>
 
       <div id="newAppNote" class="dialog-note">
-        La nouvelle appli sera créée dans <strong>toutes les classes</strong>, mais
-        <strong>invisible par défaut</strong>. Tu pourras ensuite l'activer dans les classes voulues.
+        La nouvelle appli sera ajoutée à Observation, Phase 1, Phase 2 et Toutes les applis. Elle ne sera jamais ajoutée automatiquement aux pages de la section Autres.
       </div>
 
       <div class="dialog-actions">
@@ -190,108 +148,7 @@
         <button id="cancelDialogBtn" class="secondary" type="button">Annuler</button>
         <button id="saveAppBtn" class="primary" type="submit">Enregistrer</button>
       </div>
-
       <p id="dialogMessage" class="message" role="status"></p>
-    </form>
-  </dialog>
-
-
-  <dialog id="siteImageDialog" class="app-dialog">
-    <form id="siteImageForm" method="dialog">
-      <div class="dialog-head">
-        <div>
-          <p class="section-kicker">Bibliothèque d’images</p>
-          <h2>Ajouter une image</h2>
-        </div>
-        <button id="closeSiteImageDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
-      </div>
-
-      <label>
-        Dossier
-        <select id="siteImageFolder">
-          <option value="logos">Logos</option>
-          <option value="backgrounds">Fonds d’écran</option>
-          <option value="interface">Interface</option>
-          <option value="illustrations">Illustrations</option>
-          <option value="autres">Autres</option>
-        </select>
-      </label>
-
-      <div class="image-field">
-        <span class="field-title">Image</span>
-
-        <div id="siteImageDropZone" class="image-drop-zone" tabindex="0" role="button"
-             aria-label="Choisir ou déposer une image">
-          <input id="siteImageFile" type="file" accept="image/*" hidden />
-
-          <div id="siteImagePrompt" class="image-drop-prompt">
-            <strong>Glisse une image ici</strong>
-            <span>ou clique pour choisir un fichier</span>
-            <small>PNG, JPG, WEBP, SVG…</small>
-          </div>
-
-          <div id="siteImagePreviewWrap" class="image-preview-wrap hidden">
-            <img id="siteImagePreview" alt="Aperçu de l’image" />
-            <div class="image-preview-meta">
-              <strong id="siteImagePreviewName">Image</strong>
-              <span id="siteImagePreviewStatus">Prête</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="siteImageResult" class="site-image-result hidden">
-        <label>
-          URL publique
-          <input id="siteImageUrl" type="text" readonly />
-        </label>
-
-        <div class="image-actions">
-          <button id="copySiteImageUrlBtn" class="secondary" type="button">Copier l’URL</button>
-          <a id="openSiteImageBtn" class="link-button" href="#" target="_blank" rel="noopener noreferrer">
-            Ouvrir l’image
-          </a>
-        </div>
-      </div>
-
-      <div class="dialog-actions">
-        <span class="dialog-spacer"></span>
-        <button id="cancelSiteImageBtn" class="secondary" type="button">Fermer</button>
-        <button id="uploadSiteImageBtn" class="primary" type="submit">Envoyer l’image</button>
-      </div>
-
-      <p id="siteImageMessage" class="message" role="status"></p>
-    </form>
-  </dialog>
-
-
-  <dialog id="existingShareAppDialog" class="app-dialog">
-    <form id="existingShareAppForm" method="dialog">
-      <div class="dialog-head">
-        <div>
-          <p class="section-kicker">Page Partage</p>
-          <h2>Ajouter une appli existante</h2>
-        </div>
-        <button id="closeExistingShareDialogBtn" class="icon-btn" type="button" aria-label="Fermer">×</button>
-      </div>
-
-      <p class="muted">
-        Choisis une application déjà présente dans Math’as. Elle sera ajoutée uniquement
-        à la page Partage ; ses autres réglages ne changeront pas.
-      </p>
-
-      <div class="share-picker-field">
-        <span class="field-title">Application</span>
-        <div id="existingShareAppGrid" class="existing-share-grid"></div>
-      </div>
-
-      <div class="dialog-actions">
-        <span class="dialog-spacer"></span>
-        <button id="cancelExistingShareBtn" class="secondary" type="button">Annuler</button>
-        <button id="confirmExistingShareBtn" class="primary" type="submit">Ajouter au partage</button>
-      </div>
-
-      <p id="existingShareMessage" class="message" role="status"></p>
     </form>
   </dialog>
 

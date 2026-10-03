@@ -1,29 +1,56 @@
 (async () => {
   const cfg = window.MATHAS_CONFIG;
   const params = new URLSearchParams(location.search);
-  const classKey = (params.get('classe') || 'observation').toLowerCase();
+  const shareToken = (params.get('partage') || '').trim();
 
-  const specialViews = {
-    toutes: {
-      label: 'Toutes les applis',
-      theme: 'theme-toutes',
-      tabTitle: "Math'as — Toutes les applis",
-      simpleView: true,
-      showScores: true
-    },
-    partage: {
-      label: 'Partage',
-      theme: 'theme-partage',
-      tabTitle: "Math'as — Partage",
-      simpleView: true,
-      showScores: false
+  let classKey = (params.get('classe') || 'observation').toLowerCase();
+  let currentClass = null;
+  let sharePayload = null;
+  let invalidShare = false;
+  let invalidClass = false;
+
+  if (shareToken) {
+    try {
+      sharePayload = await loadSharePayload(shareToken);
+    } catch (error) {
+      console.error('Mathas share resolution error:', error);
+      invalidShare = true;
     }
-  };
 
-  const currentClass =
-    specialViews[classKey] ||
-    cfg.classes[classKey] ||
-    cfg.classes.observation;
+    if (!sharePayload || sharePayload.valid !== true) {
+      invalidShare = true;
+      currentClass = {
+        label: 'Partage',
+        theme: 'theme-partage',
+        tabTitle: "Math'as — Partage",
+        simpleView: true,
+        showScores: false,
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'autre']
+      };
+    } else {
+      currentClass = {
+        label: sharePayload.public_name || 'Partage',
+        theme: 'theme-partage',
+        tabTitle: "Math'as — Partage",
+        simpleView: true,
+        showScores: false,
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'autre']
+      };
+    }
+  } else {
+    currentClass = cfg.classes[classKey] || null;
+    invalidClass = !currentClass;
+
+    if (invalidClass) {
+      currentClass = {
+        label: 'Math’as',
+        theme: 'theme-observation',
+        tabTitle: "Math'as",
+        simpleView: false,
+        showScores: true
+      };
+    }
+  }
 
   const isSimpleView = currentClass.simpleView === true;
   const showScoresInSimpleView = currentClass.showScores !== false;
@@ -66,13 +93,19 @@
     }
   ];
 
-  const simpleLevelsDef = [
-    { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
-    { key: 'niveau2', label: 'Niveau 2', openByDefault: true },
-    { key: 'niveau3', label: 'Niveau 3', openByDefault: true },
-    { key: 'autre', label: 'Autre', openByDefault: true },
-    { key: 'exterieur', label: 'Extérieur', openByDefault: true }
-  ];
+  const simpleSectionMeta = {
+    niveau1: { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
+    niveau2: { key: 'niveau2', label: 'Niveau 2', openByDefault: true },
+    niveau3: { key: 'niveau3', label: 'Niveau 3', openByDefault: true },
+    autre: { key: 'autre', label: 'Autre', openByDefault: true },
+    exterieur: { key: 'exterieur', label: 'Extérieur', openByDefault: true }
+  };
+
+  const simpleLevelsDef = (
+    currentClass.sectionKeys || ['niveau1', 'niveau2', 'niveau3', 'autre']
+  )
+    .map(key => simpleSectionMeta[key])
+    .filter(Boolean);
 
   const levelsHost = document.getElementById('levels');
   const dailySection = document.querySelector('.daily-section');
@@ -81,13 +114,84 @@
   const dailyHost = document.getElementById('dailyApps');
   const dailyCount = document.getElementById('dailyCount');
 
+  if (invalidShare) {
+    renderInactiveShare();
+    return;
+  }
+
+  if (invalidClass) {
+    renderError('Cette page Math’as n’existe pas.');
+    return;
+  }
+
   try {
     setLoading();
-    const apps = await loadAppsFromSupabase(classKey);
+    const apps = shareToken
+      ? buildAppsFromSharePayload(sharePayload)
+      : await loadAppsFromSupabase(classKey);
     renderHub(apps);
   } catch (error) {
     console.error('Mathas loading error:', error);
     renderError('Impossible de charger les applications pour le moment.');
+  }
+
+  async function loadSharePayload(token) {
+    const { url, publishableKey } = cfg.supabase;
+    const response = await fetch(`${url}/rest/v1/rpc/get_shared_page`, {
+      method: 'POST',
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_token: token })
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Supabase ${response.status}: ${detail}`);
+    }
+
+    return response.json();
+  }
+
+  function buildAppsFromSharePayload(payload) {
+    const rows = Array.isArray(payload?.apps) ? payload.apps : [];
+
+    return rows
+      .map(row => ({
+        id: row.application_id,
+        name: row.nom,
+        url: row.url,
+        image: row.miniature_url,
+        description: row.description,
+        visible: true,
+        daily: false,
+        level: row.niveau || 'niveau1',
+        domain: null,
+        order: row.ordre ?? 0,
+        categories: []
+      }))
+      .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'fr'));
+  }
+
+  function renderInactiveShare() {
+    if (dailySection) dailySection.hidden = true;
+    if (simpleTopCount) simpleTopCount.textContent = 'Lien inactif';
+    levelsHost.hidden = false;
+    levelsHost.innerHTML = '';
+
+    const panel = document.createElement('section');
+    panel.className = 'panel share-inactive-panel';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Ce lien de partage n’est plus actif';
+
+    const text = document.createElement('p');
+    text.textContent = 'Demande un nouveau lien à la personne qui te l’a transmis.';
+
+    panel.append(title, text);
+    levelsHost.appendChild(panel);
   }
 
   async function loadAppsFromSupabase(slug) {
@@ -108,21 +212,7 @@
     const classRow = classes.find(row => row.slug === slug);
 
     if (!classRow) {
-      if (slug === 'toutes' || slug === 'partage') {
-        throw new Error(
-          `La page "${slug}" n'existe pas encore dans Supabase. Exécute setup_toutes_partage.sql.`
-        );
-      }
-
-      const observation = classes.find(row => row.slug === 'observation');
-      if (!observation) throw new Error('Classe introuvable dans Supabase.');
-      return buildAppsForClass(
-        observation,
-        applications,
-        classApplications,
-        categories,
-        applicationCategories
-      );
+      throw new Error(`Page introuvable dans Supabase : ${slug}`);
     }
 
     return buildAppsForClass(
