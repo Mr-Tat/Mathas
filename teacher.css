@@ -2894,3 +2894,24 @@ textarea {
   height: 20px !important;
   object-fit: contain !important;
 }
+
+
+/* ==========================================================================
+   BIBLIOTHÈQUE IMAGES — aperçu cliquable
+   ========================================================================== */
+
+.image-library-clickable {
+  cursor: zoom-in;
+  transition: transform .16s ease, filter .16s ease;
+}
+
+.image-library-clickable:hover,
+.image-library-clickable:focus-visible {
+  transform: scale(1.025);
+  filter: brightness(1.07);
+}
+
+.image-library-clickable:focus-visible {
+  outline: 2px solid rgba(112, 194, 232, .72);
+  outline-offset: -2px;
+}

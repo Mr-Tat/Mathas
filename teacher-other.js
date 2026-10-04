@@ -1072,6 +1072,22 @@
     img.src = image.publicUrl;
     img.alt = image.name;
     img.loading = 'lazy';
+    img.className = 'image-library-clickable';
+    img.tabIndex = 0;
+    img.title = 'Cliquer pour afficher l’image en grand';
+
+    const openFullImage = () => {
+      window.open(image.publicUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    img.addEventListener('click', openFullImage);
+    img.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openFullImage();
+      }
+    });
+
     preview.appendChild(img);
 
     const badges = document.createElement('div');
