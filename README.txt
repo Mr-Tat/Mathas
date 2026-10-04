@@ -1,14 +1,18 @@
-MATH'AS — CLIC SUR IMAGE + OUVERTURE IMAGES DANS UN NOUVEL ONGLET
+MATH'AS — APERÇU IMAGE EN GRANDE BULLE
 
-Changements :
-- le bouton Images de la page principale ouvre la bibliothèque dans un nouvel onglet ;
-- dans la bibliothèque, cliquer directement sur une miniature ouvre l'image complète
-  dans un nouvel onglet ;
-- le curseur devient une loupe pour indiquer que la miniature est cliquable ;
-- le bouton « Ouvrir » existant reste disponible.
+Quand on clique sur une miniature :
+- aucune nouvelle page n'est ouverte ;
+- une grande bulle, presque de la taille de l'écran, apparaît ;
+- l'image est affichée aussi grande que possible ;
+- en haut à droite : gros bouton « Quitter ✕ » ;
+- sous l'image :
+  * Utilisations
+  * Copier l'URL
+  * Ouvrir
+  * Modifier
+- Échap ou clic sur le fond sombre ferment aussi la bulle.
 
 À remplacer dans GitHub :
-- teacher.html
 - teacher-other.html
 - teacher-other.js
 - teacher.css

@@ -136,6 +136,16 @@
   const replaceImageBtn = document.getElementById('replaceImageBtn');
   const replaceImageInput = document.getElementById('replaceImageInput');
 
+  const imageViewerDialog = document.getElementById('imageViewerDialog');
+  const imageViewerFull = document.getElementById('imageViewerFull');
+  const imageViewerTitle = document.getElementById('imageViewerTitle');
+  const closeImageViewerBtn = document.getElementById('closeImageViewerBtn');
+  const viewerUsageBtn = document.getElementById('viewerUsageBtn');
+  const viewerCopyBtn = document.getElementById('viewerCopyBtn');
+  const viewerOpenBtn = document.getElementById('viewerOpenBtn');
+  const viewerEditBtn = document.getElementById('viewerEditBtn');
+  const imageViewerMessage = document.getElementById('imageViewerMessage');
+
   const requestedView = new URLSearchParams(location.search).get('view');
   let currentViewKey = requestedView === 'images' ? 'images' : null;
   let classRows = [];
@@ -154,6 +164,7 @@
   let selectedBulkFiles = [];
   let currentUsageImage = null;
   let currentEditImage = null;
+  let currentViewerImage = null;
 
   window.addEventListener('error', event => {
     console.error('Mathas teacher-other error:', event.error || event.message);
@@ -373,6 +384,37 @@
   imageEditForm.addEventListener('submit', async event => {
     event.preventDefault();
     await moveLibraryImage();
+  });
+
+  closeImageViewerBtn.addEventListener('click', closeImageViewer);
+
+  viewerUsageBtn.addEventListener('click', () => {
+    if (!currentViewerImage) return;
+    const image = currentViewerImage;
+    closeImageViewer();
+    openUsageDialog(image);
+  });
+
+  viewerCopyBtn.addEventListener('click', async () => {
+    if (!currentViewerImage) return;
+    await copyText(currentViewerImage.publicUrl);
+    setMessage(imageViewerMessage, 'URL copiée.', 'success');
+  });
+
+  viewerEditBtn.addEventListener('click', () => {
+    if (!currentViewerImage) return;
+    const image = currentViewerImage;
+    closeImageViewer();
+    openImageEditDialog(image);
+  });
+
+  imageViewerDialog.addEventListener('click', event => {
+    if (event.target === imageViewerDialog) closeImageViewer();
+  });
+
+  imageViewerDialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeImageViewer();
   });
 
   async function showTeacherPanel() {
@@ -1063,6 +1105,26 @@
     });
   }
 
+  function openImageViewer(image) {
+    currentViewerImage = image;
+    imageViewerFull.src = image.publicUrl;
+    imageViewerFull.alt = image.name || 'Image';
+    imageViewerTitle.textContent = image.name || 'Image';
+    viewerOpenBtn.href = image.publicUrl;
+    setMessage(imageViewerMessage, '');
+    imageViewerDialog.showModal();
+  }
+
+  function closeImageViewer() {
+    if (imageViewerDialog.open) imageViewerDialog.close();
+    currentViewerImage = null;
+    imageViewerFull.removeAttribute('src');
+    imageViewerFull.alt = '';
+    imageViewerTitle.textContent = 'Image';
+    viewerOpenBtn.href = '#';
+    setMessage(imageViewerMessage, '');
+  }
+
   function makeImageCard(image) {
     const card = document.createElement('article');
     card.className = 'image-library-card';
@@ -1076,9 +1138,7 @@
     img.tabIndex = 0;
     img.title = 'Cliquer pour afficher l’image en grand';
 
-    const openFullImage = () => {
-      window.open(image.publicUrl, '_blank', 'noopener,noreferrer');
-    };
+    const openFullImage = () => openImageViewer(image);
 
     img.addEventListener('click', openFullImage);
     img.addEventListener('keydown', event => {

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <link rel="apple-touch-icon" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <title>Prof Math'as — Autres</title>
-  <link rel="stylesheet" href="teacher.css?v=20261004-image-click-v1" />
+  <link rel="stylesheet" href="teacher.css?v=20261004-image-bubble-actions-v1" />
 </head>
 <body>
   <div class="math-bg" aria-hidden="true"></div>
@@ -328,8 +328,31 @@
     </form>
   </dialog>
 
+
+  <dialog id="imageViewerDialog" class="image-viewer-dialog">
+    <div class="image-viewer-bubble">
+      <div class="image-viewer-topbar">
+        <strong id="imageViewerTitle" class="image-viewer-title">Image</strong>
+        <button id="closeImageViewerBtn" class="image-viewer-close" type="button">Quitter ✕</button>
+      </div>
+
+      <div class="image-viewer-stage">
+        <img id="imageViewerFull" class="image-viewer-full" alt="" />
+      </div>
+
+      <div class="image-viewer-actions">
+        <button id="viewerUsageBtn" class="secondary" type="button">Utilisations</button>
+        <button id="viewerCopyBtn" class="secondary" type="button">Copier l’URL</button>
+        <a id="viewerOpenBtn" class="secondary link-button" href="#" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+        <button id="viewerEditBtn" class="primary" type="button">Modifier</button>
+      </div>
+
+      <p id="imageViewerMessage" class="message image-viewer-message" role="status"></p>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=20261004-audit-v3"></script>
-  <script src="teacher-other.js?v=20261004-image-click-v1"></script>
+  <script src="teacher-other.js?v=20261004-image-bubble-actions-v1"></script>
 </body>
 </html>
