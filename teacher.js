@@ -222,7 +222,7 @@
 
   function updateViewHint() {
     if (currentView === 'global') {
-      managementHint.textContent = 'GLOBAL : chaque ligne est une appli, avec une colonne par classe principale. Tout s’enregistre automatiquement.';
+      managementHint.textContent = '';
       classLegend.classList.add('hidden');
       return;
     }

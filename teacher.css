@@ -2129,3 +2129,94 @@ textarea {
     min-width: 150px;
   }
 }
+
+
+/* ==========================================================================
+   PROF — titres épurés + cartes AUTRES franchement colorées
+   ========================================================================== */
+
+/* Le sous-titre GLOBAL est retiré : pas d'espace résiduel. */
+#managementHint {
+  display: none !important;
+}
+
+/* Titre Autres + retour GLOBAL sur une seule ligne, bien alignés. */
+.other-title-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.other-title-row h1 {
+  margin: 0;
+}
+
+.other-global-link {
+  min-width: 190px;
+  min-height: 50px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: rgba(145, 121, 236, .32);
+  background: linear-gradient(
+    145deg,
+    rgba(74, 63, 132, .32),
+    rgba(17, 26, 43, .94)
+  );
+}
+
+/* Les cartes sont désormais imbriquées dans .other-home-item :
+   on applique donc les couleurs directement à cette nouvelle structure. */
+.other-home-item.eco-item .other-home-card {
+  background: linear-gradient(145deg, rgba(232, 105, 56, .46), rgba(53, 30, 31, .96)) !important;
+  border-color: rgba(255, 137, 82, .72) !important;
+}
+
+.other-home-item.share-one-item .other-home-card {
+  background: linear-gradient(145deg, rgba(214, 157, 49, .44), rgba(52, 42, 25, .96)) !important;
+  border-color: rgba(238, 184, 74, .72) !important;
+}
+
+.other-home-item.share-two-item .other-home-card {
+  background: linear-gradient(145deg, rgba(50, 133, 201, .48), rgba(24, 47, 72, .97)) !important;
+  border-color: rgba(78, 170, 234, .76) !important;
+}
+
+.other-home-item.thibault-item .other-home-card {
+  background: linear-gradient(145deg, rgba(117, 85, 213, .48), rgba(45, 34, 79, .97)) !important;
+  border-color: rgba(148, 123, 242, .75) !important;
+}
+
+.other-home-item.lise-item .other-home-card {
+  background: linear-gradient(145deg, rgba(198, 72, 143, .46), rgba(70, 31, 57, .97)) !important;
+  border-color: rgba(230, 103, 174, .74) !important;
+}
+
+.other-home-item.images-item .other-home-card {
+  background: linear-gradient(145deg, rgba(38, 153, 124, .48), rgba(21, 60, 54, .97)) !important;
+  border-color: rgba(70, 201, 163, .74) !important;
+}
+
+/* Les petits boutons "Ouvrir la page" reprennent discrètement la couleur de leur carte. */
+.other-home-item .other-open-link {
+  background: rgba(var(--item-rgb), .14);
+  border-color: rgba(var(--item-rgb), .52);
+}
+
+.other-home-item .other-open-link:hover {
+  background: rgba(var(--item-rgb), .24);
+  border-color: rgba(var(--item-rgb), .78);
+}
+
+@media (max-width: 700px) {
+  .other-title-row {
+    gap: 14px;
+  }
+
+  .other-global-link {
+    min-width: 145px;
+  }
+}
