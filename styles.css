@@ -8,6 +8,10 @@
   --accent-rgb: 52,198,223;
   --line: rgba(255,255,255,.12);
   --shadow: 0 18px 48px rgba(0,0,0,.32);
+
+  /* Respiration globale : marge totale retirée à la largeur utile.
+     ~16 px/côté sur petit écran, ~40–48 px/côté sur écran classique. */
+  --layout-gutter-total: clamp(32px, 6vw, 96px);
 }
 
 * { box-sizing: border-box; }
@@ -36,7 +40,7 @@ body {
 }
 
 .topbar, .page-shell {
-  width: min(1180px, calc(100% - 28px));
+  width: min(1180px, calc(100% - var(--layout-gutter-total)));
   margin-inline: auto;
 }
 
@@ -392,10 +396,11 @@ body.theme-partage {
 }
 
 
-/* ===== Toutes / Partage : jusqu'à 6 cartes sur une ligne ===== */
+/* ===== Toutes / Partage : jusqu'à 6 cartes sur une ligne =====
+   La vue reste large, mais ne colle plus aux bords sur les écrans 1366–1600 px. */
 .simple-view .topbar,
 .simple-view .page-shell {
-  width: min(1500px, calc(100% - 28px));
+  width: min(1360px, calc(100% - var(--layout-gutter-total)));
 }
 
 .simple-view .simple-app-grid {

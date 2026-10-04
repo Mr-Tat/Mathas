@@ -1,7 +1,7 @@
-MATH'AS — PACK GITHUB PRÊT À ENVOYER
-=====================================
+MATH'AS — GITHUB FINAL PRÊT À DÉPLOYER — 04/10/2026
+=====================================================
 
-SQL déjà considéré comme installé : aucun fichier SQL à exécuter.
+SQL : déjà considéré comme à jour. Aucun SQL à exécuter pour ces fichiers.
 
 Fichiers à déposer/remplacer dans le dépôt Mathas :
 - index.html
@@ -13,17 +13,23 @@ Fichiers à déposer/remplacer dans le dépôt Mathas :
 - teacher.js
 - teacher-other.html
 - teacher-other.js
+- favicon-hub.png   ← NOUVEAU fichier à conserver dans le dépôt
 
-Vérification finale effectuée :
+Vérifications finales incluses :
 - syntaxe des 4 fichiers JavaScript : OK
-- bouton Images -> bibliothèque directe : OK
+- favicon hub M entouré de violet : OK
+- bouton Images -> bibliothèque directe dans un nouvel onglet : OK
 - bouton ← PRINCIPAL : OK
 - en-tête GLOBAL sticky et aligné aux vraies colonnes : OK
 - alternance / survol / séparations de lignes : OK
 - sections Calculs écrits / Outils : OK
 - page Autres / Partage / 2 ECO : OK
-- bibliothèque Images par dossiers : OK
+- bibliothèque Images groupée par dossiers : OK
 - déplacement / suppression / remplacement d'image : OK
 - badges M bleu / M violet Application / A : OK
-- bouton Détecter + détails URL : OK
+- bouton Détecter + détail des URLs trouvées : OK
+- clic miniature -> grande bulle avec Quitter + 4 actions : OK
+- dernier correctif d'échelle : image entière en mode contain : inclus
 - Oui/Non aléatoire de Jeux : OK
+
+IMPORTANT : pour toute future modification, partir de CE dossier et non d'un ancien ZIP.

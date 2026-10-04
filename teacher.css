@@ -10,6 +10,9 @@
   --line: rgba(255,255,255,.12);
   --danger: #ff8d8d;
   --ok: #7ee2a8;
+
+  /* Même respiration latérale que les pages élèves. */
+  --layout-gutter-total: clamp(32px, 6vw, 96px);
 }
 
 * { box-sizing: border-box; }
@@ -40,7 +43,7 @@ body {
 button, input, select { font: inherit; }
 
 .shell {
-  width: min(1180px, calc(100% - 28px));
+  width: min(1180px, calc(100% - var(--layout-gutter-total)));
   margin: 0 auto;
   padding: 30px 0 60px;
 }
@@ -953,8 +956,10 @@ textarea {
 /* ========================================================================== */
 
 .shell-wide {
-  width: min(1680px, calc(100% - 28px));
-  max-width: 1680px;
+  /* Les écrans de gestion ont besoin de largeur (tableaux, bibliothèque),
+     mais 1680 px rendait l'interface trop bord-à-bord à 100 %. */
+  width: min(1440px, calc(100% - var(--layout-gutter-total)));
+  max-width: 1440px;
 }
 
 .top-actions {
