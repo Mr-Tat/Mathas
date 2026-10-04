@@ -2403,3 +2403,414 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ==========================================================================
+   NAVIGATION PROF : classes | Autres | Images
+   ========================================================================== */
+
+.grouped-quick-links {
+  display: grid !important;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr))
+    4px
+    minmax(0, 1fr)
+    4px
+    minmax(0, 1fr) !important;
+  gap: 13px !important;
+  align-items: stretch;
+}
+
+.grouped-quick-links .quick-link {
+  min-width: 0;
+}
+
+.quick-group-separator {
+  width: 4px;
+  height: 68%;
+  align-self: center;
+  justify-self: center;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(75, 172, 206, .68),
+    rgba(106, 92, 177, .72)
+  );
+  box-shadow: 0 0 12px rgba(89, 112, 186, .17);
+}
+
+.quick-link.images-main {
+  background: linear-gradient(
+    145deg,
+    rgba(38, 153, 124, .34),
+    rgba(17, 40, 42, .96)
+  );
+  border-color: rgba(70, 201, 163, .60);
+}
+
+/* Badge Math'as : laisser un peu plus d'air autour du vrai M. */
+.image-usage-logo {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Le retour GLOBAL conserve son haut actuel mais descend jusqu'au bas du titre Autres. */
+.other-global-link {
+  height: 40px !important;
+  min-height: 40px !important;
+  margin-top: 5px !important;
+}
+
+/* Sans Images, la page Autres n'a plus que 5 cartes. */
+.other-home-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 1250px) {
+  .grouped-quick-links {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .quick-group-separator {
+    display: none;
+  }
+
+  .other-home-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 800px) {
+  .grouped-quick-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .other-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* ==========================================================================
+   TABLEAU GLOBAL — EN-TÊTE STICKY + LIGNES PLUS LISIBLES
+   ========================================================================== */
+
+/* L'ancien thead reste dans le DOM pour la structure du tableau,
+   mais l'affichage est assuré par l'en-tête sticky indépendant. */
+.global-table thead {
+  display: none;
+}
+
+/* La barre reste en haut de la zone visible tant que le tableau est à l'écran. */
+.global-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  overflow: hidden;
+
+  border: 1px solid rgba(126, 144, 205, .34);
+  border-bottom-color: rgba(126, 144, 205, .52);
+  border-radius: 18px 18px 0 0;
+
+  background: rgba(8, 19, 34, .985);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.28),
+    inset 0 -1px 0 rgba(147, 162, 221, .10);
+  backdrop-filter: blur(10px);
+}
+
+.global-sticky-header-inner {
+  width: max(100%, 1170px);
+  min-width: 1170px;
+  display: grid;
+  grid-template-columns: 260px repeat(4, 170px) 92px;
+  transition: transform .02s linear;
+  will-change: transform;
+}
+
+.global-sticky-cell {
+  min-height: 52px;
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-right: 1px solid rgba(255,255,255,.10);
+
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1.05;
+  text-align: center;
+  color: #f5f8fd;
+}
+
+.global-sticky-cell:last-child {
+  border-right: 0;
+}
+
+/* Le scroller commence juste sous l'en-tête, sans deuxième arrondi en haut. */
+.global-sticky-header + .global-table-scroll {
+  border-top: 0;
+  border-radius: 0 0 22px 22px;
+}
+
+/* Alternance nettement visible, mais toujours sombre. */
+.global-table tbody tr:nth-child(odd) td {
+  background: rgba(9, 21, 36, .82) !important;
+}
+
+.global-table tbody tr:nth-child(even) td {
+  background: rgba(43, 54, 88, .24) !important;
+}
+
+/* La ligne survolée prend une troisième teinte clairement différente. */
+.global-table tbody tr:hover td {
+  background: rgba(48, 91, 132, .32) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(120, 190, 223, .10),
+    inset 0 -1px 0 rgba(120, 190, 223, .10) !important;
+}
+
+/* On garde la grosse séparation entre applications. */
+.global-table tbody tr:not(:last-child) td {
+  border-bottom: 4px solid rgba(91, 112, 174, .50) !important;
+}
+
+/* Le texte du thead natif resterait aussi centré si réactivé plus tard. */
+.global-table thead th {
+  text-align: center !important;
+  font-size: 1.08rem !important;
+  font-weight: 900 !important;
+}
+
+@media (max-width: 1300px) {
+  .global-sticky-header-inner {
+    width: max(100%, 1100px);
+    min-width: 1100px;
+    grid-template-columns: 230px repeat(4, 160px) 92px;
+  }
+}
+
+
+/* ==========================================================================
+   DÉTECTION AUTOMATIQUE DES IMAGES DANS LES APPLICATIONS
+   ========================================================================== */
+
+.image-detection-toolbar {
+  grid-template-columns: minmax(230px, 1fr) 190px auto minmax(280px, auto);
+  align-items: center;
+}
+
+.detect-images-btn {
+  min-height: 42px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(197, 103, 255, .58);
+  background: linear-gradient(
+    145deg,
+    rgba(117, 45, 178, .52),
+    rgba(58, 24, 94, .96)
+  );
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(171, 76, 235, .16);
+}
+
+.detect-images-btn:hover:not(:disabled) {
+  filter: brightness(1.13);
+  border-color: rgba(211, 130, 255, .82);
+}
+
+.detect-images-btn:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+.image-detection-status {
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+/* M violet lumineux = détecté dans une application. */
+.image-usage-badge.badge-app {
+  background: #33145f !important;
+  border-color: #c568ff !important;
+  box-shadow:
+    0 0 15px rgba(190, 83, 255, .72),
+    0 5px 14px rgba(0,0,0,.38),
+    inset 0 0 0 1px rgba(229, 181, 255, .16) !important;
+}
+
+/* Le logo reste le même M, avec un peu d'air autour. */
+.image-usage-badge.badge-app .image-usage-logo {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Fenêtre Utilisations : 3 catégories lisibles. */
+.usage-list {
+  display: grid;
+  gap: 14px;
+}
+
+.usage-group {
+  display: grid;
+  gap: 7px;
+}
+
+.usage-group-title {
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  font-family: "Fredoka", sans-serif;
+  font-size: 1rem;
+}
+
+.usage-group-app .usage-group-title {
+  color: #dba7ff;
+}
+
+.usage-item {
+  align-items: center;
+}
+
+.usage-item-content {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.usage-item-title {
+  line-height: 1.18;
+}
+
+.usage-source-url {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #83d8e7;
+  font-size: .72rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.usage-source-url:hover {
+  text-decoration: underline;
+}
+
+.usage-add-grid-extended {
+  grid-template-columns: minmax(120px, .55fr) minmax(220px, 1fr) minmax(250px, 1fr);
+}
+
+.usage-url-field {
+  min-width: 0;
+}
+
+@media (max-width: 1050px) {
+  .image-detection-toolbar {
+    grid-template-columns: 1fr 180px auto;
+  }
+
+  .image-detection-status {
+    grid-column: 1 / -1;
+  }
+
+  .usage-add-grid-extended {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .usage-url-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .image-detection-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .image-detection-status {
+    grid-column: auto;
+  }
+
+  .usage-add-grid-extended {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-url-field {
+    grid-column: auto;
+  }
+}
+
+
+/* ==========================================================================
+   BIBLIOTHÈQUE IMAGES — remplacement en conservant l'URL
+   ========================================================================== */
+
+.image-replace-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 13px 14px;
+  border-radius: 15px;
+  border: 1px solid rgba(239, 181, 70, .30);
+  background: rgba(126, 86, 26, .12);
+}
+
+.image-replace-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff4d2;
+}
+
+.image-replace-box p {
+  margin: 0;
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.warning-action {
+  min-height: 42px;
+  padding: 8px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 181, 70, .56);
+  background: linear-gradient(
+    145deg,
+    rgba(132, 89, 25, .72),
+    rgba(74, 48, 19, .96)
+  );
+  color: #fff7df;
+  font: inherit;
+  font-size: .80rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.warning-action:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.warning-action:disabled {
+  opacity: .58;
+  cursor: wait;
+}
+
+@media (max-width: 650px) {
+  .image-replace-box {
+    grid-template-columns: 1fr;
+  }
+
+  .warning-action {
+    width: 100%;
+  }
+}

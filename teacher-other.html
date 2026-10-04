@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <link rel="apple-touch-icon" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <title>Prof Math'as — Autres</title>
-  <link rel="stylesheet" href="teacher.css?v=20261004-image-sections-badges-v1" />
+  <link rel="stylesheet" href="teacher.css?v=20261004-complet-v2" />
 </head>
 <body>
   <div class="math-bg" aria-hidden="true"></div>
@@ -18,8 +18,8 @@
       <div class="other-header-left">
         <img class="teacher-wordmark" src="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-mot-1791065255634-jznxux.png" alt="Math'as" />
         <div class="other-title-row">
-          <h1>Autres</h1>
-          <a class="secondary link-button other-global-link" href="teacher.html">← GLOBAL</a>
+          <h1 id="otherPageTitle">Autres</h1>
+          <a class="secondary link-button other-global-link" href="teacher.html">← PRINCIPAL</a>
         </div>
       </div>
       <div class="top-actions">
@@ -45,7 +45,7 @@
     </section>
 
     <section id="teacherPanel" class="hidden">
-      <section class="other-home-grid" aria-label="Pages spéciales">
+      <section id="otherHomeGrid" class="other-home-grid" aria-label="Pages spéciales">
         <div class="other-home-item eco-item">
           <button class="other-home-card eco" data-other-view="2eco" type="button"><strong>2 ECO</strong></button>
           <button class="other-open-link" data-open-other="2eco" type="button">Ouvrir la page</button>
@@ -69,10 +69,6 @@
         <div class="other-home-item lise-item">
           <button class="other-home-card lise" data-other-view="lise" type="button"><strong>Lise</strong></button>
           <button class="other-open-link" data-open-other="lise" type="button">Ouvrir la page</button>
-        </div>
-
-        <div class="other-home-item images-item">
-          <button class="other-home-card images other-image-card" data-other-view="images" type="button"><strong>Images</strong></button>
         </div>
       </section>
 
@@ -146,7 +142,7 @@
           </div>
         </section>
 
-        <div class="image-filter-row">
+        <div class="image-filter-row image-detection-toolbar">
           <input id="imageSearchInput" type="search" placeholder="Chercher une image…" />
           <select id="imageFolderFilter">
             <option value="all">Tous les dossiers</option>
@@ -157,6 +153,8 @@
             <option value="illustrations">Illustrations</option>
             <option value="autres">Autres</option>
           </select>
+          <button id="detectImageUsagesBtn" class="detect-images-btn" type="button">Détecter</button>
+          <span id="imageDetectionStatus" class="image-detection-status">Dernière détection : jamais</span>
         </div>
 
         <div id="imageGallery" class="image-gallery"></div>
@@ -246,17 +244,22 @@
 
       <div class="usage-add-box">
         <h3>Ajouter une utilisation manuelle</h3>
-        <div class="usage-add-grid">
+        <div class="usage-add-grid usage-add-grid-extended">
           <label>
-            Badge
+            Type
             <select id="usageKind">
-              <option value="M">M — Math'as / application</option>
-              <option value="A">A — Autre</option>
+              <option value="M">Math'as</option>
+              <option value="APP">Applications</option>
+              <option value="A">Autre</option>
             </select>
           </label>
           <label>
-            Où est-elle utilisée ?
-            <input id="usageLabel" type="text" placeholder="Ex. fond de l'appli Boulier, document X…" required />
+            Titre court
+            <input id="usageLabel" type="text" placeholder="Ex. écran d'accueil, Boulier…" required />
+          </label>
+          <label class="usage-url-field">
+            URL (facultatif)
+            <input id="usageUrl" type="url" placeholder="https://…" />
           </label>
         </div>
         <button id="addUsageBtn" class="primary" type="submit">Ajouter cette utilisation</button>
@@ -285,6 +288,18 @@
         <img id="editImagePreview" class="image-edit-preview" alt="Aperçu de l’image" />
       </div>
 
+      <div class="image-replace-box">
+        <div>
+          <strong>Remplacer l’image</strong>
+          <p class="muted">
+            Conserve exactement la même URL : tous les endroits qui utilisent cette image
+            afficheront la nouvelle version.
+          </p>
+        </div>
+        <button id="replaceImageBtn" class="warning-action" type="button">Remplacer l’image</button>
+        <input id="replaceImageInput" class="hidden" type="file" accept="image/*" />
+      </div>
+
       <label>
         Dossier
         <select id="editImageFolder">
@@ -298,8 +313,9 @@
       </label>
 
       <p class="muted image-edit-note">
-        Déplacer une image change son URL. Les miniatures Math’as sont mises à jour automatiquement.
-        Les utilisations manuelles ou extérieures peuvent nécessiter une correction.
+        <b>Remplacer</b> garde l’URL actuelle. <b>Déplacer</b> change l’URL.
+        Les miniatures Math’as sont corrigées automatiquement lors d’un déplacement,
+        mais les utilisations manuelles ou extérieures peuvent nécessiter une correction.
       </p>
 
       <div class="dialog-actions">
@@ -313,7 +329,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20261004-sections-autres-v1"></script>
-  <script src="teacher-other.js?v=20261004-image-sections-badges-v1"></script>
+  <script src="config.js?v=20261004-complet-v1"></script>
+  <script src="teacher-other.js?v=20261004-complet-v2"></script>
 </body>
 </html>

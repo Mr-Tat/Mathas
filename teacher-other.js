@@ -82,6 +82,8 @@
   const shareLinkPanel = document.getElementById('shareLinkPanel');
   const shareLinkInput = document.getElementById('shareLinkInput');
   const imageManager = document.getElementById('imageManager');
+  const otherHomeGrid = document.getElementById('otherHomeGrid');
+  const otherPageTitle = document.getElementById('otherPageTitle');
 
   const appDialog = document.getElementById('appDialog');
   const appForm = document.getElementById('appForm');
@@ -113,6 +115,8 @@
   const imageSearchInput = document.getElementById('imageSearchInput');
   const imageFolderFilter = document.getElementById('imageFolderFilter');
   const imageGallery = document.getElementById('imageGallery');
+  const detectImageUsagesBtn = document.getElementById('detectImageUsagesBtn');
+  const imageDetectionStatus = document.getElementById('imageDetectionStatus');
 
   const usageDialog = document.getElementById('usageDialog');
   const usageForm = document.getElementById('usageForm');
@@ -120,6 +124,7 @@
   const usageList = document.getElementById('usageList');
   const usageKind = document.getElementById('usageKind');
   const usageLabel = document.getElementById('usageLabel');
+  const usageUrl = document.getElementById('usageUrl');
   const usageMessage = document.getElementById('usageMessage');
 
   const imageEditDialog = document.getElementById('imageEditDialog');
@@ -128,8 +133,11 @@
   const editImagePreview = document.getElementById('editImagePreview');
   const editImageFolder = document.getElementById('editImageFolder');
   const imageEditMessage = document.getElementById('imageEditMessage');
+  const replaceImageBtn = document.getElementById('replaceImageBtn');
+  const replaceImageInput = document.getElementById('replaceImageInput');
 
-  let currentViewKey = null;
+  const requestedView = new URLSearchParams(location.search).get('view');
+  let currentViewKey = requestedView === 'images' ? 'images' : null;
   let classRows = [];
   let appRows = [];
   let classAppRows = [];
@@ -137,6 +145,7 @@
   let shareAppRows = [];
   let imageUsageRows = [];
   let storageImages = [];
+  let imageScanState = null;
 
   let selectedExistingAppId = null;
   let selectedImageFile = null;
@@ -311,6 +320,7 @@
   });
 
   document.getElementById('refreshImagesBtn').addEventListener('click', loadImages);
+  detectImageUsagesBtn.addEventListener('click', detectApplicationImageUsages);
   imageSearchInput.addEventListener('input', renderImageGallery);
   imageFolderFilter.addEventListener('change', renderImageGallery);
 
@@ -347,6 +357,19 @@
     const deleted = await deleteLibraryImage(currentEditImage);
     if (deleted) closeImageEditDialog();
   });
+
+  replaceImageBtn.addEventListener('click', () => {
+    if (!currentEditImage) return;
+    replaceImageInput.value = '';
+    replaceImageInput.click();
+  });
+
+  replaceImageInput.addEventListener('change', async () => {
+    const file = replaceImageInput.files?.[0];
+    if (!file) return;
+    await replaceLibraryImage(file);
+  });
+
   imageEditForm.addEventListener('submit', async event => {
     event.preventDefault();
     await moveLibraryImage();
@@ -367,16 +390,17 @@
 
   async function loadData() {
     setMessage(panelMessage, 'Chargement…');
-    const [classesRes, appsRes, classLinksRes, sharePagesRes, shareLinksRes, usageRes] = await Promise.all([
+    const [classesRes, appsRes, classLinksRes, sharePagesRes, shareLinksRes, usageRes, scanStateRes] = await Promise.all([
       client.from('classes').select('id,slug,nom').order('id'),
       client.from('applications').select('id,nom,url,miniature_url,description,actif,special_only').eq('actif', true).order('nom'),
       client.from('class_applications').select('class_id,application_id,visible,du_jour,niveau,domaine,ordre'),
       client.from('share_pages').select('id,slug,admin_name,public_name,token,updated_at').order('id'),
       client.from('share_page_applications').select('page_id,application_id,visible,niveau,ordre'),
-      client.from('image_usages').select('id,image_path,kind,label,created_at').order('id')
+      client.from('image_usages').select('id,image_path,kind,label,source_url,app_url,automatic,detected_at,created_at').order('id'),
+      client.from('image_scan_state').select('id,last_scan_at,scanned_apps,detected_usages,failed_apps').eq('id', 1).maybeSingle()
     ]);
 
-    const error = classesRes.error || appsRes.error || classLinksRes.error || sharePagesRes.error || shareLinksRes.error || usageRes.error;
+    const error = classesRes.error || appsRes.error || classLinksRes.error || sharePagesRes.error || shareLinksRes.error || usageRes.error || scanStateRes.error;
     if (error) {
       console.error(error);
       setMessage(panelMessage, 'Impossible de charger les nouvelles données. Exécute d’abord le script SQL de migration.', 'error');
@@ -389,9 +413,12 @@
     sharePages = sharePagesRes.data || [];
     shareAppRows = shareLinksRes.data || [];
     imageUsageRows = usageRes.data || [];
+    imageScanState = scanStateRes.data || null;
+    renderImageDetectionStatus();
     setMessage(panelMessage, '');
 
     if (currentViewKey === 'images') {
+      showImagesView();
       await loadImages();
     } else if (currentViewKey) {
       showSpecialView();
@@ -405,6 +432,10 @@
   function showSpecialView() {
     const view = currentView();
     if (!view) return;
+
+    if (otherHomeGrid) otherHomeGrid.classList.remove('hidden');
+    if (otherPageTitle) otherPageTitle.textContent = 'Autres';
+
     imageManager.classList.add('hidden');
     specialManager.classList.remove('hidden');
     specialAppList.classList.remove('hidden');
@@ -422,6 +453,9 @@
     specialManager.classList.add('hidden');
     specialAppList.classList.add('hidden');
     imageManager.classList.remove('hidden');
+
+    if (otherHomeGrid) otherHomeGrid.classList.add('hidden');
+    if (otherPageTitle) otherPageTitle.textContent = 'Images';
   }
 
   function sharePageForView(view) {
@@ -922,11 +956,15 @@
       }));
       storageImages = results.flat();
 
-      const { data: usages, error: usageError } = await client.from('image_usages').select('id,image_path,kind,label,created_at').order('id');
+      const { data: usages, error: usageError } = await client
+        .from('image_usages')
+        .select('id,image_path,kind,label,source_url,app_url,automatic,detected_at,created_at')
+        .order('id');
       if (usageError) throw usageError;
       imageUsageRows = usages || [];
       setMessage(panelMessage, '');
       renderImageGallery();
+      renderImageDetectionStatus();
     } catch (error) {
       console.error(error);
       setMessage(panelMessage, `Impossible de charger la bibliothèque d’images : ${error.message}`, 'error');
@@ -948,18 +986,29 @@
     return usages;
   }
 
-  function manualUsages(path) {
+  function storedUsages(path) {
     return imageUsageRows.filter(row => row.image_path === path);
   }
 
   function usageSummary(path) {
-    const auto = automaticMUsages(path);
-    const manual = manualUsages(path);
+    const automaticMathas = automaticMUsages(path);
+    const stored = storedUsages(path);
+
+    const mathas = [
+      ...automaticMathas,
+      ...stored.filter(row => row.kind === 'M')
+    ];
+    const applications = stored.filter(row => row.kind === 'APP');
+    const other = stored.filter(row => row.kind === 'A');
+
     return {
-      hasM: auto.length > 0 || manual.some(row => row.kind === 'M'),
-      hasA: manual.some(row => row.kind === 'A'),
-      auto,
-      manual
+      hasM: mathas.length > 0,
+      hasApp: applications.length > 0,
+      hasA: other.length > 0,
+      mathas,
+      applications,
+      other,
+      stored
     };
   }
 
@@ -1029,6 +1078,7 @@
     badges.className = 'image-usage-badges';
     const summary = usageSummary(image.path);
     if (summary.hasM) badges.appendChild(makeUsageBadge('M', image));
+    if (summary.hasApp) badges.appendChild(makeUsageBadge('APP', image));
     if (summary.hasA) badges.appendChild(makeUsageBadge('A', image));
     preview.appendChild(badges);
 
@@ -1066,13 +1116,16 @@
   function fillUsageBadge(badge, kind) {
     badge.replaceChildren();
 
-    if (kind === 'M') {
+    if (kind === 'M' || kind === 'APP') {
       const img = document.createElement('img');
       img.src = MATHAS_ICON_URL;
       img.alt = '';
       img.className = 'image-usage-logo';
       badge.appendChild(img);
-      badge.setAttribute('aria-label', 'Utilisée dans Math’as');
+      badge.setAttribute(
+        'aria-label',
+        kind === 'APP' ? 'Détectée dans une application' : 'Utilisée dans Math’as'
+      );
     } else {
       const letter = document.createElement('span');
       letter.className = 'image-usage-letter';
@@ -1087,7 +1140,13 @@
     badge.type = 'button';
     badge.className = `image-usage-badge badge-${kind.toLowerCase()}`;
     fillUsageBadge(badge, kind);
-    badge.title = kind === 'M' ? 'Utilisée dans Math’as / une application' : 'Utilisée ailleurs';
+
+    const titles = {
+      M: 'Utilisée dans Math’as',
+      APP: 'Détectée dans une application',
+      A: 'Utilisée ailleurs'
+    };
+    badge.title = titles[kind] || 'Utilisation';
     badge.addEventListener('click', () => openUsageDialog(image));
     return badge;
   }
@@ -1095,8 +1154,9 @@
   async function deleteLibraryImage(image) {
     const summary = usageSummary(image.path);
     const details = [
-      ...summary.auto.map(row => `M : ${row.label}`),
-      ...summary.manual.map(row => `${row.kind} : ${row.label}`)
+      ...summary.mathas.map(row => `Math'as : ${row.label}`),
+      ...summary.applications.map(row => `Application : ${row.label}`),
+      ...summary.other.map(row => `Autre : ${row.label}`)
     ];
     let message = `Supprimer définitivement « ${image.name} » du Storage ?`;
     if (details.length) {
@@ -1128,8 +1188,98 @@
 
   function closeImageEditDialog() {
     currentEditImage = null;
+    replaceImageInput.value = '';
     editImagePreview.removeAttribute('src');
     if (imageEditDialog.open) imageEditDialog.close();
+  }
+
+  async function replaceLibraryImage(file) {
+    if (!currentEditImage || !file) return;
+
+    if (!file.type?.startsWith('image/')) {
+      replaceImageInput.value = '';
+      return setMessage(imageEditMessage, 'Choisis un fichier image.', 'error');
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      replaceImageInput.value = '';
+      return setMessage(imageEditMessage, 'Image trop lourde : maximum 10 Mo.', 'error');
+    }
+
+    const image = currentEditImage;
+    const summary = usageSummary(image.path);
+
+    const usageLines = [
+      ...summary.mathas.map(row => `• Math'as — ${row.label}`),
+      ...summary.applications.map(row => `• Application — ${row.label}`),
+      ...summary.other.map(row => `• Autre — ${row.label}`)
+    ];
+
+    let warning =
+      `ATTENTION\n\n` +
+      `Tu vas remplacer définitivement « ${image.name} » par « ${file.name} ».\n\n` +
+      `L’URL restera EXACTEMENT la même.\n` +
+      `Cela signifie que TOUS les endroits qui utilisent actuellement cette URL ` +
+      `afficheront la nouvelle image, sans autre modification.\n\n`;
+
+    if (usageLines.length) {
+      warning +=
+        `Utilisations actuellement connues :\n${usageLines.join('\n')}\n\n`;
+    } else {
+      warning +=
+        `Math’as ne connaît actuellement aucune utilisation de cette image.\n\n`;
+    }
+
+    warning +=
+      `L’ancienne image sera écrasée et ne pourra pas être récupérée depuis Math’as.\n` +
+      `À cause du cache du navigateur/CDN, certains endroits peuvent encore afficher ` +
+      `l’ancienne version pendant quelques minutes.\n\nContinuer ?`;
+
+    if (!confirm(warning)) {
+      replaceImageInput.value = '';
+      return;
+    }
+
+    replaceImageBtn.disabled = true;
+    setMessage(imageEditMessage, 'Remplacement de l’image…');
+
+    try {
+      const { error } = await client.storage
+        .from(IMAGE_BUCKET)
+        .update(image.path, file, {
+          cacheControl: '0',
+          contentType: file.type
+        });
+
+      if (error) throw error;
+
+      // L’URL publique ne change pas. On ajoute seulement un paramètre local
+      // dans l’aperçu pour forcer le navigateur à relire immédiatement le fichier.
+      const cacheBuster = Date.now();
+      editImagePreview.src = `${image.publicUrl}?v=${cacheBuster}`;
+
+      await loadImages();
+
+      // loadImages recrée les objets de la galerie : resynchroniser l'image éditée.
+      const refreshed = storageImages.find(item => item.path === image.path);
+      if (refreshed) currentEditImage = refreshed;
+
+      setMessage(
+        imageEditMessage,
+        'Image remplacée. L’URL est inchangée ; les usages existants restent donc valides.',
+        'success'
+      );
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        imageEditMessage,
+        `Impossible de remplacer l’image : ${error.message}`,
+        'error'
+      );
+    } finally {
+      replaceImageBtn.disabled = false;
+      replaceImageInput.value = '';
+    }
   }
 
   function uniqueMovedPath(targetFolder, image) {
@@ -1161,7 +1311,7 @@
     }
 
     const summary = usageSummary(image.path);
-    if (summary.manual.length) {
+    if (summary.stored.length) {
       const ok = confirm(
         'Cette image possède au moins une utilisation déclarée manuellement.\n\n' +
         'La déplacer changera son URL. Les utilisations extérieures ou ajoutées manuellement ne peuvent pas être corrigées automatiquement.\n\nContinuer ?'
@@ -1231,6 +1381,7 @@
     usageImageName.textContent = image.name;
     usageKind.value = 'M';
     usageLabel.value = '';
+    usageUrl.value = '';
     setMessage(usageMessage, '');
     renderUsageList();
     usageDialog.showModal();
@@ -1244,45 +1395,99 @@
   function renderUsageList() {
     usageList.innerHTML = '';
     if (!currentUsageImage) return;
-    const summary = usageSummary(currentUsageImage.path);
-    const rows = [
-      ...summary.auto.map(row => ({ ...row, id: null })),
-      ...summary.manual.map(row => ({ ...row, automatic: false }))
-    ];
 
-    if (!rows.length) {
+    const summary = usageSummary(currentUsageImage.path);
+    const groups = [
+      { kind: 'M', title: "Math'as", rows: summary.mathas },
+      { kind: 'APP', title: 'Applications', rows: summary.applications },
+      { kind: 'A', title: 'Autre', rows: summary.other }
+    ].filter(group => group.rows.length);
+
+    if (!groups.length) {
       usageList.innerHTML = '<p class="muted">Cette image n’est marquée comme utilisée nulle part.</p>';
       return;
     }
 
-    rows.forEach(row => {
-      const item = document.createElement('div');
-      item.className = 'usage-item';
-      const badge = document.createElement('span');
-      badge.className = `image-usage-badge static badge-${row.kind.toLowerCase()}`;
-      fillUsageBadge(badge, row.kind);
-      const label = document.createElement('span');
-      label.textContent = row.label;
-      item.append(badge, label);
-      if (!row.automatic) {
-        const del = button('×', 'icon-btn usage-delete');
-        del.title = 'Supprimer cette indication';
-        del.addEventListener('click', () => deleteManualUsage(row.id));
-        item.appendChild(del);
-      }
-      usageList.appendChild(item);
+    groups.forEach(group => {
+      const section = document.createElement('section');
+      section.className = `usage-group usage-group-${group.kind.toLowerCase()}`;
+
+      const heading = document.createElement('h3');
+      heading.className = 'usage-group-title';
+      heading.textContent = group.title;
+      section.appendChild(heading);
+
+      group.rows.forEach(row => {
+        const item = document.createElement('div');
+        item.className = 'usage-item';
+
+        const badge = document.createElement('span');
+        badge.className = `image-usage-badge static badge-${row.kind.toLowerCase()}`;
+        fillUsageBadge(badge, row.kind);
+
+        const content = document.createElement('div');
+        content.className = 'usage-item-content';
+
+        const title = document.createElement('strong');
+        title.className = 'usage-item-title';
+        title.textContent = row.label;
+        content.appendChild(title);
+
+        if (row.source_url) {
+          const sourceLink = document.createElement('a');
+          sourceLink.className = 'usage-source-url';
+          sourceLink.href = row.source_url;
+          sourceLink.target = '_blank';
+          sourceLink.rel = 'noopener noreferrer';
+          sourceLink.textContent = row.source_url;
+          content.appendChild(sourceLink);
+        }
+
+        item.append(badge, content);
+
+        if (!row.automatic) {
+          const del = button('×', 'icon-btn usage-delete');
+          del.title = 'Supprimer cette indication';
+          del.addEventListener('click', () => deleteManualUsage(row.id));
+          item.appendChild(del);
+        }
+
+        section.appendChild(item);
+      });
+
+      usageList.appendChild(section);
     });
   }
 
   async function addManualUsage() {
     if (!currentUsageImage) return;
     const label = usageLabel.value.trim();
-    if (!label) return setMessage(usageMessage, 'Indique où cette image est utilisée.', 'error');
-    const payload = { image_path: currentUsageImage.path, kind: usageKind.value, label };
-    const { data, error } = await client.from('image_usages').insert(payload).select().single();
+    const sourceUrl = usageUrl.value.trim();
+
+    if (!label) {
+      return setMessage(usageMessage, 'Indique un titre court pour cette utilisation.', 'error');
+    }
+
+    const payload = {
+      image_path: currentUsageImage.path,
+      kind: usageKind.value,
+      label,
+      source_url: sourceUrl || null,
+      app_url: null,
+      automatic: false
+    };
+
+    const { data, error } = await client
+      .from('image_usages')
+      .insert(payload)
+      .select('id,image_path,kind,label,source_url,app_url,automatic,detected_at,created_at')
+      .single();
+
     if (error) return setMessage(usageMessage, `Erreur : ${error.message}`, 'error');
+
     imageUsageRows.push(data);
     usageLabel.value = '';
+    usageUrl.value = '';
     renderUsageList();
     renderImageGallery();
     setMessage(usageMessage, 'Utilisation ajoutée.', 'success');
@@ -1294,6 +1499,290 @@
     imageUsageRows = imageUsageRows.filter(row => row.id !== id);
     renderUsageList();
     renderImageGallery();
+  }
+
+  function renderImageDetectionStatus(customText = '') {
+    if (!imageDetectionStatus) return;
+
+    if (customText) {
+      imageDetectionStatus.textContent = customText;
+      return;
+    }
+
+    if (!imageScanState?.last_scan_at) {
+      imageDetectionStatus.textContent = 'Dernière détection : jamais';
+      return;
+    }
+
+    const date = new Date(imageScanState.last_scan_at);
+    const formatted = Number.isNaN(date.getTime())
+      ? imageScanState.last_scan_at
+      : date.toLocaleString('fr-BE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+    const failures = Number(imageScanState.failed_apps || 0);
+    const suffix = failures ? ` · ${failures} échec${failures > 1 ? 's' : ''}` : '';
+    imageDetectionStatus.textContent =
+      `Dernière détection : ${formatted} · ${imageScanState.detected_usages || 0} utilisation(s)${suffix}`;
+  }
+
+  function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function extractMathasImagePaths(text) {
+    if (!text || typeof text !== 'string') return [];
+
+    const prefix = `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
+    const pattern = new RegExp(
+      `${escapeRegExp(prefix)}([^"'\\s)<>\\x60]+)`,
+      'g'
+    );
+
+    const paths = new Set();
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      let rawPath = match[1].split('?')[0].split('#')[0];
+      rawPath = rawPath.replace(/&amp;.*$/i, '');
+
+      try {
+        rawPath = decodeURIComponent(rawPath);
+      } catch {}
+
+      if (rawPath) paths.add(rawPath);
+    }
+
+    return [...paths];
+  }
+
+  function sourceTitleFor(app, sourceUrl, pageUrl) {
+    try {
+      const source = new URL(sourceUrl);
+      const page = new URL(pageUrl);
+
+      if (source.href === page.href || source.pathname === page.pathname) {
+        return `${app.nom} — page principale`;
+      }
+
+      const parts = source.pathname.split('/').filter(Boolean);
+      const filename = parts[parts.length - 1] || source.hostname;
+      return `${app.nom} — ${filename}`;
+    } catch {
+      return app.nom;
+    }
+  }
+
+  function linkedSourceUrls(htmlText, pageUrl) {
+    const urls = new Set();
+
+    try {
+      const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+
+      doc.querySelectorAll('link[rel~="stylesheet"][href]').forEach(node => {
+        try {
+          const url = new URL(node.getAttribute('href'), pageUrl);
+          if (url.protocol === 'http:' || url.protocol === 'https:') urls.add(url.href);
+        } catch {}
+      });
+
+      doc.querySelectorAll('script[src]').forEach(node => {
+        try {
+          const url = new URL(node.getAttribute('src'), pageUrl);
+          if (url.protocol === 'http:' || url.protocol === 'https:') urls.add(url.href);
+        } catch {}
+      });
+    } catch {}
+
+    return [...urls];
+  }
+
+  function shouldScanLinkedSource(sourceUrl, pageUrl) {
+    try {
+      const source = new URL(sourceUrl);
+      const page = new URL(pageUrl);
+
+      // Les fichiers locaux de l'appli sont les plus fiables et évitent de
+      // télécharger inutilement des bibliothèques CDN.
+      return source.origin === page.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  async function fetchTextForDetection(url) {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      credentials: 'omit'
+    });
+
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`.trim());
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (
+      contentType &&
+      !contentType.includes('text/') &&
+      !contentType.includes('javascript') &&
+      !contentType.includes('json') &&
+      !contentType.includes('xml')
+    ) {
+      return '';
+    }
+
+    return response.text();
+  }
+
+  async function scanOneApplication(app) {
+    const pageUrl = new URL(app.url, location.origin).href;
+    const pageText = await fetchTextForDetection(pageUrl);
+
+    const sources = [
+      { url: pageUrl, text: pageText }
+    ];
+
+    const linked = linkedSourceUrls(pageText, pageUrl)
+      .filter(url => shouldScanLinkedSource(url, pageUrl))
+      .slice(0, 40);
+
+    for (const sourceUrl of linked) {
+      try {
+        const text = await fetchTextForDetection(sourceUrl);
+        sources.push({ url: sourceUrl, text });
+      } catch (error) {
+        console.warn('Source non scannée :', sourceUrl, error);
+      }
+    }
+
+    const detections = new Map();
+
+    sources.forEach(source => {
+      extractMathasImagePaths(source.text).forEach(imagePath => {
+        const key = `${imagePath}\n${source.url}`;
+        if (detections.has(key)) return;
+
+        detections.set(key, {
+          image_path: imagePath,
+          kind: 'APP',
+          label: sourceTitleFor(app, source.url, pageUrl),
+          source_url: source.url,
+          app_url: app.url,
+          automatic: true,
+          detected_at: new Date().toISOString()
+        });
+      });
+    });
+
+    return [...detections.values()];
+  }
+
+  async function replaceAutomaticDetectionsForApp(app, detections) {
+    const { error: deleteError } = await client
+      .from('image_usages')
+      .delete()
+      .eq('kind', 'APP')
+      .eq('automatic', true)
+      .eq('app_url', app.url);
+
+    if (deleteError) throw deleteError;
+
+    if (!detections.length) return;
+
+    const { error: insertError } = await client
+      .from('image_usages')
+      .insert(detections);
+
+    if (insertError) throw insertError;
+  }
+
+  async function detectApplicationImageUsages() {
+    if (!appRows.length) {
+      return setMessage(panelMessage, 'Aucune application à analyser.', 'error');
+    }
+
+    detectImageUsagesBtn.disabled = true;
+    detectImageUsagesBtn.textContent = 'Détection…';
+
+    let scannedApps = 0;
+    let failedApps = 0;
+    let detectedUsages = 0;
+    const failures = [];
+
+    try {
+      const apps = appRows.filter(app => app.url);
+
+      for (let index = 0; index < apps.length; index += 1) {
+        const app = apps[index];
+
+        renderImageDetectionStatus(
+          `Détection : ${index + 1}/${apps.length} — ${app.nom}`
+        );
+
+        try {
+          const detections = await scanOneApplication(app);
+          await replaceAutomaticDetectionsForApp(app, detections);
+          scannedApps += 1;
+          detectedUsages += detections.length;
+        } catch (error) {
+          failedApps += 1;
+          failures.push(`${app.nom} : ${error.message}`);
+          console.warn('Détection impossible pour', app.nom, error);
+        }
+      }
+
+      const now = new Date().toISOString();
+      const statePayload = {
+        id: 1,
+        last_scan_at: now,
+        scanned_apps: scannedApps,
+        detected_usages: detectedUsages,
+        failed_apps: failedApps
+      };
+
+      const { data: state, error: stateError } = await client
+        .from('image_scan_state')
+        .upsert(statePayload, { onConflict: 'id' })
+        .select('id,last_scan_at,scanned_apps,detected_usages,failed_apps')
+        .single();
+
+      if (stateError) throw stateError;
+
+      imageScanState = state;
+      await loadImages();
+      renderImageDetectionStatus();
+
+      if (failedApps) {
+        setMessage(
+          panelMessage,
+          `Détection terminée : ${detectedUsages} utilisation(s) trouvée(s). ${failedApps} application(s) n'ont pas pu être lues.`,
+          'error'
+        );
+        console.warn('Échecs de détection :', failures);
+      } else {
+        setMessage(
+          panelMessage,
+          `Détection terminée : ${detectedUsages} utilisation(s) trouvée(s) dans ${scannedApps} application(s).`,
+          'success'
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        panelMessage,
+        `Impossible de terminer la détection : ${error.message}`,
+        'error'
+      );
+      renderImageDetectionStatus();
+    } finally {
+      detectImageUsagesBtn.disabled = false;
+      detectImageUsagesBtn.textContent = 'Détecter';
+    }
   }
 
   function getStoragePathFromPublicUrl(url) {

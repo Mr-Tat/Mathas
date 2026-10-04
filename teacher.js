@@ -307,8 +307,36 @@
     });
 
     table.appendChild(tbody);
+
+    // En-tête indépendant du scroller horizontal :
+    // il peut donc rester collé en haut de l'écran pendant le scroll vertical.
+    const stickyHeader = document.createElement('div');
+    stickyHeader.className = 'global-sticky-header';
+
+    const stickyInner = document.createElement('div');
+    stickyInner.className = 'global-sticky-header-inner';
+
+    const stickyLabels = [
+      ['Application', 'app-head'],
+      ...CORE_SLUGS.map(slug => [CORE_LABELS[slug], `class-head class-head-${slug}`]),
+      ['Partout', 'everywhere-head']
+    ];
+
+    stickyLabels.forEach(([label, className]) => {
+      const cell = document.createElement('div');
+      cell.className = `global-sticky-cell ${className}`;
+      cell.textContent = label;
+      stickyInner.appendChild(cell);
+    });
+
+    stickyHeader.appendChild(stickyInner);
+
+    scroller.addEventListener('scroll', () => {
+      stickyInner.style.transform = `translateX(${-scroller.scrollLeft}px)`;
+    }, { passive: true });
+
     scroller.appendChild(table);
-    globalView.appendChild(scroller);
+    globalView.append(stickyHeader, scroller);
   }
 
   function makeTh(text, className) {
