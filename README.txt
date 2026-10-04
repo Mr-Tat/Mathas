@@ -1,17 +1,13 @@
-MATH'AS — PAGE PROF ÉPURÉE + COULEURS AUTRES
+MATH'AS — BOUTON GLOBAL COMPACT
 
-Changements :
-- suppression du sous-titre sous "Panneau enseignant" ;
-- suppression du texte explicatif GLOBAL au-dessus des onglets ;
-- suppression du sous-titre sous "Autres" ;
-- bouton ← GLOBAL réaligné directement à côté du titre "Autres" ;
-- 2 ECO, Partage 1, Partage 2, Thibault, Lise et Images ont désormais
-  des fonds franchement colorés, et pas seulement une bordure colorée.
+Changement :
+- le bouton ← GLOBAL de la page Autres est beaucoup plus petit ;
+- il est aligné verticalement avec le mot « Autres » ;
+- sa hauteur se rapproche de la hauteur des petites lettres du titre,
+  au lieu d'avoir la taille d'un gros bouton d'action.
 
 À remplacer dans GitHub :
-- teacher.html
-- teacher-other.html
 - teacher.css
-- teacher.js
+- teacher-other.html
 
 Aucun changement Supabase.

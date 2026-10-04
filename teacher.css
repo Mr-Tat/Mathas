@@ -2220,3 +2220,35 @@ textarea {
     min-width: 145px;
   }
 }
+
+
+/* ==========================================================================
+   AUTRES — bouton GLOBAL compact et aligné sur le titre
+   ========================================================================== */
+
+.other-title-row {
+  align-items: center;
+  gap: 18px;
+}
+
+.other-global-link {
+  min-width: 0 !important;
+  width: 126px;
+  min-height: 0 !important;
+  height: 36px;
+  padding: 0 14px;
+  margin: 5px 0 0 !important;
+  border-radius: 11px;
+  font-size: .82rem;
+  line-height: 1;
+  font-weight: 900;
+  align-self: center;
+}
+
+@media (max-width: 700px) {
+  .other-global-link {
+    width: 112px;
+    height: 34px;
+    font-size: .78rem;
+  }
+}
