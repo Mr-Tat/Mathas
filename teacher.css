@@ -3175,3 +3175,83 @@ textarea {
 .image-viewer-title {
   color: #f7f9fd !important;
 }
+
+
+/* ==========================================================================
+   CORRECTIF V2 APERÇU IMAGE — vraie adaptation à l'espace disponible
+   ========================================================================== */
+
+/* Le dialogue centre réellement la bulle dans la fenêtre. */
+.image-viewer-dialog[open] {
+  display: grid !important;
+  place-items: center !important;
+}
+
+/* La bulle ne peut jamais dépasser la hauteur réellement visible. */
+.image-viewer-bubble {
+  width: min(94vw, 1500px) !important;
+  height: min(92dvh, 980px) !important;
+  max-height: calc(100dvh - 36px) !important;
+  overflow: hidden !important;
+
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto
+    auto !important;
+}
+
+/* IMPORTANT :
+   height:100% faisait prendre à cette zone la hauteur de toute la bulle,
+   au lieu de la hauteur de sa ligne dans la grille. C'était la cause du crop. */
+.image-viewer-stage {
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* L'image conserve toujours son ratio et entre entièrement dans la zone. */
+.image-viewer-full {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  justify-self: center !important;
+  align-self: center !important;
+}
+
+/* Sur écrans plus bas, on réduit légèrement les marges pour laisser
+   davantage de place à l'image elle-même. */
+@media (max-height: 760px) {
+  .image-viewer-dialog {
+    padding: 8px !important;
+  }
+
+  .image-viewer-bubble {
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  .image-viewer-topbar {
+    min-height: 46px !important;
+  }
+
+  .image-viewer-actions > * {
+    min-height: 40px !important;
+  }
+
+  .image-viewer-message {
+    min-height: 0 !important;
+  }
+}
