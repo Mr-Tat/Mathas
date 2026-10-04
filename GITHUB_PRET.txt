@@ -33,3 +33,10 @@ Vérifications finales incluses :
 - Oui/Non aléatoire de Jeux : OK
 
 IMPORTANT : pour toute future modification, partir de CE dossier et non d'un ancien ZIP.
+
+
+Correctif 2026-10-04 — rafraîchissement des images :
+- les URLs enregistrées dans Supabase restent inchangées ;
+- Math’as ajoute uniquement un paramètre temporaire à l’affichage pour éviter l’ancien cache après remplacement ;
+- les nouvelles images ont un cache navigateur plus court (60 s) ;
+- aucune migration Supabase à exécuter.

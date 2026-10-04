@@ -1,5 +1,10 @@
 (async () => {
   const cfg = window.MATHAS_CONFIG;
+  const IMAGE_BUCKET = 'mathas-images';
+  const IMAGE_PUBLIC_PREFIX = `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
+  const IMAGE_RENDER_NONCE = Date.now().toString(36);
+
+  refreshStaticMathasImages();
   const params = new URLSearchParams(location.search);
   const shareToken = (params.get('partage') || '').trim();
 
@@ -136,6 +141,24 @@
   } catch (error) {
     console.error('Mathas loading error:', error);
     renderError('Impossible de charger les applications pour le moment.');
+  }
+
+  function freshMathasImageUrl(url, nonce = IMAGE_RENDER_NONCE) {
+    if (!url || typeof url !== 'string' || !url.startsWith(IMAGE_PUBLIC_PREFIX)) return url;
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('cacheNonce', String(nonce));
+      return parsed.toString();
+    } catch {
+      const joiner = url.includes('?') ? '&' : '?';
+      return `${url}${joiner}cacheNonce=${encodeURIComponent(String(nonce))}`;
+    }
+  }
+
+  function refreshStaticMathasImages() {
+    document.querySelectorAll(`img[src^="${IMAGE_PUBLIC_PREFIX}"]`).forEach(img => {
+      img.src = freshMathasImageUrl(img.getAttribute('src'));
+    });
   }
 
   async function loadSharePayload(token) {
@@ -510,7 +533,7 @@
 
     if (app.image) {
       const img = document.createElement('img');
-      img.src = app.image;
+      img.src = freshMathasImageUrl(app.image);
       img.alt = '';
       img.loading = 'lazy';
       card.querySelector('.app-thumb').replaceChildren(img);

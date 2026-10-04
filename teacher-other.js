@@ -9,6 +9,7 @@
   const client = window.supabase.createClient(cfg.supabase.url, cfg.supabase.publishableKey);
 
   const IMAGE_BUCKET = 'mathas-images';
+  const IMAGE_PUBLIC_PREFIX = `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
   const IMAGE_FOLDER = 'miniatures';
   const IMAGE_FOLDERS = ['miniatures', 'logos', 'backgrounds', 'interface', 'illustrations', 'autres'];
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -165,6 +166,9 @@
   let currentUsageImage = null;
   let currentEditImage = null;
   let currentViewerImage = null;
+  let imageCacheNonce = Date.now().toString(36);
+
+  refreshStaticMathasImages();
 
   window.addEventListener('error', event => {
     console.error('Mathas teacher-other error:', event.error || event.message);
@@ -704,7 +708,7 @@
         thumb.className = 'existing-share-thumb';
         if (app.miniature_url) {
           const img = document.createElement('img');
-          img.src = app.miniature_url;
+          img.src = freshMathasImageUrl(app.miniature_url);
           img.alt = '';
           thumb.appendChild(img);
         } else thumb.textContent = (app.nom || 'M').charAt(0).toUpperCase();
@@ -916,7 +920,7 @@
   }
 
   function showImagePreviewFromUrl(url) {
-    imagePreview.src = url;
+    imagePreview.src = freshMathasImageUrl(url);
     imagePreviewName.textContent = 'Miniature actuelle';
     imagePreviewStatus.textContent = 'URL enregistrée';
     imageDropPrompt.classList.add('hidden');
@@ -932,7 +936,7 @@
     const safeName = baseName || slugify(file.name.replace(/\.[^.]+$/, '')) || 'image';
     const path = `${folder}/${safeName}-${Date.now()}-${cryptoRandomPart()}.${extension}`;
     const { error } = await client.storage.from(IMAGE_BUCKET).upload(path, file, {
-      cacheControl: '3600', upsert: false, contentType: file.type || undefined
+      cacheControl: '60', upsert: false, contentType: file.type || undefined
     });
     if (error) throw error;
     const { data } = client.storage.from(IMAGE_BUCKET).getPublicUrl(path);
@@ -993,7 +997,7 @@
           .map(item => {
             const path = `${folder}/${item.name}`;
             const { data: pub } = client.storage.from(IMAGE_BUCKET).getPublicUrl(path);
-            return { folder, path, name: item.name, publicUrl: pub.publicUrl, metadata: item.metadata || {} };
+            return { folder, path, name: item.name, publicUrl: pub.publicUrl, updatedAt: item.updated_at || item.updatedAt || null, metadata: item.metadata || {} };
           });
       }));
       storageImages = results.flat();
@@ -1107,10 +1111,10 @@
 
   function openImageViewer(image) {
     currentViewerImage = image;
-    imageViewerFull.src = image.publicUrl;
+    imageViewerFull.src = imageDisplayUrl(image);
     imageViewerFull.alt = image.name || 'Image';
     imageViewerTitle.textContent = image.name || 'Image';
-    viewerOpenBtn.href = image.publicUrl;
+    viewerOpenBtn.href = imageDisplayUrl(image);
     setMessage(imageViewerMessage, '');
     imageViewerDialog.showModal();
   }
@@ -1131,7 +1135,7 @@
     const preview = document.createElement('div');
     preview.className = 'image-library-preview';
     const img = document.createElement('img');
-    img.src = image.publicUrl;
+    img.src = imageDisplayUrl(image);
     img.alt = image.name;
     img.loading = 'lazy';
     img.className = 'image-library-clickable';
@@ -1177,7 +1181,7 @@
     });
     const open = document.createElement('a');
     open.className = 'secondary tiny-btn link-button';
-    open.href = image.publicUrl;
+    open.href = imageDisplayUrl(image);
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     open.textContent = 'Ouvrir';
@@ -1194,7 +1198,7 @@
 
     if (kind === 'M' || kind === 'APP') {
       const img = document.createElement('img');
-      img.src = MATHAS_ICON_URL;
+      img.src = freshMathasImageUrl(MATHAS_ICON_URL);
       img.alt = '';
       img.className = 'image-usage-logo';
       badge.appendChild(img);
@@ -1256,7 +1260,7 @@
   function openImageEditDialog(image) {
     currentEditImage = image;
     editImageName.textContent = image.name;
-    editImagePreview.src = image.publicUrl;
+    editImagePreview.src = imageDisplayUrl(image);
     editImageFolder.value = image.folder;
     setMessage(imageEditMessage, '');
     imageEditDialog.showModal();
@@ -1329,10 +1333,10 @@
 
       if (error) throw error;
 
-      // L’URL publique ne change pas. On ajoute seulement un paramètre local
-      // dans l’aperçu pour forcer le navigateur à relire immédiatement le fichier.
-      const cacheBuster = Date.now();
-      editImagePreview.src = `${image.publicUrl}?v=${cacheBuster}`;
+      // L’URL enregistrée ne change pas. On renouvelle seulement le paramètre
+      // d’affichage de Math’as pour contourner immédiatement le cache navigateur/CDN.
+      imageCacheNonce = Date.now().toString(36);
+      editImagePreview.src = freshMathasImageUrl(image.publicUrl, imageCacheNonce);
 
       await loadImages();
 
@@ -1861,6 +1865,29 @@
     }
   }
 
+  function freshMathasImageUrl(url, nonce = imageCacheNonce) {
+    if (!url || typeof url !== 'string' || !url.startsWith(IMAGE_PUBLIC_PREFIX)) return url;
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('cacheNonce', String(nonce));
+      return parsed.toString();
+    } catch {
+      const joiner = url.includes('?') ? '&' : '?';
+      return `${url}${joiner}cacheNonce=${encodeURIComponent(String(nonce))}`;
+    }
+  }
+
+  function imageDisplayUrl(image) {
+    if (!image) return '';
+    return freshMathasImageUrl(image.publicUrl, image.updatedAt || imageCacheNonce);
+  }
+
+  function refreshStaticMathasImages() {
+    document.querySelectorAll(`img[src^="${IMAGE_PUBLIC_PREFIX}"]`).forEach(img => {
+      img.src = freshMathasImageUrl(img.getAttribute('src'));
+    });
+  }
+
   function getStoragePathFromPublicUrl(url) {
     if (!url || typeof url !== 'string') return null;
     const prefix = `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
@@ -1874,7 +1901,7 @@
     thumb.className = 'app-thumb';
     if (app.miniature_url) {
       const img = document.createElement('img');
-      img.src = app.miniature_url;
+      img.src = freshMathasImageUrl(app.miniature_url);
       img.alt = '';
       img.loading = 'lazy';
       thumb.appendChild(img);

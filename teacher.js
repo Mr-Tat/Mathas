@@ -34,6 +34,7 @@
   };
 
   const IMAGE_BUCKET = 'mathas-images';
+  const IMAGE_PUBLIC_PREFIX = `${cfg.supabase.url}/storage/v1/object/public/${IMAGE_BUCKET}/`;
   const IMAGE_FOLDER = 'miniatures';
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
@@ -71,6 +72,9 @@
   let classAppRows = [];
   let selectedImageFile = null;
   let selectedImageObjectUrl = null;
+  let imageCacheNonce = Date.now().toString(36);
+
+  refreshStaticMathasImages();
 
   window.addEventListener('error', event => {
     console.error('Mathas teacher error:', event.error || event.message);
@@ -758,7 +762,7 @@
   }
 
   function showImagePreviewFromUrl(url) {
-    imagePreview.src = url;
+    imagePreview.src = freshMathasImageUrl(url);
     imagePreviewName.textContent = 'Miniature actuelle';
     imagePreviewStatus.textContent = 'URL enregistrée';
     imageDropPrompt.classList.add('hidden');
@@ -769,7 +773,7 @@
     const extension = getImageExtension(file);
     const safeName = slugify(appName) || 'application';
     const path = `${IMAGE_FOLDER}/${safeName}-${Date.now()}-${cryptoRandomPart()}.${extension}`;
-    const { error } = await client.storage.from(IMAGE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || undefined });
+    const { error } = await client.storage.from(IMAGE_BUCKET).upload(path, file, { cacheControl: '60', upsert: false, contentType: file.type || undefined });
     if (error) throw error;
     const { data } = client.storage.from(IMAGE_BUCKET).getPublicUrl(path);
     if (!data?.publicUrl) throw new Error('URL publique introuvable après l’envoi.');
@@ -781,6 +785,24 @@
     if (!path) return;
     const { error } = await client.storage.from(IMAGE_BUCKET).remove([path]);
     if (error) console.warn('Miniature non supprimée du Storage:', error);
+  }
+
+  function freshMathasImageUrl(url, nonce = imageCacheNonce) {
+    if (!url || typeof url !== 'string' || !url.startsWith(IMAGE_PUBLIC_PREFIX)) return url;
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('cacheNonce', String(nonce));
+      return parsed.toString();
+    } catch {
+      const joiner = url.includes('?') ? '&' : '?';
+      return `${url}${joiner}cacheNonce=${encodeURIComponent(String(nonce))}`;
+    }
+  }
+
+  function refreshStaticMathasImages() {
+    document.querySelectorAll(`img[src^="${IMAGE_PUBLIC_PREFIX}"]`).forEach(img => {
+      img.src = freshMathasImageUrl(img.getAttribute('src'));
+    });
   }
 
   function getStoragePathFromPublicUrl(url) {
@@ -796,7 +818,7 @@
     thumb.className = 'app-thumb';
     if (app.miniature_url) {
       const img = document.createElement('img');
-      img.src = app.miniature_url;
+      img.src = freshMathasImageUrl(app.miniature_url);
       img.alt = '';
       img.loading = 'lazy';
       thumb.appendChild(img);
