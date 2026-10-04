@@ -2814,3 +2814,83 @@ textarea {
     width: 100%;
   }
 }
+
+
+/* ==========================================================================
+   CORRECTIF ALIGNEMENT EN-TÊTE GLOBAL
+   Les largeurs sont désormais synchronisées sur les vraies cellules du tableau.
+   ========================================================================== */
+
+.global-sticky-header-inner {
+  display: flex !important;
+  grid-template-columns: none !important;
+  width: auto;
+  min-width: 0;
+}
+
+.global-sticky-cell {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+/* Annule les anciennes largeurs codées en dur du faux en-tête. */
+@media (max-width: 1300px) {
+  .global-sticky-header-inner {
+    width: auto;
+    min-width: 0;
+    grid-template-columns: none !important;
+  }
+}
+
+
+/* ==========================================================================
+   AUDIT FINAL V3 — priorité aux réglages validés
+   ========================================================================== */
+
+/* Retour PRINCIPAL : top conservé, bas aligné visuellement avec le mot Autres. */
+.other-title-row {
+  align-items: center !important;
+  gap: 18px !important;
+}
+
+.other-global-link {
+  width: 126px !important;
+  min-width: 126px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  margin: 5px 0 0 !important;
+  padding: 0 14px !important;
+  align-self: center !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Alternance + survol GLOBAL : réglages finaux, volontairement explicites. */
+.global-table tbody tr:nth-child(odd) td {
+  background: rgba(9, 21, 36, .82) !important;
+}
+
+.global-table tbody tr:nth-child(even) td {
+  background: rgba(43, 54, 88, .24) !important;
+}
+
+.global-table tbody tr:hover td {
+  background: rgba(48, 91, 132, .32) !important;
+}
+
+/* Séparation franche entre chaque application. */
+.global-table tbody tr:not(:last-child) td {
+  border-bottom: 4px solid rgba(91, 112, 174, .50) !important;
+}
+
+/* Badge M : suffisamment petit pour voir entièrement le logo. */
+.image-usage-logo {
+  width: 20px !important;
+  height: 20px !important;
+  object-fit: contain !important;
+}

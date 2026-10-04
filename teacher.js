@@ -331,12 +331,42 @@
 
     stickyHeader.appendChild(stickyInner);
 
+    function syncStickyHeader() {
+      const firstRowCells = table.querySelectorAll('tbody tr:first-child > td');
+      const stickyCells = stickyInner.querySelectorAll('.global-sticky-cell');
+
+      if (!firstRowCells.length || firstRowCells.length !== stickyCells.length) return;
+
+      // Largeur exacte de la table réellement affichée.
+      stickyInner.style.width = `${table.scrollWidth}px`;
+      stickyInner.style.minWidth = `${table.scrollWidth}px`;
+
+      firstRowCells.forEach((cell, index) => {
+        const width = cell.getBoundingClientRect().width;
+        stickyCells[index].style.flex = `0 0 ${width}px`;
+        stickyCells[index].style.width = `${width}px`;
+      });
+
+      stickyInner.style.transform = `translateX(${-scroller.scrollLeft}px)`;
+    }
+
     scroller.addEventListener('scroll', () => {
       stickyInner.style.transform = `translateX(${-scroller.scrollLeft}px)`;
     }, { passive: true });
 
     scroller.appendChild(table);
     globalView.append(stickyHeader, scroller);
+
+    // Les dimensions ne sont fiables qu'une fois le tableau inséré dans la page.
+    requestAnimationFrame(syncStickyHeader);
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(syncStickyHeader);
+      observer.observe(table);
+      observer.observe(scroller);
+    } else {
+      window.addEventListener('resize', syncStickyHeader, { passive: true });
+    }
   }
 
   function makeTh(text, className) {

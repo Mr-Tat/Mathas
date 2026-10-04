@@ -1,0 +1,29 @@
+MATH'AS — PACK GITHUB PRÊT À ENVOYER
+=====================================
+
+SQL déjà considéré comme installé : aucun fichier SQL à exécuter.
+
+Fichiers à déposer/remplacer dans le dépôt Mathas :
+- index.html
+- styles.css
+- config.js
+- app.js
+- teacher.html
+- teacher.css
+- teacher.js
+- teacher-other.html
+- teacher-other.js
+
+Vérification finale effectuée :
+- syntaxe des 4 fichiers JavaScript : OK
+- bouton Images -> bibliothèque directe : OK
+- bouton ← PRINCIPAL : OK
+- en-tête GLOBAL sticky et aligné aux vraies colonnes : OK
+- alternance / survol / séparations de lignes : OK
+- sections Calculs écrits / Outils : OK
+- page Autres / Partage / 2 ECO : OK
+- bibliothèque Images par dossiers : OK
+- déplacement / suppression / remplacement d'image : OK
+- badges M bleu / M violet Application / A : OK
+- bouton Détecter + détails URL : OK
+- Oui/Non aléatoire de Jeux : OK
