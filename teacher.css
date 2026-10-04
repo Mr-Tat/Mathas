@@ -2252,3 +2252,154 @@ textarea {
     font-size: .78rem;
   }
 }
+
+
+/* ==========================================================================
+   BIBLIOTHÈQUE IMAGES — sections + cartes plus compactes + badges M/A
+   ========================================================================== */
+
+/* Le conteneur principal contient maintenant les sections de dossiers. */
+.image-gallery {
+  display: block !important;
+}
+
+.image-folder-section {
+  margin: 18px 0 28px;
+}
+
+.image-folder-section:first-child {
+  margin-top: 10px;
+}
+
+.image-folder-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 2px 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(127, 145, 205, .25);
+}
+
+.image-folder-heading h3 {
+  margin: 0;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.12rem;
+  color: #f3f7fd;
+}
+
+.image-folder-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(113, 132, 196, .12);
+  border: 1px solid rgba(113, 132, 196, .22);
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+/* Une carte de plus par ligne : 9 au lieu de 8 sur grand écran. */
+.image-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.image-library-meta {
+  padding: 7px 8px 4px !important;
+}
+
+.image-library-actions {
+  padding: 4px 6px 7px !important;
+}
+
+/* Badges parfaitement centrés. */
+.image-usage-badges {
+  right: 6px;
+  bottom: 6px;
+  gap: 5px;
+}
+
+.image-usage-badge {
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-width: 2px;
+}
+
+/* M Math'as : logo réel dans un badge bleu sombre. */
+.image-usage-badge.badge-m {
+  background: #102a49 !important;
+  border-color: #557da9 !important;
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.38),
+    inset 0 0 0 1px rgba(127,174,220,.12);
+}
+
+.image-usage-logo {
+  display: block;
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+  object-position: center;
+  margin: 0;
+}
+
+/* A = Autre / ailleurs. */
+.image-usage-badge.badge-a {
+  background: #6a4a18 !important;
+  border-color: #d8a64d !important;
+  color: #fff7e6 !important;
+}
+
+.image-usage-letter {
+  display: block;
+  font-family: "Lexend", "Inter", sans-serif;
+  font-size: .78rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(0);
+}
+
+.image-usage-badge.static {
+  flex: 0 0 30px;
+}
+
+@media (max-width: 1500px) {
+  .image-folder-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1280px) {
+  .image-folder-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1050px) {
+  .image-folder-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .image-folder-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .image-folder-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

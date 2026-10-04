@@ -14,6 +14,15 @@
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   const MATHAS_ICON_PATH = 'logos/logo-m-1791065253498-qussoz.png';
   const MATHAS_WORDMARK_PATH = 'logos/logo-mot-1791065255634-jznxux.png';
+  const MATHAS_ICON_URL = client.storage.from(IMAGE_BUCKET).getPublicUrl(MATHAS_ICON_PATH).data.publicUrl;
+  const IMAGE_FOLDER_LABELS = {
+    miniatures: 'Miniatures',
+    logos: 'Logos',
+    backgrounds: 'Fonds',
+    interface: 'Interface',
+    illustrations: 'Illustrations',
+    autres: 'Autres'
+  };
 
   const STANDARD_LEVELS = {
     objectif: 'Objectif',
@@ -958,6 +967,7 @@
     imageGallery.innerHTML = '';
     const q = imageSearchInput.value.trim().toLowerCase();
     const folder = imageFolderFilter.value;
+
     const images = storageImages.filter(image => {
       const matchesFolder = folder === 'all' || image.folder === folder;
       const matchesSearch = !q || image.name.toLowerCase().includes(q) || image.folder.toLowerCase().includes(q);
@@ -969,7 +979,39 @@
       return;
     }
 
-    images.forEach(image => imageGallery.appendChild(makeImageCard(image)));
+    const folders = folder === 'all'
+      ? IMAGE_FOLDERS.filter(folderName => images.some(image => image.folder === folderName))
+      : [folder];
+
+    folders.forEach(folderName => {
+      const folderImages = images
+        .filter(image => image.folder === folderName)
+        .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+
+      if (!folderImages.length) return;
+
+      const section = document.createElement('section');
+      section.className = 'image-folder-section';
+
+      const heading = document.createElement('div');
+      heading.className = 'image-folder-heading';
+
+      const title = document.createElement('h3');
+      title.textContent = IMAGE_FOLDER_LABELS[folderName] || folderName;
+
+      const count = document.createElement('span');
+      count.className = 'image-folder-count';
+      count.textContent = `${folderImages.length} image${folderImages.length > 1 ? 's' : ''}`;
+
+      heading.append(title, count);
+
+      const grid = document.createElement('div');
+      grid.className = 'image-folder-grid';
+      folderImages.forEach(image => grid.appendChild(makeImageCard(image)));
+
+      section.append(heading, grid);
+      imageGallery.appendChild(section);
+    });
   }
 
   function makeImageCard(image) {
@@ -1021,11 +1063,30 @@
     return card;
   }
 
+  function fillUsageBadge(badge, kind) {
+    badge.replaceChildren();
+
+    if (kind === 'M') {
+      const img = document.createElement('img');
+      img.src = MATHAS_ICON_URL;
+      img.alt = '';
+      img.className = 'image-usage-logo';
+      badge.appendChild(img);
+      badge.setAttribute('aria-label', 'Utilisée dans Math’as');
+    } else {
+      const letter = document.createElement('span');
+      letter.className = 'image-usage-letter';
+      letter.textContent = 'A';
+      badge.appendChild(letter);
+      badge.setAttribute('aria-label', 'Utilisée ailleurs');
+    }
+  }
+
   function makeUsageBadge(kind, image) {
     const badge = document.createElement('button');
     badge.type = 'button';
     badge.className = `image-usage-badge badge-${kind.toLowerCase()}`;
-    badge.textContent = kind;
+    fillUsageBadge(badge, kind);
     badge.title = kind === 'M' ? 'Utilisée dans Math’as / une application' : 'Utilisée ailleurs';
     badge.addEventListener('click', () => openUsageDialog(image));
     return badge;
@@ -1199,7 +1260,7 @@
       item.className = 'usage-item';
       const badge = document.createElement('span');
       badge.className = `image-usage-badge static badge-${row.kind.toLowerCase()}`;
-      badge.textContent = row.kind;
+      fillUsageBadge(badge, row.kind);
       const label = document.createElement('span');
       label.textContent = row.label;
       item.append(badge, label);
