@@ -1,57 +1,56 @@
-MATH'AS — BRANDING + BIBLIOTHÈQUE D'IMAGES + AUTRES
+MATH'AS — CALCULS ÉCRITS + OUTILS + PAGE AUTRES
 
-NOUVEAU LOGO
-=============
-Le M est utilisé comme favicon des pages Math'as.
-Le mot Math'as illustré remplace le simple texte en haut :
-- des pages élèves / Toutes / Partage ;
-- du panneau enseignant ;
-- de la page Autres.
+NOUVELLES SECTIONS
+==================
+Observation / Phase 1 / Phase 2 / 2 ECO :
+- Objectif
+- Calculs écrits
+- Dépassement
+- Révision
+- Outils
+- Jeux
 
-URLs utilisées :
-M : https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/lettre-m-3d-de-mathematiques-en-collage-1791015091641-1oed9jb.png
-Math'as : https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-3d-mathematiques-colore-1791015093060-1256uhr.png
+Toutes les applis :
+- Niveau 1
+- Niveau 2
+- Niveau 3
+- Calculs écrits
+- Outils
+- Autre
+- Extérieur
 
-AUTRES
-======
-- Partage Niveau 1 devient « Partage 1 »
-- Partage Niveau 2 devient « Partage 2 »
-- 2 ECO, Partage 1, Partage 2, Thibault, Lise et Images ont maintenant
-  chacun une couleur différente.
+Thibault / Lise / Partage 1 / Partage 2 :
+- Niveau 1
+- Niveau 2
+- Niveau 3
+- Calculs écrits
+- Outils
+- Autre
 
-BARRE DE SÉPARATION
-===================
-La bande décorée a été remplacée par une bande unie à dégradé
-bleu → mauve sombre → bleu.
+Les nouvelles sections restent vides : aucune appli n'est déplacée automatiquement.
 
-IMAGES
-======
-- Les cartes de la galerie sont environ 40 % plus petites.
-- « Supprimer » est remplacé par « Modifier ».
-- Modifier permet :
-  * de déplacer l'image dans un autre dossier ;
-  * de supprimer l'image.
-- Si l'image est une miniature d'application Math'as, son URL est mise
-  à jour automatiquement après déplacement.
-- Les utilisations manuelles M/A suivent le nouveau chemin.
-- Si une utilisation manuelle existe, un avertissement rappelle que
-  l'URL extérieure peut devoir être corrigée.
-- Les deux nouveaux logos du site sont automatiquement marqués d'un badge M.
-- Les deux logos utilisés directement par le site ne peuvent pas être déplacés
-  depuis l'interface, pour éviter de casser les en-têtes/favicons.
+PAGE AUTRES
+===========
+- les grosses cases 2 ECO / Partage / Thibault / Lise sont moins hautes ;
+- leurs sous-titres ont été supprimés ;
+- sous chacune, un bouton fin « Ouvrir la page » ouvre directement la page ;
+- Images garde un seul grand bouton ayant la hauteur combinée des deux boutons voisins ;
+- le bouton ← GLOBAL a été déplacé à côté du titre « Autres », à l'endroit demandé.
 
 INSTALLATION
 ============
-Dans le dépôt GitHub Mathas, remplacer :
-- index.html
-- styles.css
-- teacher.html
-- teacher-other.html
-- teacher.css
-- teacher-other.js
+1. Supabase :
+   exécuter `migration_sections_calculs_ecrits.sql`
 
-Les fichiers app.js, config.js et teacher.js sont fournis dans le ZIP
-uniquement pour garder un pack cohérent, mais ils n'ont pas besoin d'être
-remplacés si tu utilises déjà la dernière version.
+2. GitHub :
+   remplacer
+   - app.js
+   - config.js
+   - teacher.js
+   - teacher-other.js
+   - teacher-other.html
+   - teacher.css
 
-Aucun changement Supabase n'est nécessaire.
+3. Commit changes, attendre GitHub Pages, puis Ctrl + F5.
+
+Le système Oui / Non aléatoire de Jeux reste inchangé.

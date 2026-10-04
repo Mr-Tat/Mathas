@@ -17,6 +17,7 @@
   };
   const STANDARD_LEVELS = {
     objectif: 'Objectif',
+    calculs_ecrits: 'Calculs écrits',
     depassement: 'Dépassement',
     revision: 'Révision',
     outil: 'Outils',
@@ -26,6 +27,8 @@
     niveau1: 'Niveau 1',
     niveau2: 'Niveau 2',
     niveau3: 'Niveau 3',
+    calculs_ecrits: 'Calculs écrits',
+    outil: 'Outils',
     autre: 'Autre',
     exterieur: 'Extérieur'
   };

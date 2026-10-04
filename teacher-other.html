@@ -8,20 +8,24 @@
   <link rel="icon" type="image/png" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <link rel="apple-touch-icon" href="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-m-1791065253498-qussoz.png" />
   <title>Prof Math'as — Autres</title>
-  <link rel="stylesheet" href="teacher.css?v=20261003-global-rows-v1" />
+  <link rel="stylesheet" href="teacher.css?v=20261004-sections-autres-v1" />
 </head>
 <body>
   <div class="math-bg" aria-hidden="true"></div>
 
   <main class="shell shell-wide">
-    <header class="topbar">
-      <div>
+    <header class="topbar other-topbar">
+      <div class="other-header-left">
         <img class="teacher-wordmark" src="https://jftzuslpelgzbdrftszw.supabase.co/storage/v1/object/public/mathas-images/logos/logo-mot-1791065255634-jznxux.png" alt="Math'as" />
-        <h1>Autres</h1>
-        <p class="subtitle">Pages indépendantes, partages et bibliothèque d’images.</p>
+        <div class="other-title-row">
+          <div>
+            <h1>Autres</h1>
+            <p class="subtitle">Pages indépendantes, partages et bibliothèque d’images.</p>
+          </div>
+          <a class="secondary link-button other-global-link" href="teacher.html">← GLOBAL</a>
+        </div>
       </div>
       <div class="top-actions">
-        <a class="secondary link-button" href="teacher.html?v=20261003-v2">← GLOBAL</a>
         <button id="logoutBtnTop" class="secondary hidden" type="button">Déconnexion</button>
       </div>
     </header>
@@ -45,12 +49,34 @@
 
     <section id="teacherPanel" class="hidden">
       <section class="other-home-grid" aria-label="Pages spéciales">
-        <button class="other-home-card eco" data-other-view="2eco" type="button"><strong>2 ECO</strong><span>Classe indépendante</span></button>
-        <button class="other-home-card share share-one" data-other-view="partage-n1" type="button"><strong>Partage 1</strong><span>Lien révocable</span></button>
-        <button class="other-home-card share share-two" data-other-view="partage-n2" type="button"><strong>Partage 2</strong><span>Lien révocable</span></button>
-        <button class="other-home-card thibault" data-other-view="thibault" type="button"><strong>Thibault</strong><span>Page indépendante</span></button>
-        <button class="other-home-card lise" data-other-view="lise" type="button"><strong>Lise</strong><span>Page indépendante</span></button>
-        <button class="other-home-card images" data-other-view="images" type="button"><strong>Images</strong><span>Bibliothèque</span></button>
+        <div class="other-home-item eco-item">
+          <button class="other-home-card eco" data-other-view="2eco" type="button"><strong>2 ECO</strong></button>
+          <button class="other-open-link" data-open-other="2eco" type="button">Ouvrir la page</button>
+        </div>
+
+        <div class="other-home-item share-one-item">
+          <button class="other-home-card share share-one" data-other-view="partage-n1" type="button"><strong>Partage 1</strong></button>
+          <button class="other-open-link" data-open-other="partage-n1" type="button">Ouvrir la page</button>
+        </div>
+
+        <div class="other-home-item share-two-item">
+          <button class="other-home-card share share-two" data-other-view="partage-n2" type="button"><strong>Partage 2</strong></button>
+          <button class="other-open-link" data-open-other="partage-n2" type="button">Ouvrir la page</button>
+        </div>
+
+        <div class="other-home-item thibault-item">
+          <button class="other-home-card thibault" data-other-view="thibault" type="button"><strong>Thibault</strong></button>
+          <button class="other-open-link" data-open-other="thibault" type="button">Ouvrir la page</button>
+        </div>
+
+        <div class="other-home-item lise-item">
+          <button class="other-home-card lise" data-other-view="lise" type="button"><strong>Lise</strong></button>
+          <button class="other-open-link" data-open-other="lise" type="button">Ouvrir la page</button>
+        </div>
+
+        <div class="other-home-item images-item">
+          <button class="other-home-card images other-image-card" data-other-view="images" type="button"><strong>Images</strong></button>
+        </div>
       </section>
 
       <div class="major-separator" aria-hidden="true"></div>
@@ -290,7 +316,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20261003-brand-images-v1"></script>
-  <script src="teacher-other.js?v=20261004-new-logo-v1"></script>
+  <script src="config.js?v=20261004-sections-autres-v1"></script>
+  <script src="teacher-other.js?v=20261004-sections-autres-v1"></script>
 </body>
 </html>

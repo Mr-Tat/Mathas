@@ -25,7 +25,7 @@
         tabTitle: "Math'as — Partage",
         simpleView: true,
         showScores: false,
-        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'autre']
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
       };
     } else {
       currentClass = {
@@ -34,7 +34,7 @@
         tabTitle: "Math'as — Partage",
         simpleView: true,
         showScores: false,
-        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'autre']
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
       };
     }
   } else {
@@ -81,6 +81,7 @@
 
   const levelsDef = [
     { key: 'objectif', label: 'Objectif', description: 'Niveau visé', openByDefault: true },
+    { key: 'calculs_ecrits', label: 'Calculs écrits', description: 'Calculs posés et techniques écrites', openByDefault: true },
     { key: 'depassement', label: 'Dépassement', description: 'Niveau futur ou difficile', openByDefault: false },
     { key: 'revision', label: 'Révision', description: 'Niveau facile ou rappel', openByDefault: false },
     { key: 'outil', label: 'Outils', description: 'Pour t’aider', openByDefault: true },
@@ -97,12 +98,14 @@
     niveau1: { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
     niveau2: { key: 'niveau2', label: 'Niveau 2', openByDefault: true },
     niveau3: { key: 'niveau3', label: 'Niveau 3', openByDefault: true },
+    calculs_ecrits: { key: 'calculs_ecrits', label: 'Calculs écrits', openByDefault: true },
+    outil: { key: 'outil', label: 'Outils', openByDefault: true },
     autre: { key: 'autre', label: 'Autre', openByDefault: true },
     exterieur: { key: 'exterieur', label: 'Extérieur', openByDefault: true }
   };
 
   const simpleLevelsDef = (
-    currentClass.sectionKeys || ['niveau1', 'niveau2', 'niveau3', 'autre']
+    currentClass.sectionKeys || ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
   )
     .map(key => simpleSectionMeta[key])
     .filter(Boolean);

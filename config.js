@@ -30,7 +30,7 @@ window.MATHAS_CONFIG = {
       tabTitle: "Math'as — Toutes les applis",
       simpleView: true,
       showScores: true,
-      sectionKeys: ["niveau1", "niveau2", "niveau3", "autre", "exterieur"]
+      sectionKeys: ["niveau1", "niveau2", "niveau3", "calculs_ecrits", "outil", "autre", "exterieur"]
     },
     thibault: {
       label: "Thibault",
@@ -38,7 +38,7 @@ window.MATHAS_CONFIG = {
       tabTitle: "Math'as — Thibault",
       simpleView: true,
       showScores: true,
-      sectionKeys: ["niveau1", "niveau2", "niveau3", "autre"]
+      sectionKeys: ["niveau1", "niveau2", "niveau3", "calculs_ecrits", "outil", "autre"]
     },
     lise: {
       label: "Lise",
@@ -46,7 +46,7 @@ window.MATHAS_CONFIG = {
       tabTitle: "Math'as — Lise",
       simpleView: true,
       showScores: true,
-      sectionKeys: ["niveau1", "niveau2", "niveau3", "autre"]
+      sectionKeys: ["niveau1", "niveau2", "niveau3", "calculs_ecrits", "outil", "autre"]
     }
   },
 

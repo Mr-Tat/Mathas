@@ -17,6 +17,7 @@
 
   const STANDARD_LEVELS = {
     objectif: 'Objectif',
+    calculs_ecrits: 'Calculs écrits',
     depassement: 'Dépassement',
     revision: 'Révision',
     outil: 'Outils',
@@ -26,13 +27,15 @@
     niveau1: 'Niveau 1',
     niveau2: 'Niveau 2',
     niveau3: 'Niveau 3',
+    calculs_ecrits: 'Calculs écrits',
+    outil: 'Outils',
     autre: 'Autre'
   };
 
   const VIEWS = {
     '2eco': {
       kind: 'class', slug: '2eco', title: '2 ECO', mode: 'standard', daily: true,
-      hint: 'Classe indépendante, mais avec le même fonctionnement qu’Observation / Phase 1 / Phase 2 : Sélection du jour, Objectif, Dépassement, Révision, Outils et Jeux.',
+      hint: 'Classe indépendante, mais avec le même fonctionnement qu’Observation / Phase 1 / Phase 2 : Sélection du jour, Objectif, Calculs écrits, Dépassement, Révision, Outils et Jeux.',
       url: 'index.html?classe=2eco'
     },
     'partage-n1': {
@@ -45,12 +48,12 @@
     },
     thibault: {
       kind: 'class', slug: 'thibault', title: 'Thibault', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3 et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=thibault'
     },
     lise: {
       kind: 'class', slug: 'lise', title: 'Lise', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3 et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=lise'
     }
   };
@@ -184,6 +187,28 @@
         await loadImages();
       } else {
         showSpecialView();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-open-other]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.openOther;
+      const view = VIEWS[key];
+      if (!view) return;
+
+      if (view.kind === 'share') {
+        const page = sharePageForView(view);
+        if (!page?.token) {
+          return setMessage(panelMessage, `Le lien de ${view.title} n’est pas encore disponible.`, 'error');
+        }
+        window.open(buildShareUrl(page.token), '_blank', 'noopener');
+        return;
+      }
+
+      if (view.url) {
+        const target = new URL(view.url, location.href).toString();
+        window.open(target, '_blank', 'noopener');
       }
     });
   });
@@ -378,8 +403,8 @@
     specialHint.textContent = view.hint;
     shareLinkPanel.classList.toggle('hidden', view.kind !== 'share');
     specialLegend.innerHTML = view.mode === 'standard'
-      ? '<span><b>Visible</b> : apparaît dans 2 ECO</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Dépassement / Révision / Outils / Jeux</span>'
-      : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Autre</span>';
+      ? '<span><b>Visible</b> : apparaît dans 2 ECO</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Calculs écrits / Dépassement / Révision / Outils / Jeux</span>'
+      : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
     renderShareLink();
     renderSpecialApps();
   }

@@ -2024,3 +2024,108 @@ textarea {
 .global-table tbody tr:hover td {
   background: rgba(74, 105, 159, .10);
 }
+
+
+/* ==========================================================================
+   AUTRES — cartes compactes + bouton d'accès direct + retour GLOBAL
+   ========================================================================== */
+
+.other-topbar {
+  align-items: flex-start;
+}
+
+.other-header-left {
+  min-width: 0;
+}
+
+.other-title-row {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.other-title-row h1 {
+  margin-bottom: 2px;
+}
+
+.other-global-link {
+  min-width: 190px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.other-home-grid {
+  align-items: stretch;
+}
+
+.other-home-item {
+  --item-rgb: 130, 145, 190;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 70px 36px;
+  gap: 8px;
+}
+
+.other-home-item.eco-item { --item-rgb: 255, 145, 93; }
+.other-home-item.share-one-item { --item-rgb: 235, 177, 73; }
+.other-home-item.share-two-item { --item-rgb: 80, 166, 230; }
+.other-home-item.thibault-item { --item-rgb: 139, 117, 244; }
+.other-home-item.lise-item { --item-rgb: 231, 105, 174; }
+.other-home-item.images-item { --item-rgb: 71, 200, 161; }
+
+.other-home-grid > .other-home-item .other-home-card {
+  min-height: 0 !important;
+  height: 70px;
+  padding: 10px 8px;
+}
+
+.other-home-grid > .other-home-item .other-home-card strong {
+  font-size: 1.12rem;
+}
+
+.other-home-card span {
+  display: none !important;
+}
+
+.other-open-link {
+  appearance: none;
+  width: 100%;
+  min-height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--item-rgb), .38);
+  background: rgba(var(--item-rgb), .085);
+  color: #eef4fb;
+  font: inherit;
+  font-size: .77rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.other-open-link:hover {
+  background: rgba(var(--item-rgb), .16);
+  border-color: rgba(var(--item-rgb), .68);
+  transform: translateY(-1px);
+}
+
+.other-home-item.images-item {
+  grid-template-rows: 1fr;
+}
+
+.other-home-grid > .other-home-item .other-image-card {
+  height: 114px;
+  min-height: 114px !important;
+}
+
+@media (max-width: 900px) {
+  .other-title-row {
+    gap: 14px;
+  }
+
+  .other-global-link {
+    min-width: 150px;
+  }
+}
