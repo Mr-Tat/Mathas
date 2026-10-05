@@ -41,12 +41,21 @@
     outil: 'Outils',
     autre: 'Autre'
   };
+  const TOUTES_LEVELS = {
+    niveau1: 'Niveau 1',
+    niveau2: 'Niveau 2',
+    niveau3: 'Niveau 3',
+    calculs_ecrits: 'Calculs écrits',
+    outil: 'Outils',
+    autre: 'Autre',
+    exterieur: 'Extérieur'
+  };
 
   const VIEWS = {
-    '2eco': {
-      kind: 'class', slug: '2eco', title: '2 ECO', mode: 'standard', daily: true,
-      hint: 'Classe indépendante, mais avec le même fonctionnement qu’Observation / Phase 1 / Phase 2 : Sélection du jour, Objectif, Calculs écrits, Dépassement, Révision, Outils et Jeux.',
-      url: 'index.html?classe=2eco'
+    toutes: {
+      kind: 'class', slug: 'toutes', title: 'Toutes les applis', mode: 'toutes', daily: false,
+      hint: 'Page générale classée par Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils, Autre et Extérieur. Il n’y a pas de sélection « Du jour ».',
+      url: 'index.html?classe=toutes'
     },
     'partage-n1': {
       kind: 'share', slug: 'partage-n1', title: 'Partage 1', mode: 'simple', daily: false,
@@ -489,8 +498,10 @@
     specialHint.textContent = view.hint;
     shareLinkPanel.classList.toggle('hidden', view.kind !== 'share');
     specialLegend.innerHTML = view.mode === 'standard'
-      ? '<span><b>Visible</b> : apparaît dans 2 ECO</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Calculs écrits / Dépassement / Révision / Outils / Jeux</span>'
-      : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
+      ? `<span><b>Visible</b> : apparaît dans ${view.title}</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Calculs écrits / Dépassement / Révision / Outils / Jeux</span>`
+      : view.mode === 'toutes'
+        ? '<span><b>Visible</b> : apparaît dans Toutes les applis</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre / Extérieur</span>'
+        : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
     renderShareLink();
     renderSpecialApps();
   }
@@ -545,6 +556,12 @@
     return shareAppRows.filter(row => row.page_id === target.id);
   }
 
+  function levelsForView(view) {
+    if (view?.mode === 'standard') return STANDARD_LEVELS;
+    if (view?.mode === 'toutes') return TOUTES_LEVELS;
+    return SIMPLE_LEVELS;
+  }
+
   function renderSpecialApps() {
     const target = targetInfo();
     specialAppList.innerHTML = '';
@@ -572,10 +589,22 @@
   function makeSpecialRow(target, app, link) {
     const row = document.createElement('article');
     row.className = 'app-row special-app-row';
-    row.appendChild(makeThumb(app));
 
-    const info = document.createElement('div');
-    info.className = 'app-info';
+    const thumbLink = document.createElement('a');
+    thumbLink.className = 'app-thumb-open';
+    thumbLink.href = app.url || '#';
+    thumbLink.target = '_blank';
+    thumbLink.rel = 'noopener noreferrer';
+    thumbLink.title = `Ouvrir ${app.nom} dans un nouvel onglet`;
+    thumbLink.appendChild(makeThumb(app));
+    row.appendChild(thumbLink);
+
+    const info = document.createElement('a');
+    info.className = 'app-info admin-app-open';
+    info.href = app.url || '#';
+    info.target = '_blank';
+    info.rel = 'noopener noreferrer';
+    info.title = `Ouvrir ${app.nom} dans un nouvel onglet`;
     const titleLine = document.createElement('div');
     titleLine.className = 'app-title-line';
     const name = document.createElement('strong');
@@ -593,7 +622,7 @@
     info.append(titleLine, url);
     row.appendChild(info);
 
-    const levels = target.view.mode === 'standard' ? STANDARD_LEVELS : SIMPLE_LEVELS;
+    const levels = levelsForView(target.view);
     const level = fieldSelect('Niveau', levels, levels[link.niveau] ? link.niveau : Object.keys(levels)[0]);
     level.select.addEventListener('change', () => updateTargetLink(target, link, { niveau: level.select.value }, () => {
       level.select.value = levels[link.niveau] ? link.niveau : Object.keys(levels)[0];

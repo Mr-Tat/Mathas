@@ -8,11 +8,13 @@
 
   const client = window.supabase.createClient(cfg.supabase.url, cfg.supabase.publishableKey);
 
-  const CORE_SLUGS = ['observation', 'phase1', 'phase2', 'toutes'];
+  const CORE_SLUGS = ['observation', 'phase1', 'phase2', '2eco'];
+  const CREATION_SLUGS = [...CORE_SLUGS, 'toutes'];
   const CORE_LABELS = {
     observation: 'Observation',
     phase1: 'Phase 1',
     phase2: 'Phase 2',
+    '2eco': '2 ECO',
     toutes: 'Toutes les applis'
   };
   const STANDARD_LEVELS = {
@@ -232,10 +234,8 @@
     }
 
     classLegend.classList.remove('hidden');
-    dailyLegend.classList.toggle('hidden', currentView === 'toutes');
-    managementHint.textContent = currentView === 'toutes'
-      ? 'Toutes les applis : classement Niveau 1 / 2 / 3 / Autre / Extérieur. Il n’y a pas de “Du jour”.'
-      : `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement.`;
+    dailyLegend.classList.remove('hidden');
+    managementHint.textContent = `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement.`;
   }
 
   function renderCurrentView() {
@@ -321,15 +321,35 @@
     stickyInner.className = 'global-sticky-header-inner';
 
     const stickyLabels = [
-      ['Application', 'app-head'],
-      ...CORE_SLUGS.map(slug => [CORE_LABELS[slug], `class-head class-head-${slug}`]),
-      ['Partout', 'everywhere-head']
+      { label: 'Application', className: 'app-head' },
+      ...CORE_SLUGS.map(slug => ({ label: CORE_LABELS[slug], className: `class-head class-head-${slug}`, slug })),
+      { label: 'Partout', className: 'everywhere-head' }
     ];
 
-    stickyLabels.forEach(([label, className]) => {
+    stickyLabels.forEach(({ label, className, slug }) => {
       const cell = document.createElement('div');
       cell.className = `global-sticky-cell ${className}`;
-      cell.textContent = label;
+
+      if (slug) {
+        const title = document.createElement('span');
+        title.className = 'global-sticky-title';
+        title.textContent = label;
+
+        const clearDaily = document.createElement('button');
+        clearDaily.type = 'button';
+        clearDaily.className = 'clear-daily-btn';
+        clearDaily.title = `Retirer toutes les applications « Du jour » de ${label}`;
+        clearDaily.setAttribute('aria-label', clearDaily.title);
+        const word = document.createElement('span');
+        word.className = 'clear-daily-word';
+        word.textContent = 'Jour';
+        clearDaily.appendChild(word);
+        clearDaily.addEventListener('click', () => clearDailyForClass(slug, clearDaily));
+
+        cell.append(title, clearDaily);
+      } else {
+        cell.textContent = label;
+      }
       stickyInner.appendChild(cell);
     });
 
@@ -351,12 +371,21 @@
         stickyCells[index].style.width = `${width}px`;
       });
 
-      stickyInner.style.transform = `translateX(${-scroller.scrollLeft}px)`;
+      syncStickyScrollPosition();
     }
 
-    scroller.addEventListener('scroll', () => {
-      stickyInner.style.transform = `translateX(${-scroller.scrollLeft}px)`;
-    }, { passive: true });
+    function syncStickyScrollPosition() {
+      const left = scroller.scrollLeft;
+      stickyInner.style.transform = `translateX(${-left}px)`;
+      const appHeader = stickyInner.querySelector('.app-head');
+      if (appHeader) {
+        appHeader.style.transform = window.matchMedia('(max-width: 760px)').matches
+          ? `translateX(${left}px)`
+          : '';
+      }
+    }
+
+    scroller.addEventListener('scroll', syncStickyScrollPosition, { passive: true });
 
     scroller.appendChild(table);
     globalView.append(stickyHeader, scroller);
@@ -387,8 +416,13 @@
     const wrap = document.createElement('div');
     wrap.className = 'global-app-info';
 
-    const stack = document.createElement('div');
-    stack.className = 'global-app-stack';
+    const stack = document.createElement('a');
+    stack.className = 'global-app-stack global-app-open';
+    stack.href = app.url || '#';
+    stack.target = '_blank';
+    stack.rel = 'noopener noreferrer';
+    stack.title = `Ouvrir ${app.nom} dans un nouvel onglet`;
+    stack.setAttribute('aria-label', stack.title);
 
     const thumb = makeThumb(app);
     thumb.classList.add('global-app-thumb');
@@ -432,15 +466,13 @@
     }));
     controls.appendChild(visible.wrap);
 
-    if (slug !== 'toutes') {
-      const daily = compactCheckbox('Du jour', link.du_jour === true);
-      daily.input.addEventListener('change', () => updateClassLink(link, { du_jour: daily.input.checked }, () => {
-        daily.input.checked = link.du_jour === true;
-      }));
-      controls.appendChild(daily.wrap);
-    }
+    const daily = compactCheckbox('Du jour', link.du_jour === true);
+    daily.input.addEventListener('change', () => updateClassLink(link, { du_jour: daily.input.checked }, () => {
+      daily.input.checked = link.du_jour === true;
+    }));
+    controls.appendChild(daily.wrap);
 
-    const levels = slug === 'toutes' ? TOUTES_LEVELS : STANDARD_LEVELS;
+    const levels = STANDARD_LEVELS;
     const select = document.createElement('select');
     select.className = 'compact-select';
     Object.entries(levels).forEach(([value, label]) => {
@@ -466,15 +498,46 @@
     const payload = {
       class_id: cls.id,
       application_id: appId,
-      visible: slug === 'toutes',
+      visible: false,
       du_jour: false,
-      niveau: slug === 'toutes' ? 'niveau1' : 'objectif',
+      niveau: 'objectif',
       domaine: 'calcul',
       ordre: maxOrder + 10
     };
     const { error } = await client.from('class_applications').insert(payload);
     if (error) return setMessage(panelMessage, `Erreur : ${error.message}`, 'error');
     await loadData();
+  }
+
+  async function clearDailyForClass(slug, trigger) {
+    const cls = classBySlug(slug);
+    if (!cls) return setMessage(panelMessage, `${CORE_LABELS[slug]} est introuvable dans Supabase.`, 'error');
+
+    const activeRows = classAppRows.filter(row => row.class_id === cls.id && row.du_jour === true);
+    if (!activeRows.length) {
+      setMessage(panelMessage, `Aucune application « Du jour » à retirer pour ${CORE_LABELS[slug]}.`, 'success');
+      return;
+    }
+
+    if (!confirm(`Retirer les ${activeRows.length} application${activeRows.length > 1 ? 's' : ''} actuellement « Du jour » de ${CORE_LABELS[slug]} ?`)) return;
+
+    trigger.disabled = true;
+    try {
+      const { error } = await client
+        .from('class_applications')
+        .update({ du_jour: false })
+        .eq('class_id', cls.id)
+        .eq('du_jour', true);
+      if (error) throw error;
+
+      activeRows.forEach(row => { row.du_jour = false; });
+      renderGlobalTable();
+      setMessage(panelMessage, `Sélection du jour vidée pour ${CORE_LABELS[slug]}.`, 'success');
+    } catch (error) {
+      console.error(error);
+      setMessage(panelMessage, `Erreur : ${error.message}`, 'error');
+      trigger.disabled = false;
+    }
   }
 
   async function setVisibleEverywhere(appId, visible, buttons) {
@@ -525,10 +588,22 @@
   function makeClassRow(app, link, slug) {
     const row = document.createElement('article');
     row.className = 'app-row core-app-row';
-    row.appendChild(makeThumb(app));
 
-    const info = document.createElement('div');
-    info.className = 'app-info';
+    const thumbLink = document.createElement('a');
+    thumbLink.className = 'app-thumb-open';
+    thumbLink.href = app.url || '#';
+    thumbLink.target = '_blank';
+    thumbLink.rel = 'noopener noreferrer';
+    thumbLink.title = `Ouvrir ${app.nom} dans un nouvel onglet`;
+    thumbLink.appendChild(makeThumb(app));
+    row.appendChild(thumbLink);
+
+    const info = document.createElement('a');
+    info.className = 'app-info admin-app-open';
+    info.href = app.url || '#';
+    info.target = '_blank';
+    info.rel = 'noopener noreferrer';
+    info.title = `Ouvrir ${app.nom} dans un nouvel onglet`;
     const name = document.createElement('strong');
     name.textContent = app.nom;
     const url = document.createElement('span');
@@ -536,7 +611,7 @@
     info.append(name, url);
     row.appendChild(info);
 
-    const levels = slug === 'toutes' ? TOUTES_LEVELS : STANDARD_LEVELS;
+    const levels = STANDARD_LEVELS;
     const levelField = fieldSelect('Niveau', levels, levels[link.niveau] ? link.niveau : Object.keys(levels)[0]);
     levelField.select.addEventListener('change', () => updateClassLink(link, { niveau: levelField.select.value }, () => {
       levelField.select.value = levels[link.niveau] ? link.niveau : Object.keys(levels)[0];
@@ -549,17 +624,11 @@
     }));
     row.appendChild(visibleField.wrap);
 
-    if (slug !== 'toutes') {
-      const dailyField = checkboxField('Du jour', link.du_jour === true);
-      dailyField.input.addEventListener('change', () => updateClassLink(link, { du_jour: dailyField.input.checked }, () => {
-        dailyField.input.checked = link.du_jour === true;
-      }));
-      row.appendChild(dailyField.wrap);
-    } else {
-      const spacer = document.createElement('div');
-      spacer.className = 'row-spacer-field';
-      row.appendChild(spacer);
-    }
+    const dailyField = checkboxField('Du jour', link.du_jour === true);
+    dailyField.input.addEventListener('change', () => updateClassLink(link, { du_jour: dailyField.input.checked }, () => {
+      dailyField.input.checked = link.du_jour === true;
+    }));
+    row.appendChild(dailyField.wrap);
 
     const order = numberField('Ordre', link.ordre ?? 0);
     let orderTimer = null;
@@ -675,7 +744,7 @@
         if (createError) throw createError;
 
         const maxOrder = classAppRows.reduce((max, row) => Math.max(max, Number(row.ordre) || 0), 0);
-        const links = CORE_SLUGS.map((slug, index) => {
+        const links = CREATION_SLUGS.map((slug, index) => {
           const cls = classBySlug(slug);
           if (!cls) throw new Error(`La page ${CORE_LABELS[slug]} est introuvable dans Supabase.`);
           return {
@@ -695,7 +764,7 @@
           if (uploadedImagePath) await client.storage.from(IMAGE_BUCKET).remove([uploadedImagePath]);
           throw linksError;
         }
-        setMessage(dialogMessage, 'Application créée dans les quatre pages principales.', 'success');
+        setMessage(dialogMessage, 'Application créée dans les quatre classes principales et dans Toutes les applis.', 'success');
       }
 
       await loadData();
