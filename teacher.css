@@ -3688,3 +3688,37 @@ textarea {
     font-size: .72rem;
   }
 }
+
+/* ==========================================================================
+   GLOBAL — compactage vertical final des cellules de classe — 2026-10-06
+   Le contenu tient autour de la hauteur de la vignette 80 px sur desktop,
+   tout en gardant des zones de clic distinctes pour Visible / Du jour.
+   ========================================================================== */
+@media (min-width: 761px) {
+  .global-table tbody td {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .global-cell-controls {
+    gap: 2px;
+  }
+
+  .compact-check {
+    min-height: 22px;
+    gap: 5px;
+    line-height: 1.05;
+  }
+
+  .compact-check input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+  }
+
+  .compact-select {
+    min-height: 34px;
+    padding: 5px 7px;
+    line-height: 1.1;
+  }
+}
