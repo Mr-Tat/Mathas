@@ -17,7 +17,7 @@ Fichiers à déposer/remplacer dans le dépôt Mathas :
 
 Vérifications finales incluses :
 - syntaxe des 4 fichiers JavaScript : OK
-- favicon hub M entouré de violet : OK
+- favicon HUB M mathématique néon cerclé bleu : OK
 - bouton Images -> bibliothèque directe dans un nouvel onglet : OK
 - bouton ← PRINCIPAL : OK
 - en-tête GLOBAL sticky et aligné aux vraies colonnes : OK
@@ -58,3 +58,10 @@ MISE A JOUR 2026-10-06 — TABLEAU GLOBAL COMPACT V2
 - GSM <= 760 px : la colonne sticky Application devient une bande étroite de 80 px avec la vignette seule.
 - GSM : le nom et le bouton Modifier ne restent plus affichés dans la colonne fixe, afin de laisser davantage de place aux réglages.
 - Aucun changement Supabase.
+
+
+MISE A JOUR 2026-10-06 — NOUVEAU FAVICON
+- favicon-hub.png remplacé par le nouveau M mathématique néon fourni.
+- Paramètre anti-cache passé à ?v=20261006-hub-icon-v3 dans index.html, teacher.html et teacher-other.html.
+- Favicon local optimisé en 512 × 512 px avec transparence conservée.
+- Aucun changement Supabase nécessaire.
