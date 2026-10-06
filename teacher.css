@@ -3562,3 +3562,129 @@ textarea {
     font-size: .66rem;
   }
 }
+
+/* ========================================================================== 
+   TABLEAU GLOBAL — COMPACTION V2 + GSM VIGNETTE SEULE — 2026-10-06
+   Desktop : on utilise mieux la largeur de la cellule Application pour garder
+   une vignette de 80 px tout en réduisant les vides horizontaux/verticaux.
+   GSM : seule la vignette reste dans la colonne sticky afin de libérer l'écran.
+   ========================================================================== */
+@media (min-width: 761px) {
+  .global-table th,
+  .global-table td {
+    padding: 5px 6px;
+  }
+
+  .global-table .app-head,
+  .global-app-cell {
+    width: 235px;
+  }
+
+  .global-table .class-head {
+    width: 165px;
+  }
+
+  .global-app-info {
+    gap: 4px;
+  }
+
+  .global-app-stack {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .global-app-thumb {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    border-radius: 15px;
+  }
+
+  .global-app-name {
+    font-size: .86rem;
+    line-height: 1.04;
+  }
+
+  .global-edit-action {
+    margin-left: 0;
+    font-size: .78rem;
+  }
+
+  .global-cell-controls {
+    gap: 2px;
+  }
+
+  .compact-check {
+    gap: 4px;
+    min-height: 18px;
+    font-size: .76rem;
+    line-height: 1;
+  }
+
+  .compact-check input {
+    width: 16px;
+    height: 16px;
+  }
+
+  .compact-select {
+    min-height: 30px;
+    padding: 4px 6px;
+    font-size: .78rem;
+  }
+
+  .global-everywhere {
+    padding-inline: 5px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .global-table {
+    min-width: 800px !important;
+  }
+
+  .global-table .app-head,
+  .global-app-cell {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .global-app-cell {
+    padding: 6px 5px !important;
+  }
+
+  .global-app-info {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .global-app-stack {
+    display: block !important;
+    width: 68px !important;
+    min-width: 68px !important;
+  }
+
+  .global-app-thumb {
+    width: 68px !important;
+    height: 68px !important;
+    min-width: 68px !important;
+    min-height: 68px !important;
+    border-radius: 13px !important;
+  }
+
+  .global-app-name,
+  .global-edit-action {
+    display: none !important;
+  }
+
+  .global-sticky-cell.app-head {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    padding-inline: 4px !important;
+    font-size: .72rem;
+  }
+}

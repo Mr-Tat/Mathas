@@ -50,3 +50,11 @@ MISE A JOUR 2026-10-06 — TABLEAU GLOBAL PLUS COMPACT
 - Les contrôles Visible / Du jour / niveau sont légèrement resserrés.
 - Le nom reste horizontal et lisible (2 lignes maximum) : pas de texte vertical.
 - Le comportement mobile <= 760 px, notamment la colonne Application sticky, reste inchangé.
+
+
+MISE A JOUR 2026-10-06 — TABLEAU GLOBAL COMPACT V2
+- Desktop : vignette portée à 80 px tout en réduisant les espaces inutiles dans la cellule Application.
+- Desktop : Visible / Du jour / niveau resserrés verticalement ; colonnes légèrement compactées.
+- GSM <= 760 px : la colonne sticky Application devient une bande étroite de 80 px avec la vignette seule.
+- GSM : le nom et le bouton Modifier ne restent plus affichés dans la colonne fixe, afin de laisser davantage de place aux réglages.
+- Aucun changement Supabase.
