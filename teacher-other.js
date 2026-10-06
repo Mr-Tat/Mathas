@@ -14,8 +14,10 @@
   const IMAGE_FOLDERS = ['miniatures', 'logos', 'backgrounds', 'interface', 'illustrations', 'autres'];
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   const MATHAS_ICON_PATH = 'logos/logo-m-1791065253498-qussoz.png';
+  const MATHAS_HUB_ICON_PATH = 'logos/embleme-neon-mathematique-avec-m-en-3d-1791285482515-dyxa8v.png';
   const MATHAS_WORDMARK_PATH = 'logos/logo-mot-1791065255634-jznxux.png';
   const MATHAS_ICON_URL = client.storage.from(IMAGE_BUCKET).getPublicUrl(MATHAS_ICON_PATH).data.publicUrl;
+  const MATHAS_HUB_ICON_URL = client.storage.from(IMAGE_BUCKET).getPublicUrl(MATHAS_HUB_ICON_PATH).data.publicUrl;
   const IMAGE_FOLDER_LABELS = {
     miniatures: 'Miniatures',
     logos: 'Logos',
@@ -1051,11 +1053,11 @@
       .filter(app => getStoragePathFromPublicUrl(app.miniature_url) === path)
       .map(app => ({ kind: 'M', label: `Miniature — ${app.nom}`, automatic: true }));
 
-    if (path === MATHAS_ICON_PATH) {
-      usages.push({ kind: 'M', label: 'Logo / favicon — Math’as', automatic: true });
+    if (path === MATHAS_HUB_ICON_PATH) {
+      usages.push({ kind: 'M', label: 'Icône / favicon — HUB Math’as', automatic: true });
     }
     if (path === MATHAS_WORDMARK_PATH) {
-      usages.push({ kind: 'M', label: 'Mot Math’as — en-têtes du site', automatic: true });
+      usages.push({ kind: 'M', label: 'Mot Math’as — en-têtes du HUB', automatic: true });
     }
 
     return usages;
@@ -1227,13 +1229,13 @@
 
     if (kind === 'M' || kind === 'APP') {
       const img = document.createElement('img');
-      img.src = freshMathasImageUrl(MATHAS_ICON_URL);
+      img.src = freshMathasImageUrl(kind === 'M' ? MATHAS_HUB_ICON_URL : MATHAS_ICON_URL);
       img.alt = '';
       img.className = 'image-usage-logo';
       badge.appendChild(img);
       badge.setAttribute(
         'aria-label',
-        kind === 'APP' ? 'Détectée dans une application' : 'Utilisée dans Math’as'
+        kind === 'APP' ? 'Détectée dans une application' : 'Utilisée dans le HUB Math’as'
       );
     } else {
       const letter = document.createElement('span');
@@ -1251,7 +1253,7 @@
     fillUsageBadge(badge, kind);
 
     const titles = {
-      M: 'Utilisée dans Math’as',
+      M: 'Utilisée dans le HUB Math’as',
       APP: 'Détectée dans une application',
       A: 'Utilisée ailleurs'
     };

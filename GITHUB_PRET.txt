@@ -40,3 +40,13 @@ Correctif 2026-10-04 — rafraîchissement des images :
 - Math’as ajoute uniquement un paramètre temporaire à l’affichage pour éviter l’ancien cache après remplacement ;
 - les nouvelles images ont un cache navigateur plus court (60 s) ;
 - aucune migration Supabase à exécuter.
+
+
+Mise à jour 05/10/2026 : favicon du HUB remplacé par la variante M cerclé bleu, et badges de la bibliothèque d’images distingués entre HUB (icône cerclée) et applications (logo M simple). Supabase : rien à faire.
+
+MISE A JOUR 2026-10-06 — TABLEAU GLOBAL PLUS COMPACT
+- Sur ordinateur (> 760 px), les lignes du tableau global sont moins hautes.
+- La miniature passe à 64 px et le nom de l'application est placé à sa droite.
+- Les contrôles Visible / Du jour / niveau sont légèrement resserrés.
+- Le nom reste horizontal et lisible (2 lignes maximum) : pas de texte vertical.
+- Le comportement mobile <= 760 px, notamment la colonne Application sticky, reste inchangé.

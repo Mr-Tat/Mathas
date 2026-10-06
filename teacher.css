@@ -3480,3 +3480,85 @@ textarea {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ========================================================================== 
+   TABLEAU GLOBAL — VERSION COMPACTE DESKTOP — 2026-10-06
+   Réduit la hauteur des lignes sans sacrifier la lisibilité : miniature et
+   nom côte à côte, contrôles plus serrés. Le rendu GSM <= 760 px reste inchangé.
+   ========================================================================== */
+@media (min-width: 761px) {
+  .global-table th,
+  .global-table td {
+    padding: 7px 8px;
+  }
+
+  .global-app-info {
+    gap: 8px;
+  }
+
+  .global-app-stack {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    gap: 9px;
+    text-align: left;
+  }
+
+  .global-app-thumb {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 13px;
+  }
+
+  .global-app-name {
+    width: 100%;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: .88rem;
+    line-height: 1.08;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .global-edit-action {
+    font-size: .82rem;
+  }
+
+  .global-cell-controls {
+    gap: 4px;
+  }
+
+  .compact-check {
+    gap: 5px;
+    min-height: 20px;
+    font-size: .78rem;
+    line-height: 1.05;
+  }
+
+  .compact-check input {
+    width: 16px;
+    height: 16px;
+  }
+
+  .compact-select {
+    min-height: 32px;
+    padding: 5px 7px;
+    border-radius: 9px;
+    font-size: .80rem;
+  }
+
+  .global-everywhere {
+    padding-inline: 6px !important;
+  }
+
+  .mini-action {
+    margin-bottom: 5px;
+    padding: 6px 4px;
+    font-size: .66rem;
+  }
+}
