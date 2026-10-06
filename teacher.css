@@ -3722,3 +3722,28 @@ textarea {
     line-height: 1.1;
   }
 }
+
+/* ==========================================================================
+   GLOBAL — correction marge héritée des <label> — 2026-10-06
+   La règle générale label { margin: 14px 0 } espaçait artificiellement
+   Visible / Du jour. On annule cette marge seulement pour ces contrôles.
+   ========================================================================== */
+.global-cell-controls .compact-check {
+  margin: 0;
+  min-height: 24px;
+  padding: 1px 0;
+}
+
+.global-cell-controls {
+  gap: 3px;
+}
+
+@media (min-width: 761px) {
+  .global-cell-controls .compact-check {
+    min-height: 24px;
+  }
+
+  .compact-select {
+    min-height: 34px;
+  }
+}

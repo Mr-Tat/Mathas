@@ -65,3 +65,11 @@ MISE A JOUR 2026-10-06 — NOUVEAU FAVICON
 - Paramètre anti-cache passé à ?v=20261006-hub-icon-v3 dans index.html, teacher.html et teacher-other.html.
 - Favicon local optimisé en 512 × 512 px avec transparence conservée.
 - Aucun changement Supabase nécessaire.
+
+MISE A JOUR 2026-10-06 — build-v5
+- Reconstruction propre depuis la dernière version stable.
+- Compactage vertical final du tableau GLOBAL sur desktop.
+- Confort GSM conservé.
+- Cache-busters renouvelés dans les 3 pages HTML pour forcer GitHub Pages / le navigateur à charger les nouveaux fichiers.
+
+2026-10-06 V6 : correction de la marge héritée des labels dans le tableau GLOBAL (Visible / Du jour), compactage vertical sans toucher à la logique.
