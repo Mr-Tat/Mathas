@@ -3866,3 +3866,32 @@ textarea {
     font-size: .82rem;
   }
 }
+
+/* ==========================================================================
+   GLOBAL — colonne POSITION automatique — 2026-10-09
+   Numéro de rang calculé après tri par Ordre. Lecture seule.
+   ========================================================================== */
+.global-table .position-head,
+.global-position-cell {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  text-align: center;
+}
+
+.global-position-cell {
+  padding-inline: 6px !important;
+  font-size: .94rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #dfe8f6;
+}
+
+@media (max-width: 760px) {
+  .global-table .position-head,
+  .global-position-cell {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+  }
+}

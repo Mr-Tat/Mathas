@@ -365,11 +365,12 @@
     CORE_SLUGS.forEach(slug => header.appendChild(makeTh(CORE_LABELS[slug], `class-head class-head-${slug}`)));
     header.appendChild(makeTh('Partout', 'everywhere-head'));
     header.appendChild(makeTh('Ordre', 'order-head'));
+    header.appendChild(makeTh('Position', 'position-head'));
     thead.appendChild(header);
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    apps.forEach(app => {
+    apps.forEach((app, index) => {
       const tr = document.createElement('tr');
       tr.appendChild(makeGlobalAppCell(app));
 
@@ -387,6 +388,7 @@
       actionsTd.append(showBtn, hideBtn);
       tr.appendChild(actionsTd);
       tr.appendChild(makeGlobalOrderCell(app));
+      tr.appendChild(makeGlobalPositionCell(index + 1, app));
       tbody.appendChild(tr);
     });
 
@@ -404,7 +406,8 @@
       { label: 'Application', className: 'app-head' },
       ...CORE_SLUGS.map(slug => ({ label: CORE_LABELS[slug], className: `class-head class-head-${slug}`, slug })),
       { label: 'Partout', className: 'everywhere-head' },
-      { label: 'Ordre', className: 'order-head' }
+      { label: 'Ordre', className: 'order-head' },
+      { label: 'Position', className: 'position-head' }
     ];
 
     stickyLabels.forEach(({ label, className, slug }) => {
@@ -543,6 +546,15 @@
     const first = values[0];
     const mixed = values.some(value => value !== first);
     return { value: mixed ? null : first, mixed };
+  }
+
+  function makeGlobalPositionCell(position, app) {
+    const td = document.createElement('td');
+    td.className = 'global-position-cell';
+    td.textContent = String(position);
+    td.title = `Position automatique de ${app.nom} dans l’ordre global`;
+    td.setAttribute('aria-label', `Position ${position} pour ${app.nom}`);
+    return td;
   }
 
   function makeGlobalOrderCell(app) {

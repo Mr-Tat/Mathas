@@ -97,3 +97,9 @@ MISE A JOUR 2026-10-09 — V9 TRI GLOBAL PAR ORDRE
 - Les vues par classe se réordonnent également immédiatement après modification de l'ordre.
 - Le HUB élève utilisait déjà class_applications.ordre pour le tri : ce comportement est conservé.
 - Aucun changement de schéma Supabase.
+
+
+V10 — 2026-10-09
+- Ajout d'une colonne Position juste après Ordre dans GLOBAL.
+- Position en lecture seule, calculée automatiquement après tri par ordre global.
+- Mise à jour immédiate de la position après toute modification d'Ordre.
