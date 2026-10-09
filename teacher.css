@@ -3895,3 +3895,102 @@ textarea {
     max-width: 64px !important;
   }
 }
+
+/* ==========================================================================
+   ORDRE GLOBAL — validation explicite par bouton OK — 2026-10-09
+   La saisie ne déclenche plus aucun enregistrement tant que OK (ou Entrée)
+   n'est pas utilisé. Les contrôles restent sur une seule ligne.
+   ========================================================================== */
+.global-table .order-head,
+.global-order-cell {
+  width: 118px;
+  min-width: 118px;
+  max-width: 118px;
+}
+
+.global-order-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.global-order-input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 72px;
+  margin: 0;
+}
+
+.global-order-ok,
+.order-ok-btn {
+  flex: 0 0 auto;
+  min-width: 34px;
+  min-height: 36px;
+  padding: 5px 6px;
+  border: 1px solid rgba(42,199,216,.36);
+  border-radius: 9px;
+  background: rgba(42,199,216,.10);
+  color: var(--text);
+  font-size: .76rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.global-order-input.dirty,
+.order-input.dirty {
+  border-color: rgba(42,199,216,.72);
+  box-shadow: 0 0 0 2px rgba(42,199,216,.08);
+}
+
+.global-order-ok.dirty,
+.order-ok-btn.dirty {
+  background: rgba(42,199,216,.24);
+  border-color: rgba(42,199,216,.72);
+}
+
+.global-order-ok:disabled,
+.order-ok-btn:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+.order-control-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-control-line .order-input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.order-control-line .order-ok-btn {
+  min-width: 32px;
+  min-height: 38px;
+  padding-inline: 5px;
+}
+
+@media (max-width: 760px) {
+  .global-table .order-head,
+  .global-order-cell {
+    width: 112px !important;
+    min-width: 112px !important;
+    max-width: 112px !important;
+  }
+
+  .global-order-input {
+    max-width: 66px;
+    min-height: 38px;
+  }
+
+  .global-order-ok {
+    min-height: 38px;
+  }
+}

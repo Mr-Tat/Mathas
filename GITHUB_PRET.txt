@@ -103,3 +103,6 @@ V10 — 2026-10-09
 - Ajout d'une colonne Position juste après Ordre dans GLOBAL.
 - Position en lecture seule, calculée automatiquement après tri par ordre global.
 - Mise à jour immédiate de la position après toute modification d'Ordre.
+
+
+V11 — 2026-10-09 : les champs Ordre (GLOBAL et vues de classe) ne s’enregistrent plus pendant la frappe. Validation explicite via bouton OK (ou touche Entrée), puis tri/Position mis à jour.

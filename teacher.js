@@ -561,12 +561,19 @@
     const td = document.createElement('td');
     td.className = 'global-order-cell';
 
+    const controls = document.createElement('div');
+    controls.className = 'global-order-controls';
+
     const input = document.createElement('input');
     input.type = 'number';
     input.inputMode = 'numeric';
     input.className = 'global-order-input';
     input.setAttribute('aria-label', `Ordre global de ${app.nom}`);
-    input.title = 'Cet ordre est appliqué à cette application dans toutes les classes, y compris Toutes les applis.';
+    input.title = 'Saisis le nouvel ordre, puis appuie sur OK pour l’appliquer partout.';
+
+    const confirm = button('OK', 'global-order-ok');
+    confirm.title = `Valider l’ordre global de ${app.nom}`;
+    confirm.setAttribute('aria-label', confirm.title);
 
     const state = globalOrderState(app.id);
     if (state.mixed) {
@@ -577,29 +584,30 @@
       input.value = String(state.value);
     }
 
-    let timer = null;
     const save = async () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-
       const raw = input.value.trim();
       if (!raw) return;
       const value = Number(raw);
       if (!Number.isFinite(value)) return;
 
       const before = globalOrderState(app.id);
-      if (!before.mixed && before.value === value) return;
+      if (!before.mixed && before.value === value) {
+        input.classList.remove('dirty');
+        confirm.classList.remove('dirty');
+        return;
+      }
 
       input.disabled = true;
+      confirm.disabled = true;
       const ok = await updateGlobalOrder(app.id, value);
       input.disabled = false;
+      confirm.disabled = false;
 
       if (ok) {
         input.value = String(value);
         input.placeholder = '';
-        input.classList.remove('mixed');
+        input.classList.remove('mixed', 'dirty');
+        confirm.classList.remove('dirty');
         // Le tableau GLOBAL suit immédiatement l'ordre qui vient d'être enregistré.
         renderGlobalTable();
       } else {
@@ -607,16 +615,25 @@
         input.value = restored.value === null ? '' : String(restored.value);
         input.placeholder = restored.mixed ? 'mixte' : '';
         input.classList.toggle('mixed', restored.mixed);
+        input.classList.remove('dirty');
+        confirm.classList.remove('dirty');
       }
     };
 
     input.addEventListener('input', () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(save, 600);
+      input.classList.add('dirty');
+      confirm.classList.add('dirty');
     });
-    input.addEventListener('change', save);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        save();
+      }
+    });
+    confirm.addEventListener('click', save);
 
-    td.appendChild(input);
+    controls.append(input, confirm);
+    td.appendChild(controls);
     return td;
   }
 
@@ -836,45 +853,55 @@
 
     const orderState = globalOrderState(app.id);
     const order = numberField('Ordre', orderState.value ?? '');
-    order.input.title = 'Ordre global : toute modification est appliquée à toutes les classes, y compris Toutes les applis.';
+    order.input.title = 'Saisis le nouvel ordre, puis appuie sur OK pour l’appliquer partout.';
     if (orderState.mixed) {
       order.input.placeholder = 'mixte';
       order.input.classList.add('mixed');
     }
-    let orderTimer = null;
     const saveOrder = async () => {
-      if (orderTimer) {
-        clearTimeout(orderTimer);
-        orderTimer = null;
-      }
       const raw = order.input.value.trim();
       if (!raw) return;
       const value = Number(raw);
       if (!Number.isFinite(value)) return;
       const before = globalOrderState(app.id);
-      if (!before.mixed && before.value === value) return;
+      if (!before.mixed && before.value === value) {
+        order.input.classList.remove('dirty');
+        order.confirm.classList.remove('dirty');
+        return;
+      }
 
       order.input.disabled = true;
+      order.confirm.disabled = true;
       const ok = await updateGlobalOrder(app.id, value);
       order.input.disabled = false;
+      order.confirm.disabled = false;
       if (!ok) {
         const restored = globalOrderState(app.id);
         order.input.value = restored.value === null ? '' : restored.value;
         order.input.placeholder = restored.mixed ? 'mixte' : '';
         order.input.classList.toggle('mixed', restored.mixed);
+        order.input.classList.remove('dirty');
+        order.confirm.classList.remove('dirty');
         return;
       }
       order.input.value = value;
       order.input.placeholder = '';
-      order.input.classList.remove('mixed');
+      order.input.classList.remove('mixed', 'dirty');
+      order.confirm.classList.remove('dirty');
       // La vue de classe se replace elle aussi immédiatement selon l'ordre global.
       renderClassRows(slug);
     };
     order.input.addEventListener('input', () => {
-      if (orderTimer) clearTimeout(orderTimer);
-      orderTimer = setTimeout(saveOrder, 600);
+      order.input.classList.add('dirty');
+      order.confirm.classList.add('dirty');
     });
-    order.input.addEventListener('change', saveOrder);
+    order.input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveOrder();
+      }
+    });
+    order.confirm.addEventListener('click', saveOrder);
     row.appendChild(order.wrap);
 
     const modify = button('Modifier', 'secondary');
@@ -1176,17 +1203,25 @@
   }
 
   function numberField(label, value) {
-    const wrap = document.createElement('label');
+    const wrap = document.createElement('div');
     wrap.className = 'field-wrap order-wrap';
     const lab = document.createElement('span');
     lab.className = 'field-label';
     lab.textContent = label;
+    const line = document.createElement('div');
+    line.className = 'order-control-line';
     const input = document.createElement('input');
     input.className = 'order-input';
     input.type = 'number';
+    input.inputMode = 'numeric';
     input.value = value;
-    wrap.append(lab, input);
-    return { wrap, input };
+    input.setAttribute('aria-label', label);
+    const confirm = button('OK', 'order-ok-btn');
+    confirm.title = 'Valider cet ordre global';
+    confirm.setAttribute('aria-label', confirm.title);
+    line.append(input, confirm);
+    wrap.append(lab, line);
+    return { wrap, input, confirm };
   }
 
   function button(text, className = 'secondary') {
