@@ -339,7 +339,15 @@
 
   function renderGlobalTable() {
     globalView.innerHTML = '';
-    const apps = generalAppsFiltered();
+    const apps = generalAppsFiltered()
+      .slice()
+      .sort((a, b) => {
+        const aState = globalOrderState(a.id);
+        const bState = globalOrderState(b.id);
+        const aOrder = aState.value === null ? Number.MAX_SAFE_INTEGER : Number(aState.value);
+        const bOrder = bState.value === null ? Number.MAX_SAFE_INTEGER : Number(bState.value);
+        return aOrder - bOrder || a.nom.localeCompare(b.nom, 'fr');
+      });
 
     if (!apps.length) {
       globalView.innerHTML = '<p class="muted empty-admin">Aucune application trouvée.</p>';
@@ -580,6 +588,8 @@
         input.value = String(value);
         input.placeholder = '';
         input.classList.remove('mixed');
+        // Le tableau GLOBAL suit immédiatement l'ordre qui vient d'être enregistré.
+        renderGlobalTable();
       } else {
         const restored = globalOrderState(app.id);
         input.value = restored.value === null ? '' : String(restored.value);
@@ -845,6 +855,8 @@
       order.input.value = value;
       order.input.placeholder = '';
       order.input.classList.remove('mixed');
+      // La vue de classe se replace elle aussi immédiatement selon l'ordre global.
+      renderClassRows(slug);
     };
     order.input.addEventListener('input', () => {
       if (orderTimer) clearTimeout(orderTimer);

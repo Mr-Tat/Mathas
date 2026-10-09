@@ -90,3 +90,10 @@ MISE A JOUR 2026-10-09 — V8 ORDRE GLOBAL APRÈS PARTOUT
 - Une fois l’harmonisation faite, les valeurs choisies manuellement sont conservées : elles ne sont pas renumérotées à chaque chargement.
 - Les nouvelles applications reçoivent directement le même numéro d’ordre dans toutes ces classes.
 - Aucun changement de schéma Supabase : la colonne ordre existante de class_applications est réutilisée.
+
+MISE A JOUR 2026-10-09 — V9 TRI GLOBAL PAR ORDRE
+- Le tableau GLOBAL est désormais trié selon la valeur de la colonne Ordre.
+- Après modification d'un ordre dans GLOBAL, la ligne se replace immédiatement à sa nouvelle position.
+- Les vues par classe se réordonnent également immédiatement après modification de l'ordre.
+- Le HUB élève utilisait déjà class_applications.ordre pour le tri : ce comportement est conservé.
+- Aucun changement de schéma Supabase.
