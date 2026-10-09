@@ -73,3 +73,10 @@ MISE A JOUR 2026-10-06 — build-v5
 - Cache-busters renouvelés dans les 3 pages HTML pour forcer GitHub Pages / le navigateur à charger les nouveaux fichiers.
 
 2026-10-06 V6 : correction de la marge héritée des labels dans le tableau GLOBAL (Visible / Du jour), compactage vertical sans toucher à la logique.
+
+MISE A JOUR 2026-10-09 — V7 ORDRE GLOBAL
+- Ajout d'une colonne compacte « Ordre » dans le tableau GLOBAL.
+- Modifier cette valeur applique le même ordre à l'application dans Observation, Phase 1, Phase 2 et 2 ECO.
+- Si les anciennes valeurs diffèrent encore entre classes, le champ affiche « mixte » jusqu'à la première modification.
+- Les champs Ordre des vues par classe pilotent désormais le même ordre global afin d'éviter de recréer des divergences.
+- Aucun changement de schéma Supabase : la colonne ordre existante de class_applications est réutilisée.

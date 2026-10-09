@@ -235,7 +235,7 @@
 
     classLegend.classList.remove('hidden');
     dailyLegend.classList.remove('hidden');
-    managementHint.textContent = `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement.`;
+    managementHint.textContent = `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement. L’ordre est commun aux classes principales.`;
   }
 
   function renderCurrentView() {
@@ -284,6 +284,7 @@
     const thead = document.createElement('thead');
     const header = document.createElement('tr');
     header.appendChild(makeTh('Application', 'app-head'));
+    header.appendChild(makeTh('Ordre', 'order-head'));
     CORE_SLUGS.forEach(slug => header.appendChild(makeTh(CORE_LABELS[slug], `class-head class-head-${slug}`)));
     header.appendChild(makeTh('Partout', 'everywhere-head'));
     thead.appendChild(header);
@@ -293,6 +294,7 @@
     apps.forEach(app => {
       const tr = document.createElement('tr');
       tr.appendChild(makeGlobalAppCell(app));
+      tr.appendChild(makeGlobalOrderCell(app));
 
       CORE_SLUGS.forEach(slug => {
         const link = linkFor(slug, app.id);
@@ -322,6 +324,7 @@
 
     const stickyLabels = [
       { label: 'Application', className: 'app-head' },
+      { label: 'Ordre', className: 'order-head' },
       ...CORE_SLUGS.map(slug => ({ label: CORE_LABELS[slug], className: `class-head class-head-${slug}`, slug })),
       { label: 'Partout', className: 'everywhere-head' }
     ];
@@ -441,6 +444,110 @@
     return td;
   }
 
+  function coreClassIds() {
+    return CORE_SLUGS.map(slug => classBySlug(slug)?.id).filter(Boolean);
+  }
+
+  function coreLinksForApp(appId) {
+    const classIds = coreClassIds();
+    return classAppRows.filter(row => row.application_id === appId && classIds.includes(row.class_id));
+  }
+
+  function globalOrderState(appId) {
+    const links = coreLinksForApp(appId);
+    if (!links.length) return { value: null, mixed: false };
+
+    const values = links.map(row => Number(row.ordre) || 0);
+    const first = values[0];
+    const mixed = values.some(value => value !== first);
+    return { value: mixed ? null : first, mixed };
+  }
+
+  function makeGlobalOrderCell(app) {
+    const td = document.createElement('td');
+    td.className = 'global-order-cell';
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.inputMode = 'numeric';
+    input.className = 'global-order-input';
+    input.setAttribute('aria-label', `Ordre global de ${app.nom}`);
+    input.title = 'Cet ordre est appliqué à cette application dans toutes les classes principales.';
+
+    const state = globalOrderState(app.id);
+    if (state.mixed) {
+      input.value = '';
+      input.placeholder = 'mixte';
+      input.classList.add('mixed');
+    } else if (state.value !== null) {
+      input.value = String(state.value);
+    }
+
+    let timer = null;
+    const save = async () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+
+      const raw = input.value.trim();
+      if (!raw) return;
+      const value = Number(raw);
+      if (!Number.isFinite(value)) return;
+
+      const before = globalOrderState(app.id);
+      if (!before.mixed && before.value === value) return;
+
+      input.disabled = true;
+      const ok = await updateGlobalOrder(app.id, value);
+      input.disabled = false;
+
+      if (ok) {
+        input.value = String(value);
+        input.placeholder = '';
+        input.classList.remove('mixed');
+      } else {
+        const restored = globalOrderState(app.id);
+        input.value = restored.value === null ? '' : String(restored.value);
+        input.placeholder = restored.mixed ? 'mixte' : '';
+        input.classList.toggle('mixed', restored.mixed);
+      }
+    };
+
+    input.addEventListener('input', () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(save, 600);
+    });
+    input.addEventListener('change', save);
+
+    td.appendChild(input);
+    return td;
+  }
+
+  async function updateGlobalOrder(appId, value) {
+    const classIds = coreClassIds();
+    if (!classIds.length) return false;
+
+    const { error } = await client
+      .from('class_applications')
+      .update({ ordre: value })
+      .eq('application_id', appId)
+      .in('class_id', classIds);
+
+    if (error) {
+      console.error(error);
+      setMessage(panelMessage, `Erreur d’enregistrement de l’ordre : ${error.message}`, 'error');
+      return false;
+    }
+
+    classAppRows.forEach(row => {
+      if (row.application_id === appId && classIds.includes(row.class_id)) row.ordre = value;
+    });
+
+    setMessage(panelMessage, 'Ordre global enregistré.', 'success');
+    return true;
+  }
+
   function makeGlobalClassCell(app, slug, link) {
     const td = document.createElement('td');
     td.className = `global-class-cell global-${slug}`;
@@ -495,6 +602,7 @@
     const cls = classBySlug(slug);
     if (!cls) return setMessage(panelMessage, `${CORE_LABELS[slug]} est introuvable dans Supabase.`, 'error');
     const maxOrder = classAppRows.reduce((max, row) => Math.max(max, Number(row.ordre) || 0), 0);
+    const orderState = globalOrderState(appId);
     const payload = {
       class_id: cls.id,
       application_id: appId,
@@ -502,7 +610,7 @@
       du_jour: false,
       niveau: 'objectif',
       domaine: 'calcul',
-      ordre: maxOrder + 10
+      ordre: orderState.value ?? (maxOrder + 10)
     };
     const { error } = await client.from('class_applications').insert(payload);
     if (error) return setMessage(panelMessage, `Erreur : ${error.message}`, 'error');
@@ -630,13 +738,39 @@
     }));
     row.appendChild(dailyField.wrap);
 
-    const order = numberField('Ordre', link.ordre ?? 0);
+    const orderState = globalOrderState(app.id);
+    const order = numberField('Ordre', orderState.value ?? '');
+    order.input.title = 'Ordre global : toute modification est appliquée aux classes principales.';
+    if (orderState.mixed) {
+      order.input.placeholder = 'mixte';
+      order.input.classList.add('mixed');
+    }
     let orderTimer = null;
-    const saveOrder = () => {
-      if (orderTimer) clearTimeout(orderTimer);
-      const value = Number(order.input.value) || 0;
-      if (value === Number(link.ordre || 0)) return;
-      updateClassLink(link, { ordre: value }, () => { order.input.value = link.ordre ?? 0; });
+    const saveOrder = async () => {
+      if (orderTimer) {
+        clearTimeout(orderTimer);
+        orderTimer = null;
+      }
+      const raw = order.input.value.trim();
+      if (!raw) return;
+      const value = Number(raw);
+      if (!Number.isFinite(value)) return;
+      const before = globalOrderState(app.id);
+      if (!before.mixed && before.value === value) return;
+
+      order.input.disabled = true;
+      const ok = await updateGlobalOrder(app.id, value);
+      order.input.disabled = false;
+      if (!ok) {
+        const restored = globalOrderState(app.id);
+        order.input.value = restored.value === null ? '' : restored.value;
+        order.input.placeholder = restored.mixed ? 'mixte' : '';
+        order.input.classList.toggle('mixed', restored.mixed);
+        return;
+      }
+      order.input.value = value;
+      order.input.placeholder = '';
+      order.input.classList.remove('mixed');
     };
     order.input.addEventListener('input', () => {
       if (orderTimer) clearTimeout(orderTimer);

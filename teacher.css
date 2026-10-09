@@ -3747,3 +3747,76 @@ textarea {
     min-height: 34px;
   }
 }
+
+/* ==========================================================================
+   GLOBAL — colonne ORDRE global — 2026-10-09
+   Une seule valeur pilote l'ordre de l'application dans les 4 classes.
+   La colonne reste volontairement étroite et n'augmente pas la hauteur.
+   ========================================================================== */
+.global-table .order-head,
+.global-order-cell {
+  width: 70px;
+  min-width: 70px;
+  max-width: 70px;
+  text-align: center;
+}
+
+.global-order-cell {
+  padding-inline: 6px !important;
+}
+
+.global-order-input {
+  width: 54px;
+  min-width: 0;
+  min-height: 36px;
+  margin: 0 auto;
+  padding: 5px 4px;
+  border-radius: 9px;
+  text-align: center;
+  font-size: .82rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.global-order-input.mixed {
+  color: var(--muted);
+}
+
+.global-order-input:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+/* Le nouvel ordre tient dans la largeur disponible sans élargir inutilement
+   les colonnes des classes. */
+@media (min-width: 761px) {
+  .global-table .app-head,
+  .global-app-cell {
+    width: 225px;
+  }
+
+  .global-table .class-head {
+    width: 160px;
+  }
+}
+
+@media (max-width: 760px) {
+  .global-table .order-head,
+  .global-order-cell {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+  }
+
+  .global-order-input {
+    width: 50px;
+    min-height: 38px;
+    font-size: .80rem;
+  }
+}
+
+@media (min-width: 761px) {
+  .global-class-cell {
+    width: 160px;
+  }
+}
