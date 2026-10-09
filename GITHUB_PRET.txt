@@ -80,3 +80,13 @@ MISE A JOUR 2026-10-09 — V7 ORDRE GLOBAL
 - Si les anciennes valeurs diffèrent encore entre classes, le champ affiche « mixte » jusqu'à la première modification.
 - Les champs Ordre des vues par classe pilotent désormais le même ordre global afin d'éviter de recréer des divergences.
 - Aucun changement de schéma Supabase : la colonne ordre existante de class_applications est réutilisée.
+
+
+MISE A JOUR 2026-10-09 — V8 ORDRE GLOBAL APRÈS PARTOUT
+- La colonne « Ordre » est déplacée après la colonne « Partout ».
+- Le champ Ordre est élargi pour être plus confortable à lire et à modifier.
+- Au premier chargement après cette mise à jour, si d’anciens ordres diffèrent entre classes, ils sont harmonisés automatiquement en 10, 20, 30… en conservant l’ordre existant d’Observation comme référence.
+- L’ordre global est commun à Observation, Phase 1, Phase 2, 2 ECO et Toutes les applis.
+- Une fois l’harmonisation faite, les valeurs choisies manuellement sont conservées : elles ne sont pas renumérotées à chaque chargement.
+- Les nouvelles applications reçoivent directement le même numéro d’ordre dans toutes ces classes.
+- Aucun changement de schéma Supabase : la colonne ordre existante de class_applications est réutilisée.

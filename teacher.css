@@ -3820,3 +3820,49 @@ textarea {
     width: 160px;
   }
 }
+
+/* ==========================================================================
+   GLOBAL — V8 ORDRE après PARTOUT + champ plus lisible — 2026-10-09
+   La colonne est placée en dernier dans le DOM par teacher.js. On lui laisse
+   un peu plus de largeur sans augmenter la hauteur des lignes.
+   ========================================================================== */
+.global-table .order-head,
+.global-order-cell {
+  width: 96px;
+  min-width: 96px;
+  max-width: 96px;
+}
+
+.global-order-input {
+  width: 76px;
+  min-height: 36px;
+  padding-inline: 8px;
+  font-size: .86rem;
+}
+
+@media (min-width: 761px) {
+  .global-table .app-head,
+  .global-app-cell {
+    width: 220px;
+  }
+
+  .global-table .class-head,
+  .global-class-cell {
+    width: 158px;
+  }
+}
+
+@media (max-width: 760px) {
+  .global-table .order-head,
+  .global-order-cell {
+    width: 84px !important;
+    min-width: 84px !important;
+    max-width: 84px !important;
+  }
+
+  .global-order-input {
+    width: 70px;
+    min-height: 38px;
+    font-size: .82rem;
+  }
+}

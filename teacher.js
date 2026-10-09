@@ -9,7 +9,8 @@
   const client = window.supabase.createClient(cfg.supabase.url, cfg.supabase.publishableKey);
 
   const CORE_SLUGS = ['observation', 'phase1', 'phase2', '2eco'];
-  const CREATION_SLUGS = [...CORE_SLUGS, 'toutes'];
+  const ORDER_SLUGS = [...CORE_SLUGS, 'toutes'];
+  const CREATION_SLUGS = [...ORDER_SLUGS];
   const CORE_LABELS = {
     observation: 'Observation',
     phase1: 'Phase 1',
@@ -221,9 +222,78 @@
     classRows = classesRes.data || [];
     appRows = appsRes.data || [];
     classAppRows = linksRes.data || [];
-    setMessage(panelMessage, '');
+
+    const orderInit = await ensureInitialGlobalOrderNumbers();
+    if (!orderInit.error) {
+      setMessage(
+        panelMessage,
+        orderInit.changed ? 'Ordres globaux initialisés : 10, 20, 30… dans toutes les classes.' : '',
+        orderInit.changed ? 'success' : ''
+      );
+    }
+
     updateViewHint();
     renderCurrentView();
+  }
+
+  async function ensureInitialGlobalOrderNumbers() {
+    const orderIds = orderClassIds();
+    const apps = appRows.filter(app => !app.special_only);
+    if (!orderIds.length || !apps.length) return { changed: false, error: false };
+
+    // Migration douce de l'ancien fonctionnement : on ne renumérote que si
+    // des divergences existent encore entre les classes. Une fois les valeurs
+    // harmonisées, les nombres choisis manuellement sont toujours conservés.
+    const needsSeed = apps.some(app => {
+      const links = classAppRows.filter(row => row.application_id === app.id && orderIds.includes(row.class_id));
+      if (links.length < 2) return false;
+      const first = Number(links[0].ordre) || 0;
+      return links.some(row => (Number(row.ordre) || 0) !== first);
+    });
+
+    if (!needsSeed) return { changed: false, error: false };
+
+    const observationId = classBySlug('observation')?.id;
+    const ranked = apps.map(app => {
+      const links = classAppRows.filter(row => row.application_id === app.id && orderIds.includes(row.class_id));
+      const observationLink = observationId
+        ? links.find(row => row.class_id === observationId)
+        : null;
+      const observationOrder = Number(observationLink?.ordre);
+      const fallbackOrders = links
+        .map(row => Number(row.ordre))
+        .filter(Number.isFinite);
+      const referenceOrder = Number.isFinite(observationOrder)
+        ? observationOrder
+        : (fallbackOrders.length ? Math.min(...fallbackOrders) : Number.MAX_SAFE_INTEGER);
+      return { app, referenceOrder };
+    }).sort((a, b) => a.referenceOrder - b.referenceOrder || a.app.nom.localeCompare(b.app.nom, 'fr'));
+
+    setMessage(panelMessage, 'Initialisation de l’ordre global…');
+
+    try {
+      for (let index = 0; index < ranked.length; index += 1) {
+        const appId = ranked[index].app.id;
+        const value = (index + 1) * 10;
+        const links = classAppRows.filter(row => row.application_id === appId && orderIds.includes(row.class_id));
+        if (!links.length) continue;
+        if (links.every(row => (Number(row.ordre) || 0) === value)) continue;
+
+        const { error } = await client
+          .from('class_applications')
+          .update({ ordre: value })
+          .eq('application_id', appId)
+          .in('class_id', orderIds);
+        if (error) throw error;
+
+        links.forEach(row => { row.ordre = value; });
+      }
+      return { changed: true, error: false };
+    } catch (error) {
+      console.error(error);
+      setMessage(panelMessage, `Erreur pendant l’initialisation de l’ordre global : ${error.message}`, 'error');
+      return { changed: false, error: true };
+    }
   }
 
   function updateViewHint() {
@@ -235,7 +305,7 @@
 
     classLegend.classList.remove('hidden');
     dailyLegend.classList.remove('hidden');
-    managementHint.textContent = `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement. L’ordre est commun aux classes principales.`;
+    managementHint.textContent = `Réglages de ${CORE_LABELS[currentView]}. Chaque changement est enregistré automatiquement. L’ordre est commun à toutes les classes.`;
   }
 
   function renderCurrentView() {
@@ -284,9 +354,9 @@
     const thead = document.createElement('thead');
     const header = document.createElement('tr');
     header.appendChild(makeTh('Application', 'app-head'));
-    header.appendChild(makeTh('Ordre', 'order-head'));
     CORE_SLUGS.forEach(slug => header.appendChild(makeTh(CORE_LABELS[slug], `class-head class-head-${slug}`)));
     header.appendChild(makeTh('Partout', 'everywhere-head'));
+    header.appendChild(makeTh('Ordre', 'order-head'));
     thead.appendChild(header);
     table.appendChild(thead);
 
@@ -294,7 +364,6 @@
     apps.forEach(app => {
       const tr = document.createElement('tr');
       tr.appendChild(makeGlobalAppCell(app));
-      tr.appendChild(makeGlobalOrderCell(app));
 
       CORE_SLUGS.forEach(slug => {
         const link = linkFor(slug, app.id);
@@ -309,6 +378,7 @@
       hideBtn.addEventListener('click', () => setVisibleEverywhere(app.id, false, [showBtn, hideBtn]));
       actionsTd.append(showBtn, hideBtn);
       tr.appendChild(actionsTd);
+      tr.appendChild(makeGlobalOrderCell(app));
       tbody.appendChild(tr);
     });
 
@@ -324,9 +394,9 @@
 
     const stickyLabels = [
       { label: 'Application', className: 'app-head' },
-      { label: 'Ordre', className: 'order-head' },
       ...CORE_SLUGS.map(slug => ({ label: CORE_LABELS[slug], className: `class-head class-head-${slug}`, slug })),
-      { label: 'Partout', className: 'everywhere-head' }
+      { label: 'Partout', className: 'everywhere-head' },
+      { label: 'Ordre', className: 'order-head' }
     ];
 
     stickyLabels.forEach(({ label, className, slug }) => {
@@ -448,13 +518,17 @@
     return CORE_SLUGS.map(slug => classBySlug(slug)?.id).filter(Boolean);
   }
 
-  function coreLinksForApp(appId) {
-    const classIds = coreClassIds();
+  function orderClassIds() {
+    return ORDER_SLUGS.map(slug => classBySlug(slug)?.id).filter(Boolean);
+  }
+
+  function orderLinksForApp(appId) {
+    const classIds = orderClassIds();
     return classAppRows.filter(row => row.application_id === appId && classIds.includes(row.class_id));
   }
 
   function globalOrderState(appId) {
-    const links = coreLinksForApp(appId);
+    const links = orderLinksForApp(appId);
     if (!links.length) return { value: null, mixed: false };
 
     const values = links.map(row => Number(row.ordre) || 0);
@@ -472,7 +546,7 @@
     input.inputMode = 'numeric';
     input.className = 'global-order-input';
     input.setAttribute('aria-label', `Ordre global de ${app.nom}`);
-    input.title = 'Cet ordre est appliqué à cette application dans toutes les classes principales.';
+    input.title = 'Cet ordre est appliqué à cette application dans toutes les classes, y compris Toutes les applis.';
 
     const state = globalOrderState(app.id);
     if (state.mixed) {
@@ -525,7 +599,7 @@
   }
 
   async function updateGlobalOrder(appId, value) {
-    const classIds = coreClassIds();
+    const classIds = orderClassIds();
     if (!classIds.length) return false;
 
     const { error } = await client
@@ -544,7 +618,7 @@
       if (row.application_id === appId && classIds.includes(row.class_id)) row.ordre = value;
     });
 
-    setMessage(panelMessage, 'Ordre global enregistré.', 'success');
+    setMessage(panelMessage, 'Ordre global enregistré dans toutes les classes.', 'success');
     return true;
   }
 
@@ -740,7 +814,7 @@
 
     const orderState = globalOrderState(app.id);
     const order = numberField('Ordre', orderState.value ?? '');
-    order.input.title = 'Ordre global : toute modification est appliquée aux classes principales.';
+    order.input.title = 'Ordre global : toute modification est appliquée à toutes les classes, y compris Toutes les applis.';
     if (orderState.mixed) {
       order.input.placeholder = 'mixte';
       order.input.classList.add('mixed');
@@ -877,8 +951,12 @@
         const { data: created, error: createError } = await client.from('applications').insert(payload).select('id').single();
         if (createError) throw createError;
 
-        const maxOrder = classAppRows.reduce((max, row) => Math.max(max, Number(row.ordre) || 0), 0);
-        const links = CREATION_SLUGS.map((slug, index) => {
+        const orderIds = orderClassIds();
+        const maxOrder = classAppRows
+          .filter(row => orderIds.includes(row.class_id))
+          .reduce((max, row) => Math.max(max, Number(row.ordre) || 0), 0);
+        const nextOrder = maxOrder + 10;
+        const links = CREATION_SLUGS.map(slug => {
           const cls = classBySlug(slug);
           if (!cls) throw new Error(`La page ${CORE_LABELS[slug]} est introuvable dans Supabase.`);
           return {
@@ -888,7 +966,7 @@
             du_jour: false,
             niveau: slug === 'toutes' ? 'niveau1' : 'objectif',
             domaine: 'calcul',
-            ordre: maxOrder + 10 + index
+            ordre: nextOrder
           };
         });
 
