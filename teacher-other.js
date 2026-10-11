@@ -36,17 +36,17 @@
     jeux: 'Jeux'
   };
   const SIMPLE_LEVELS = {
-    niveau1: 'Niveau 1',
-    niveau2: 'Niveau 2',
-    niveau3: 'Niveau 3',
+    niveau1: 'Partie 1',
+    niveau2: 'Partie 2',
+    niveau3: 'Partie 3',
     calculs_ecrits: 'Calculs écrits',
     outil: 'Outils',
     autre: 'Autre'
   };
   const TOUTES_LEVELS = {
-    niveau1: 'Niveau 1',
-    niveau2: 'Niveau 2',
-    niveau3: 'Niveau 3',
+    niveau1: 'Partie 1',
+    niveau2: 'Partie 2',
+    niveau3: 'Partie 3',
     calculs_ecrits: 'Calculs écrits',
     outil: 'Outils',
     autre: 'Autre',
@@ -56,7 +56,7 @@
   const VIEWS = {
     toutes: {
       kind: 'class', slug: 'toutes', title: 'Toutes les applis', mode: 'toutes', daily: false,
-      hint: 'Page générale classée par Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils, Autre et Extérieur. Il n’y a pas de sélection « Du jour ».',
+      hint: 'Page générale classée par Partie 1, Partie 2, Partie 3, Calculs écrits, Outils, Autre et Extérieur. Il n’y a pas de sélection « Du jour ».',
       url: 'index.html?classe=toutes'
     },
     'partage-n1': {
@@ -69,12 +69,12 @@
     },
     thibault: {
       kind: 'class', slug: 'thibault', title: 'Thibault', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Partie 1, Partie 2, Partie 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=thibault'
     },
     lise: {
       kind: 'class', slug: 'lise', title: 'Lise', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Niveau 1, Niveau 2, Niveau 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Partie 1, Partie 2, Partie 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=lise'
     }
   };
@@ -169,7 +169,7 @@
   let storageImages = [];
   let imageScanState = null;
 
-  let selectedExistingAppId = null;
+  let selectedExistingAppIds = new Set();
   let selectedImageFile = null;
   let selectedImageObjectUrl = null;
   let appDialogMode = 'edit';
@@ -502,8 +502,8 @@
     specialLegend.innerHTML = view.mode === 'standard'
       ? `<span><b>Visible</b> : apparaît dans ${view.title}</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Calculs écrits / Dépassement / Révision / Outils / Jeux</span>`
       : view.mode === 'toutes'
-        ? '<span><b>Visible</b> : apparaît dans Toutes les applis</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre / Extérieur</span>'
-        : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Niveau</b> : Niveau 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
+        ? '<span><b>Visible</b> : apparaît dans Toutes les applis</span><span><b>Section</b> : Partie 1 / 2 / 3 / Calculs écrits / Outils / Autre / Extérieur</span>'
+        : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Section</b> : Partie 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
     renderShareLink();
     renderSpecialApps();
   }
@@ -625,7 +625,8 @@
     row.appendChild(info);
 
     const levels = levelsForView(target.view);
-    const level = fieldSelect('Niveau', levels, levels[link.niveau] ? link.niveau : Object.keys(levels)[0]);
+    const levelLabel = target.view.mode === 'standard' ? 'Niveau' : 'Section';
+    const level = fieldSelect(levelLabel, levels, levels[link.niveau] ? link.niveau : Object.keys(levels)[0]);
     level.select.addEventListener('change', () => updateTargetLink(target, link, { niveau: level.select.value }, () => {
       level.select.value = levels[link.niveau] ? link.niveau : Object.keys(levels)[0];
     }));
@@ -650,18 +651,47 @@
     }
 
     const order = numberField('Ordre', link.ordre ?? 0);
-    let orderTimer = null;
-    const saveOrder = () => {
-      if (orderTimer) clearTimeout(orderTimer);
-      const value = Number(order.input.value) || 0;
-      if (value === Number(link.ordre || 0)) return;
-      updateTargetLink(target, link, { ordre: value }, () => { order.input.value = link.ordre ?? 0; });
+    order.input.title = 'Saisis le nouvel ordre, puis appuie sur OK.';
+    const saveOrder = async () => {
+      const raw = order.input.value.trim();
+      if (!raw) return;
+      const value = Number(raw);
+      if (!Number.isFinite(value)) return;
+      if (value === Number(link.ordre || 0)) {
+        order.input.classList.remove('dirty');
+        order.confirm.classList.remove('dirty');
+        return;
+      }
+
+      order.input.disabled = true;
+      order.confirm.disabled = true;
+      const ok = await updateTargetLink(target, link, { ordre: value }, () => {
+        order.input.value = link.ordre ?? 0;
+      });
+      order.input.disabled = false;
+      order.confirm.disabled = false;
+
+      if (!ok) {
+        order.input.classList.remove('dirty');
+        order.confirm.classList.remove('dirty');
+        return;
+      }
+
+      order.input.classList.remove('dirty');
+      order.confirm.classList.remove('dirty');
+      renderSpecialApps();
     };
     order.input.addEventListener('input', () => {
-      if (orderTimer) clearTimeout(orderTimer);
-      orderTimer = setTimeout(saveOrder, 600);
+      order.input.classList.add('dirty');
+      order.confirm.classList.add('dirty');
     });
-    order.input.addEventListener('change', saveOrder);
+    order.input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveOrder();
+      }
+    });
+    order.confirm.addEventListener('click', saveOrder);
     row.appendChild(order.wrap);
 
     const actions = document.createElement('div');
@@ -716,14 +746,20 @@
     renderSpecialApps();
   }
 
+  function updateExistingSelectionUi() {
+    const count = selectedExistingAppIds.size;
+    confirmExistingBtn.disabled = count === 0;
+    confirmExistingBtn.textContent = count ? `Ajouter (${count})` : 'Ajouter';
+  }
+
   function openExistingDialog() {
     const target = targetInfo();
     if (!target) return;
-    selectedExistingAppId = null;
-    confirmExistingBtn.disabled = true;
+    selectedExistingAppIds = new Set();
+    updateExistingSelectionUi();
     setMessage(existingMessage, '');
     existingAppGrid.innerHTML = '';
-    document.getElementById('existingDialogTitle').textContent = `Ajouter une appli à ${target.view.title}`;
+    document.getElementById('existingDialogTitle').textContent = `Ajouter des applis à ${target.view.title}`;
 
     const linkedIds = new Set(targetLinks(target).map(row => row.application_id));
     const candidates = appRows.filter(app => !linkedIds.has(app.id)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
@@ -748,10 +784,14 @@
         name.textContent = app.nom;
         card.append(thumb, name);
         card.addEventListener('click', () => {
-          selectedExistingAppId = app.id;
-          existingAppGrid.querySelectorAll('.existing-share-card').forEach(x => x.classList.remove('selected'));
-          card.classList.add('selected');
-          confirmExistingBtn.disabled = false;
+          if (selectedExistingAppIds.has(app.id)) {
+            selectedExistingAppIds.delete(app.id);
+            card.classList.remove('selected');
+          } else {
+            selectedExistingAppIds.add(app.id);
+            card.classList.add('selected');
+          }
+          updateExistingSelectionUi();
         });
         existingAppGrid.appendChild(card);
       });
@@ -760,49 +800,57 @@
   }
 
   function closeExistingDialog() {
-    selectedExistingAppId = null;
+    selectedExistingAppIds = new Set();
+    updateExistingSelectionUi();
     if (existingAppDialog.open) existingAppDialog.close();
   }
 
   async function addExistingApp() {
     const target = targetInfo();
-    if (!target || !selectedExistingAppId) return;
+    const selectedIds = [...selectedExistingAppIds];
+    if (!target || !selectedIds.length) return;
     confirmExistingBtn.disabled = true;
+
     const links = targetLinks(target);
     const maxOrder = links.reduce((max, row) => Math.max(max, Number(row.ordre) || 0), 0);
-    let payload;
     let table;
+    let payloads;
+
     if (target.kind === 'class') {
       table = 'class_applications';
-      payload = {
+      payloads = selectedIds.map((applicationId, index) => ({
         class_id: target.id,
-        application_id: selectedExistingAppId,
+        application_id: applicationId,
         visible: true,
         du_jour: false,
         niveau: target.view.mode === 'standard' ? 'objectif' : 'niveau1',
         domaine: 'calcul',
-        ordre: maxOrder + 10
-      };
+        ordre: maxOrder + ((index + 1) * 10)
+      }));
     } else {
       table = 'share_page_applications';
-      payload = {
+      payloads = selectedIds.map((applicationId, index) => ({
         page_id: target.id,
-        application_id: selectedExistingAppId,
+        application_id: applicationId,
         visible: true,
         niveau: 'niveau1',
-        ordre: maxOrder + 10
-      };
+        ordre: maxOrder + ((index + 1) * 10)
+      }));
     }
-    const { data, error } = await client.from(table).insert(payload).select().single();
+
+    const { data, error } = await client.from(table).insert(payloads).select();
     if (error) {
-      confirmExistingBtn.disabled = false;
+      updateExistingSelectionUi();
       return setMessage(existingMessage, `Erreur : ${error.message}`, 'error');
     }
-    if (target.kind === 'class') classAppRows.push(data);
-    else shareAppRows.push(data);
+
+    if (target.kind === 'class') classAppRows.push(...(data || []));
+    else shareAppRows.push(...(data || []));
+
+    const count = selectedIds.length;
     closeExistingDialog();
     renderSpecialApps();
-    setMessage(panelMessage, 'Application ajoutée.', 'success');
+    setMessage(panelMessage, `${count} application${count > 1 ? 's' : ''} ajoutée${count > 1 ? 's' : ''}.`, 'success');
   }
 
   function openAppDialog(app = null, mode = 'edit') {
@@ -1971,17 +2019,25 @@
   }
 
   function numberField(label, value) {
-    const wrap = document.createElement('label');
+    const wrap = document.createElement('div');
     wrap.className = 'field-wrap order-wrap';
     const lab = document.createElement('span');
     lab.className = 'field-label';
     lab.textContent = label;
+    const line = document.createElement('div');
+    line.className = 'order-control-line';
     const input = document.createElement('input');
     input.className = 'order-input';
     input.type = 'number';
+    input.inputMode = 'numeric';
     input.value = value;
-    wrap.append(lab, input);
-    return { wrap, input };
+    input.setAttribute('aria-label', label);
+    const confirm = button('OK', 'order-ok-btn');
+    confirm.title = 'Valider cet ordre';
+    confirm.setAttribute('aria-label', confirm.title);
+    line.append(input, confirm);
+    wrap.append(lab, line);
+    return { wrap, input, confirm };
   }
 
   function button(text, className = 'secondary') {

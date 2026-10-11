@@ -106,3 +106,11 @@ V10 — 2026-10-09
 
 
 V11 — 2026-10-09 : les champs Ordre (GLOBAL et vues de classe) ne s’enregistrent plus pendant la frappe. Validation explicite via bouton OK (ou touche Entrée), puis tri/Position mis à jour.
+
+
+=== V12 — 2026-10-11 — Partage / ordre / multi-sélection / libellés ===
+- Page publique Partage : l’ordre saisi dans l’admin est maintenant respecté à l’intérieur de chaque section.
+- Ajout d’applications existantes : multi-sélection possible, puis ajout en une seule validation.
+- Sections simples : « Niveau 1 / 2 / 3 » devient « Partie 1 / 2 / 3 » sans changer les clés Supabase (niveau1/niveau2/niveau3).
+- Admin Autres/Partage : le champ Ordre utilise maintenant un bouton OK, comme l’admin principal, et la liste se retrie après validation.
+- Aucun changement de structure Supabase requis.

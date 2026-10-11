@@ -100,9 +100,9 @@
   ];
 
   const simpleSectionMeta = {
-    niveau1: { key: 'niveau1', label: 'Niveau 1', openByDefault: true },
-    niveau2: { key: 'niveau2', label: 'Niveau 2', openByDefault: true },
-    niveau3: { key: 'niveau3', label: 'Niveau 3', openByDefault: true },
+    niveau1: { key: 'niveau1', label: 'Partie 1', openByDefault: true },
+    niveau2: { key: 'niveau2', label: 'Partie 2', openByDefault: true },
+    niveau3: { key: 'niveau3', label: 'Partie 3', openByDefault: true },
     calculs_ecrits: { key: 'calculs_ecrits', label: 'Calculs écrits', openByDefault: true },
     outil: { key: 'outil', label: 'Outils', openByDefault: true },
     autre: { key: 'autre', label: 'Autre', openByDefault: true },
@@ -332,7 +332,7 @@
 
         const levelApps = visibleApps
           .filter(app => app.level === levelDef.key)
-          .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0) || a.name.localeCompare(b.name, 'fr'));
 
         node.querySelector('.level-title').textContent = levelDef.label;
         node.querySelector('.level-description').textContent = '';
