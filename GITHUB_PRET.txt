@@ -1,39 +1,41 @@
-MATH'AS — GITHUB FINAL PRÊT À DÉPLOYER — 04/10/2026
-=====================================================
+MATH'AS — VERSION GITHUB À PUBLIER — 11/10/2026 — V15
+==========================================================
 
-SQL : déjà considéré comme à jour. Aucun SQL à exécuter pour ces fichiers.
+ETAT : PRÊT À DÉPOSER À LA RACINE DU DÉPÔT GITHUB.
 
-Fichiers à déposer/remplacer dans le dépôt Mathas :
+À mettre/remplacer sur GitHub :
 - index.html
+- app.js
 - styles.css
 - config.js
-- app.js
+- favicon-hub.png
 - teacher.html
-- teacher.css
 - teacher.js
+- teacher.css
 - teacher-other.html
 - teacher-other.js
-- favicon-hub.png   ← NOUVEAU fichier à conserver dans le dépôt
+- GITHUB_PRET.txt
 
-Vérifications finales incluses :
-- syntaxe des 4 fichiers JavaScript : OK
-- favicon HUB M mathématique néon cerclé bleu : OK
-- bouton Images -> bibliothèque directe dans un nouvel onglet : OK
-- bouton ← PRINCIPAL : OK
-- en-tête GLOBAL sticky et aligné aux vraies colonnes : OK
-- alternance / survol / séparations de lignes : OK
-- sections Calculs écrits / Outils : OK
-- page Autres / Partage / 2 ECO : OK
-- bibliothèque Images groupée par dossiers : OK
-- déplacement / suppression / remplacement d'image : OK
-- badges M bleu / M violet Application / A : OK
-- bouton Détecter + détail des URLs trouvées : OK
-- clic miniature -> grande bulle avec Quitter + 4 actions : OK
-- dernier correctif d'échelle : image entière en mode contain : inclus
-- Oui/Non aléatoire de Jeux : OK
+SUPABASE : aucun SQL ni changement de schéma à effectuer.
 
-IMPORTANT : pour toute future modification, partir de CE dossier et non d'un ancien ZIP.
+IMPORTANT CONSOMMATION :
+- V15 supprime le cache persistant applicatif côté élève ;
+- le navigateur garde la maîtrise de son cache disque ;
+- miniatures nouvellement envoyées : max 640 px, WebP si réellement avantageux, Cache-Control 1 an ;
+- images générales : max 1920 px, WebP si avantageux, cache 1 h ;
+- « Remplacer l’image » optimise également l’image avant ré-envoi ;
+- les GIF/SVG ne sont pas recompressés automatiquement ;
+- l’ancien anti-cache systématique du HUB élève a été supprimé.
 
+REMARQUE : le wordmark Math’as reste actuellement servi depuis Supabase. Lorsqu’un fichier local du logo sera disponible, il pourra être déplacé dans GitHub pour supprimer aussi ce petit trafic récurrent.
+
+IMPORTANT GITHUB : si l’interface d’upload affiche « Something went really wrong… », désactiver temporairement le bloqueur de publicité pour github.com / githubusercontent.com. Ce problème a déjà été rencontré et venait du bloqueur, pas des fichiers.
+
+----------------------------------------------------------
+HISTORIQUE / NOTES TECHNIQUES
+----------------------------------------------------------
+
+Les entrées ci-dessous sont un historique. Les réglages V15 ci-dessus prévalent.
 
 Correctif 2026-10-04 — rafraîchissement des images :
 - les URLs enregistrées dans Supabase restent inchangées ;
@@ -119,3 +121,27 @@ V11 — 2026-10-09 : les champs Ordre (GLOBAL et vues de classe) ne s’enregist
 V13 — 2026-10-11
 - Sections simples : Calculs écrits / Partie 1 / Partie 2 ; l’ancienne section séparée Calculs écrits est fusionnée en compatibilité avec la première.
 - Bouton « Ajouter appli existante » rendu prioritaire ; « Ajouter appli spécifique » devient secondaire.
+
+
+=== V14 — optimisation egress Supabase (2026-10-11) ===
+- Suppression du cache-busting systématique des images Supabase au chargement.
+- Miniatures : optimisation navigateur (max 640 px / WebP si avantageux) avant upload.
+- Miniatures versionnées : Cache-Control 1 an.
+- HUB élève : Cache Storage local persistant pour les anciennes miniatures déjà uploadées avec un cache court.
+- Images générales : optimisation max 1920 px / WebP si avantageux, cache 1 h car elles peuvent être remplacées à URL identique.
+- Remplacement à URL identique : cache 1 h au lieu de 0 ; l’admin ajoute seulement un paramètre de version stable pour prévisualiser la nouvelle image.
+- Aucun changement Supabase / SQL requis.
+
+
+V15 — optimisation images sans cache persistant navigateur
+- Suppression du Cache Storage Math’as côté HUB élève : le navigateur gère seul son cache HTTP et peut le purger normalement.
+- Miniatures nouvellement uploadées : optimisation raster (max 640 px, WebP si réellement plus léger) + cache HTTP 1 an.
+- Images générales nouvellement uploadées : optimisation raster (max 1920 px, WebP si réellement plus léger) + cache HTTP 1 h.
+- Remplacer une image existante dans la bibliothèque applique désormais aussi l’optimisation (max 1920 px, WebP si avantageux), tout en gardant la même URL.
+- Les GIF/SVG et formats non pris en charge par le canvas restent inchangés.
+
+MISE A JOUR 2026-10-11 — LOGO LOCAL / ECONOMIE EGRESS
+- Le wordmark fixe Math'as n'est plus servi depuis Supabase Storage.
+- Nouveau fichier local : logo-mathas.webp (800 px de large, transparence conservee).
+- index.html, teacher.html et teacher-other.html utilisent ce fichier local.
+- Objectif : supprimer ce trafic recurrent du Cached Egress Supabase.

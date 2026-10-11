@@ -74,9 +74,6 @@
   let classAppRows = [];
   let selectedImageFile = null;
   let selectedImageObjectUrl = null;
-  let imageCacheNonce = Date.now().toString(36);
-
-  refreshStaticMathasImages();
 
   window.addEventListener('error', event => {
     console.error('Mathas teacher error:', event.error || event.message);
@@ -1093,7 +1090,7 @@
   }
 
   function showImagePreviewFromUrl(url) {
-    imagePreview.src = freshMathasImageUrl(url);
+    imagePreview.src = url;
     imagePreviewName.textContent = 'Miniature actuelle';
     imagePreviewStatus.textContent = 'URL enregistrée';
     imageDropPrompt.classList.add('hidden');
@@ -1101,10 +1098,15 @@
   }
 
   async function uploadImageForApp(file, appName) {
-    const extension = getImageExtension(file);
+    const optimizedFile = await optimizeRasterImage(file, { maxDimension: 640, quality: 0.84 });
+    const extension = getImageExtension(optimizedFile);
     const safeName = slugify(appName) || 'application';
     const path = `${IMAGE_FOLDER}/${safeName}-${Date.now()}-${cryptoRandomPart()}.${extension}`;
-    const { error } = await client.storage.from(IMAGE_BUCKET).upload(path, file, { cacheControl: '60', upsert: false, contentType: file.type || undefined });
+    const { error } = await client.storage.from(IMAGE_BUCKET).upload(path, optimizedFile, {
+      cacheControl: '31536000',
+      upsert: false,
+      contentType: optimizedFile.type || undefined
+    });
     if (error) throw error;
     const { data } = client.storage.from(IMAGE_BUCKET).getPublicUrl(path);
     if (!data?.publicUrl) throw new Error('URL publique introuvable après l’envoi.');
@@ -1118,23 +1120,6 @@
     if (error) console.warn('Miniature non supprimée du Storage:', error);
   }
 
-  function freshMathasImageUrl(url, nonce = imageCacheNonce) {
-    if (!url || typeof url !== 'string' || !url.startsWith(IMAGE_PUBLIC_PREFIX)) return url;
-    try {
-      const parsed = new URL(url);
-      parsed.searchParams.set('cacheNonce', String(nonce));
-      return parsed.toString();
-    } catch {
-      const joiner = url.includes('?') ? '&' : '?';
-      return `${url}${joiner}cacheNonce=${encodeURIComponent(String(nonce))}`;
-    }
-  }
-
-  function refreshStaticMathasImages() {
-    document.querySelectorAll(`img[src^="${IMAGE_PUBLIC_PREFIX}"]`).forEach(img => {
-      img.src = freshMathasImageUrl(img.getAttribute('src'));
-    });
-  }
 
   function getStoragePathFromPublicUrl(url) {
     if (!url || typeof url !== 'string') return null;
@@ -1149,7 +1134,7 @@
     thumb.className = 'app-thumb';
     if (app.miniature_url) {
       const img = document.createElement('img');
-      img.src = freshMathasImageUrl(app.miniature_url);
+      img.src = app.miniature_url;
       img.alt = '';
       img.loading = 'lazy';
       thumb.appendChild(img);
@@ -1245,6 +1230,44 @@
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 70);
+  }
+
+
+  async function optimizeRasterImage(file, { maxDimension, quality = 0.84 } = {}) {
+    const supported = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!file || !supported.includes(file.type) || !maxDimension) return file;
+
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+
+      // Les petits fichiers déjà légers ne gagnent rien à être recompressés.
+      if (scale === 1 && file.size <= 180 * 1024) return file;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d', { alpha: true });
+      if (!context) return file;
+      context.drawImage(bitmap, 0, 0, width, height);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality));
+      if (!blob) return file;
+
+      // Si la conversion ne réduit pas réellement le poids, conserver l’original.
+      if (scale === 1 && blob.size >= file.size * 0.92) return file;
+
+      const base = (file.name || 'image').replace(/\.[^.]+$/, '') || 'image';
+      return new File([blob], `${base}.webp`, { type: 'image/webp', lastModified: Date.now() });
+    } catch (error) {
+      console.warn('Optimisation d’image ignorée :', error);
+      return file;
+    } finally {
+      if (bitmap?.close) bitmap.close();
+    }
   }
 
   function getImageExtension(file) {
