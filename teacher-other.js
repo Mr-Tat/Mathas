@@ -36,18 +36,16 @@
     jeux: 'Jeux'
   };
   const SIMPLE_LEVELS = {
-    niveau1: 'Partie 1',
-    niveau2: 'Partie 2',
-    niveau3: 'Partie 3',
-    calculs_ecrits: 'Calculs écrits',
+    niveau1: 'Calculs écrits',
+    niveau2: 'Partie 1',
+    niveau3: 'Partie 2',
     outil: 'Outils',
     autre: 'Autre'
   };
   const TOUTES_LEVELS = {
-    niveau1: 'Partie 1',
-    niveau2: 'Partie 2',
-    niveau3: 'Partie 3',
-    calculs_ecrits: 'Calculs écrits',
+    niveau1: 'Calculs écrits',
+    niveau2: 'Partie 1',
+    niveau3: 'Partie 2',
     outil: 'Outils',
     autre: 'Autre',
     exterieur: 'Extérieur'
@@ -56,7 +54,7 @@
   const VIEWS = {
     toutes: {
       kind: 'class', slug: 'toutes', title: 'Toutes les applis', mode: 'toutes', daily: false,
-      hint: 'Page générale classée par Partie 1, Partie 2, Partie 3, Calculs écrits, Outils, Autre et Extérieur. Il n’y a pas de sélection « Du jour ».',
+      hint: 'Page générale classée par Calculs écrits, Partie 1, Partie 2, Outils, Autre et Extérieur. Il n’y a pas de sélection « Du jour ».',
       url: 'index.html?classe=toutes'
     },
     'partage-n1': {
@@ -69,12 +67,12 @@
     },
     thibault: {
       kind: 'class', slug: 'thibault', title: 'Thibault', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Partie 1, Partie 2, Partie 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Calculs écrits, Partie 1, Partie 2, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=thibault'
     },
     lise: {
       kind: 'class', slug: 'lise', title: 'Lise', mode: 'simple', daily: false,
-      hint: 'Page indépendante avec Partie 1, Partie 2, Partie 3, Calculs écrits, Outils et Autre. Les scores sont affichés sur la page élève.',
+      hint: 'Page indépendante avec Calculs écrits, Partie 1, Partie 2, Outils et Autre. Les scores sont affichés sur la page élève.',
       url: 'index.html?classe=lise'
     }
   };
@@ -502,8 +500,8 @@
     specialLegend.innerHTML = view.mode === 'standard'
       ? `<span><b>Visible</b> : apparaît dans ${view.title}</span><span><b>Du jour</b> : Sélection du jour</span><span><b>Niveau</b> : Objectif / Calculs écrits / Dépassement / Révision / Outils / Jeux</span>`
       : view.mode === 'toutes'
-        ? '<span><b>Visible</b> : apparaît dans Toutes les applis</span><span><b>Section</b> : Partie 1 / 2 / 3 / Calculs écrits / Outils / Autre / Extérieur</span>'
-        : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Section</b> : Partie 1 / 2 / 3 / Calculs écrits / Outils / Autre</span>';
+        ? '<span><b>Visible</b> : apparaît dans Toutes les applis</span><span><b>Section</b> : Calculs écrits / Partie 1 / Partie 2 / Outils / Autre / Extérieur</span>'
+        : '<span><b>Visible</b> : apparaît sur la page</span><span><b>Section</b> : Calculs écrits / Partie 1 / Partie 2 / Outils / Autre</span>';
     renderShareLink();
     renderSpecialApps();
   }
@@ -626,9 +624,11 @@
 
     const levels = levelsForView(target.view);
     const levelLabel = target.view.mode === 'standard' ? 'Niveau' : 'Section';
-    const level = fieldSelect(levelLabel, levels, levels[link.niveau] ? link.niveau : Object.keys(levels)[0]);
+    const currentLevel = link.niveau === 'calculs_ecrits' && target.view?.mode !== 'standard' ? 'niveau1' : link.niveau;
+    const level = fieldSelect(levelLabel, levels, levels[currentLevel] ? currentLevel : Object.keys(levels)[0]);
     level.select.addEventListener('change', () => updateTargetLink(target, link, { niveau: level.select.value }, () => {
-      level.select.value = levels[link.niveau] ? link.niveau : Object.keys(levels)[0];
+      const rollbackLevel = link.niveau === 'calculs_ecrits' && target.view?.mode !== 'standard' ? 'niveau1' : link.niveau;
+      level.select.value = levels[rollbackLevel] ? rollbackLevel : Object.keys(levels)[0];
     }));
     row.appendChild(level.wrap);
 

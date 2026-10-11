@@ -27,10 +27,9 @@
     jeux: 'Jeux'
   };
   const TOUTES_LEVELS = {
-    niveau1: 'Partie 1',
-    niveau2: 'Partie 2',
-    niveau3: 'Partie 3',
-    calculs_ecrits: 'Calculs écrits',
+    niveau1: 'Calculs écrits',
+    niveau2: 'Partie 1',
+    niveau3: 'Partie 2',
     outil: 'Outils',
     autre: 'Autre',
     exterieur: 'Extérieur'

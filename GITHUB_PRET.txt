@@ -114,3 +114,8 @@ V11 — 2026-10-09 : les champs Ordre (GLOBAL et vues de classe) ne s’enregist
 - Sections simples : « Niveau 1 / 2 / 3 » devient « Partie 1 / 2 / 3 » sans changer les clés Supabase (niveau1/niveau2/niveau3).
 - Admin Autres/Partage : le champ Ordre utilise maintenant un bouton OK, comme l’admin principal, et la liste se retrie après validation.
 - Aucun changement de structure Supabase requis.
+
+
+V13 — 2026-10-11
+- Sections simples : Calculs écrits / Partie 1 / Partie 2 ; l’ancienne section séparée Calculs écrits est fusionnée en compatibilité avec la première.
+- Bouton « Ajouter appli existante » rendu prioritaire ; « Ajouter appli spécifique » devient secondaire.

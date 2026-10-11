@@ -30,7 +30,7 @@
         tabTitle: "Math'as — Partage",
         simpleView: true,
         showScores: false,
-        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'outil', 'autre']
       };
     } else {
       currentClass = {
@@ -39,7 +39,7 @@
         tabTitle: "Math'as — Partage",
         simpleView: true,
         showScores: false,
-        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
+        sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'outil', 'autre']
       };
     }
   } else {
@@ -100,17 +100,16 @@
   ];
 
   const simpleSectionMeta = {
-    niveau1: { key: 'niveau1', label: 'Partie 1', openByDefault: true },
-    niveau2: { key: 'niveau2', label: 'Partie 2', openByDefault: true },
-    niveau3: { key: 'niveau3', label: 'Partie 3', openByDefault: true },
-    calculs_ecrits: { key: 'calculs_ecrits', label: 'Calculs écrits', openByDefault: true },
+    niveau1: { key: 'niveau1', label: 'Calculs écrits', openByDefault: true },
+    niveau2: { key: 'niveau2', label: 'Partie 1', openByDefault: true },
+    niveau3: { key: 'niveau3', label: 'Partie 2', openByDefault: true },
     outil: { key: 'outil', label: 'Outils', openByDefault: true },
     autre: { key: 'autre', label: 'Autre', openByDefault: true },
     exterieur: { key: 'exterieur', label: 'Extérieur', openByDefault: true }
   };
 
   const simpleLevelsDef = (
-    currentClass.sectionKeys || ['niveau1', 'niveau2', 'niveau3', 'calculs_ecrits', 'outil', 'autre']
+    currentClass.sectionKeys || ['niveau1', 'niveau2', 'niveau3', 'outil', 'autre']
   )
     .map(key => simpleSectionMeta[key])
     .filter(Boolean);
@@ -193,7 +192,7 @@
         description: row.description,
         visible: true,
         daily: false,
-        level: row.niveau || 'niveau1',
+        level: normalizeSimpleLevel(row.niveau || 'niveau1'),
         domain: null,
         order: row.ordre ?? 0,
         categories: []
@@ -286,7 +285,7 @@
           description: app.description,
           visible: settings.visible !== false,
           daily: settings.du_jour === true,
-          level: settings.niveau,
+          level: isSimpleView ? normalizeSimpleLevel(settings.niveau) : settings.niveau,
           domain: settings.domaine,
           order: settings.ordre ?? 0,
           categories: categoriesByApp.get(app.id) || []
@@ -303,6 +302,12 @@
       throw new Error(`Supabase ${response.status}: ${detail}`);
     }
     return response.json();
+  }
+
+  function normalizeSimpleLevel(level) {
+    // Compatibilité avec l'ancienne section séparée « Calculs écrits » :
+    // elle rejoint désormais la première section, qui porte ce nom.
+    return level === 'calculs_ecrits' ? 'niveau1' : (level || 'niveau1');
   }
 
   function countLabel(n) {
