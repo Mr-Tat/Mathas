@@ -126,7 +126,6 @@
   const imageFolderFilter = document.getElementById('imageFolderFilter');
   const imageGallery = document.getElementById('imageGallery');
   const detectImageUsagesBtn = document.getElementById('detectImageUsagesBtn');
-  const optimizeLegacyThumbsBtn = document.getElementById('optimizeLegacyThumbsBtn');
   const imageDetectionStatus = document.getElementById('imageDetectionStatus');
 
   const usageDialog = document.getElementById('usageDialog');
@@ -344,7 +343,6 @@
 
   document.getElementById('refreshImagesBtn').addEventListener('click', loadImages);
   detectImageUsagesBtn.addEventListener('click', detectApplicationImageUsages);
-  optimizeLegacyThumbsBtn.addEventListener('click', optimizeLegacyThumbnails);
   imageSearchInput.addEventListener('input', renderImageGallery);
   imageFolderFilter.addEventListener('change', renderImageGallery);
 
@@ -1074,112 +1072,6 @@
     }
   }
 
-  async function optimizeLegacyThumbnails() {
-    const candidates = appRows.filter(app => {
-      const path = getStoragePathFromPublicUrl(app.miniature_url);
-      return path
-        && path.startsWith('miniatures/')
-        && !path.startsWith('miniatures/optimise-v17-');
-    });
-
-    if (!candidates.length) {
-      setMessage(panelMessage, 'Toutes les miniatures Supabase sont déjà optimisées.', 'success');
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Optimiser ${candidates.length} ancienne(s) miniature(s) ?\n\n`
-      + 'Les nouvelles versions seront redimensionnées/compressées avec un cache d’un an. '
-      + 'Les fichiers originaux resteront dans Supabase comme sauvegarde.'
-    );
-    if (!confirmed) return;
-
-    optimizeLegacyThumbsBtn.disabled = true;
-    const originalLabel = optimizeLegacyThumbsBtn.textContent;
-    let success = 0;
-    let failed = 0;
-    let originalBytes = 0;
-    let optimizedBytes = 0;
-
-    try {
-      for (let index = 0; index < candidates.length; index += 1) {
-        const app = candidates[index];
-        optimizeLegacyThumbsBtn.textContent = `Optimisation ${index + 1}/${candidates.length}…`;
-        setMessage(panelMessage, `Optimisation de « ${app.nom} »…`);
-
-        try {
-          const response = await fetch(app.miniature_url, { cache: 'no-store' });
-          if (!response.ok) throw new Error(`Téléchargement HTTP ${response.status}`);
-
-          const sourceBlob = await response.blob();
-          const sourcePath = getStoragePathFromPublicUrl(app.miniature_url) || '';
-          const sourceName = sourcePath.split('/').pop() || `${slugify(app.nom)}.png`;
-          const sourceFile = new File(
-            [sourceBlob],
-            sourceName,
-            { type: sourceBlob.type || 'image/png', lastModified: Date.now() }
-          );
-
-          const optimizedFile = await optimizeRasterImage(sourceFile, {
-            maxDimension: 640,
-            quality: 0.84
-          });
-
-          const extension = getImageExtension(optimizedFile);
-          const path = `miniatures/optimise-v17-${app.id}-${slugify(app.nom) || 'application'}-${Date.now()}-${cryptoRandomPart()}.${extension}`;
-
-          const { error: uploadError } = await client.storage.from(IMAGE_BUCKET).upload(path, optimizedFile, {
-            cacheControl: '31536000',
-            upsert: false,
-            contentType: optimizedFile.type || undefined
-          });
-          if (uploadError) throw uploadError;
-
-          const { data: publicData } = client.storage.from(IMAGE_BUCKET).getPublicUrl(path);
-          if (!publicData?.publicUrl) throw new Error('URL publique introuvable après optimisation.');
-
-          const { error: updateError } = await client
-            .from('applications')
-            .update({ miniature_url: publicData.publicUrl })
-            .eq('id', app.id);
-          if (updateError) throw updateError;
-
-          originalBytes += sourceFile.size || 0;
-          optimizedBytes += optimizedFile.size || 0;
-          app.miniature_url = publicData.publicUrl;
-          success += 1;
-        } catch (error) {
-          failed += 1;
-          console.error('Optimisation miniature impossible pour', app.nom, error);
-        }
-      }
-
-      const savedBytes = Math.max(0, originalBytes - optimizedBytes);
-      const reduction = originalBytes > 0
-        ? Math.round((savedBytes / originalBytes) * 100)
-        : 0;
-
-      await loadImages();
-
-      if (failed) {
-        setMessage(
-          panelMessage,
-          `Optimisation terminée : ${success} réussie(s), ${failed} échec(s). Gain sur les réussites : ${formatFileSize(savedBytes)} (~${reduction} %).`,
-          'error'
-        );
-      } else {
-        setMessage(
-          panelMessage,
-          `Optimisation terminée : ${success} miniature(s). ${formatFileSize(originalBytes)} → ${formatFileSize(optimizedBytes)} (~${reduction} % de moins).`,
-          'success'
-        );
-      }
-    } finally {
-      optimizeLegacyThumbsBtn.disabled = false;
-      optimizeLegacyThumbsBtn.textContent = originalLabel;
-    }
-  }
-
   async function loadImages() {
     if (currentViewKey !== 'images') return;
     setMessage(panelMessage, 'Chargement des images…');
@@ -1521,9 +1413,10 @@
     try {
       // Un remplacement passe lui aussi par l’optimisation afin que les anciennes
       // images puissent être allégées progressivement sans changer leur URL.
+      const isThumbnail = image.folder === IMAGE_FOLDER;
       const optimizedFile = await optimizeRasterImage(file, {
-        maxDimension: 1920,
-        quality: 0.88
+        maxDimension: isThumbnail ? 640 : 1920,
+        quality: isThumbnail ? 0.84 : 0.88
       });
 
       const { error } = await client.storage
