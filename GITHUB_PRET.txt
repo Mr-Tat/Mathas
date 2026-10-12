@@ -1,4 +1,4 @@
-MATH'AS — VERSION GITHUB À PUBLIER — 12/10/2026 — V16
+MATH'AS — VERSION GITHUB À PUBLIER — 12/10/2026 — V17
 ==========================================================
 
 ETAT : PRÊT À DÉPOSER À LA RACINE DU DÉPÔT GITHUB.
@@ -14,7 +14,6 @@ ETAT : PRÊT À DÉPOSER À LA RACINE DU DÉPÔT GITHUB.
 - teacher.css
 - teacher-other.html
 - teacher-other.js
-- logo-mathas.webp
 - GITHUB_PRET.txt
 
 SUPABASE : aucun SQL ni changement de schéma à effectuer.
@@ -28,7 +27,7 @@ IMPORTANT CONSOMMATION :
 - les GIF/SVG ne sont pas recompressés automatiquement ;
 - l’ancien anti-cache systématique du HUB élève a été supprimé.
 
-REMARQUE V16 : le wordmark Math’as est désormais servi localement depuis GitHub via logo-mathas.webp. Les pages index.html, teacher.html et teacher-other.html n'utilisent plus l'ancien logo Supabase.
+REMARQUE : le wordmark Math’as reste actuellement servi depuis Supabase. Lorsqu’un fichier local du logo sera disponible, il pourra être déplacé dans GitHub pour supprimer aussi ce petit trafic récurrent.
 
 IMPORTANT GITHUB : si l’interface d’upload affiche « Something went really wrong… », désactiver temporairement le bloqueur de publicité pour github.com / githubusercontent.com. Ce problème a déjà été rencontré et venait du bloqueur, pas des fichiers.
 
@@ -146,3 +145,13 @@ MISE A JOUR 2026-10-11 — LOGO LOCAL / ECONOMIE EGRESS
 - Nouveau fichier local : logo-mathas.webp (800 px de large, transparence conservee).
 - index.html, teacher.html et teacher-other.html utilisent ce fichier local.
 - Objectif : supprimer ce trafic recurrent du Cached Egress Supabase.
+
+
+MISE A JOUR 2026-10-12 — V17 — OPTIMISATION DES ANCIENNES MINIATURES
+- Ajout d'un bouton « Optimiser les anciennes miniatures » dans la bibliothèque d'images.
+- Traitement réservé à la session enseignant déjà authentifiée.
+- Chaque ancienne miniature Supabase est téléchargée, redimensionnée à 640 px max et convertie en WebP si avantageux.
+- La nouvelle version est envoyée avec Cache-Control 1 an.
+- La table applications est mise à jour automatiquement vers la nouvelle URL.
+- Les anciens fichiers Supabase ne sont PAS supprimés : ils restent disponibles comme sauvegarde.
+- Le bouton ignore les miniatures déjà traitées par V17 pour éviter une recompression répétée.
