@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math'as — Prototype comptes élèves (fictif)</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#f2f5ff;background:#0c1427}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 15% 10%,#1b3658 0,transparent 45%),#0c1427;min-height:100vh}
+main{max-width:1100px;margin:auto;padding:28px 16px 60px}h1{margin:.3rem 0 0;font-size:clamp(1.5rem,4vw,2.3rem)}
+p{color:#b8c6e1;line-height:1.55}header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.note{padding:12px 16px;border:1px solid #9f7d3d;background:#302719;border-radius:12px;color:#fff1bd;font-weight:600}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button{flex:1;min-width:130px}
+button,input,select{font:inherit}button{border-radius:11px;border:1px solid #60739a;background:#213657;color:#fff;padding:10px 14px;cursor:pointer;font-weight:650}
+button:hover{background:#315080}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a0d8ff;outline-offset:2px}
+button.active,.primary{background:#4b8de1;border-color:#82b9ff;color:#fff}.muted-btn{background:#18263e}
+button:disabled{opacity:.52;cursor:not-allowed}input,select{width:100%;padding:11px 12px;color:#edf4ff;background:#172642;border:1px solid #60739a;border-radius:11px}
+label{display:block;color:#dbe5f7;font-weight:650;margin:12px 0 6px}
+.panel{background:#15223b;border:1px solid #304b73;border-radius:19px;padding:20px;box-shadow:0 15px 35px #02081755;margin-top:14px}
+.layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}.stack{display:grid;gap:12px}
+.line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.small{font-size:.87rem;color:#aab9d3}.tag{display:inline-block;background:#304568;border-radius:99px;padding:5px 10px;font-size:.78rem}
+.good{color:#8de3ad}.bad{color:#ffd092}.avatar{width:66px;height:66px;border-radius:100%;display:grid;place-items:center;font-size:35px;flex:none;color:#132445;font-weight:900}
+.avatar.letter{font-size:32px}.student-line{display:flex;gap:12px;align-items:center}.student-line p{margin:.2em 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.empty{border:1px dashed #6680a4;padding:18px;border-radius:12px;color:#b8c6e1}
+table{width:100%;border-collapse:collapse;font-size:.91rem}td,th{padding:9px;text-align:left;border-bottom:1px solid #35496a}th{color:#bfd3f1}
+.stat{padding:12px;border-radius:11px;background:#243759;flex:1;min-width:110px}.stat b{font-size:1.3rem;display:block}
+.colors{display:flex;gap:9px;flex-wrap:wrap}.swatch{border:2px solid #bdc9db;width:34px;height:34px;padding:0;border-radius:50%}
+.swatch.current{outline:3px solid white;outline-offset:2px}.animals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.animals button{font-size:24px;padding:8px 0}
+#notice{min-height:1.8em;color:#a7e8be;font-weight:650}small{font-size:.8rem}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.animals{grid-template-columns:repeat(5,1fr)}} 
+</style></head>
+<body><main><header><div><div class="small">MATH’AS · LABORATOIRE</div><h1>Prototype des comptes élèves</h1><p>Validation individuelle, profil, récompenses et changement de PC</p></div><span class="tag">V0.1 · essai isolé</span></header>
+<div class="note">SIMULATION UNIQUEMENT — Élèves fictifs. Aucune connexion Microsoft, aucune base Supabase, aucun véritable compte et aucun score réel. Cet écran n'est pas déployé sur le HUB public.</div>
+<nav class="tabs" aria-label="Espaces de démonstration"><button data-tab="teacher" class="active">👩‍🏫 Professeur</button><button data-tab="student">🎒 Élève</button><button data-tab="shared">🔗 Accès libre / partagé</button></nav>
+<div id="notice" role="status" aria-live="polite"></div>
+<section id="teacher"><div class="layout"><div class="panel"><div class="line"><h2>Demandes d'autorisation</h2><span class="tag" id="pendingCount"></span></div><p>Chaque demande est approuvée séparément après comparaison du code affiché sur le PC de l'élève.</p><div class="stack" id="requests"></div></div>
+<div class="panel"><h2>Comptes et suivi</h2><p>Profils permanents indépendants des navigateurs autorisés.</p><div id="teacherStudents" class="stack"></div><h3>Applications pilotes</h3><table><thead><tr><th>Application</th><th>Type</th><th>Suivi</th></tr></thead><tbody><tr><td>Additions (fictive)</td><td>Exercice</td><td>Complet</td></tr><tr><td>Boulier (fictif)</td><td>Outil</td><td>Hors suivi</td></tr></tbody></table></div></div></section>
+<section id="student" hidden><div class="layout"><div class="panel"><h2>Ordinateur de l'élève (simulation)</h2><label for="pc">Navigateur / poste fictif</label><select id="pc"><option value="pc-a">PC de Thomas</option><option value="pc-b">PC d'Emma</option><option value="pc-c">Nouveau PC (remplacement)</option></select><div id="studentContent"></div></div><div class="panel"><h2>Ton parcours Math’as</h2><div id="journey"></div></div></div></section>
+<section id="shared" hidden><div class="layout"><div class="panel"><h2>Mode partagé / URL directe</h2><p>Une application se lance sans connexion, même sur un ordinateur où une session élève existe déjà.</p><div class="empty"><b>➕ Exercice libre</b><p>Scores visibles seulement dans ce jeu de démonstration. Aucune donnée n'est envoyée au parcours d'un élève.</p><button id="freePlay">Terminer un exercice libre</button><p id="freeResult">Aucune partie jouée.</p></div></div><div class="panel"><h2>Principes protégés</h2><p>✓ Pas de compte demandé.</p><p>✓ Aucun résultat attribué à un élève.</p><p>✓ Aucun bouton « Envoyer au tableau ».</p><p>✓ Outils et sites extérieurs toujours accessibles.</p><p class="small">Dans la version réelle, le droit au suivi devra être obtenu au moyen d'un ticket de lancement vérifié côté serveur, jamais par un simple paramètre d'URL.</p></div></div></section>
+</main>
+<script>
+'use strict';
+/* DEMONSTRATION LOCALE : aucun fetch, aucune authentification, aucune écriture Supabase. */
+const colors={blue:'#8ac0ff',green:'#a3d4a4',yellow:'#edcc81',purple:'#c3a3e7',pink:'#eda4b7',turquoise:'#8fd7db',sand:'#dacc91',indigo:'#a2b1f5'};
+const animals={fox:'🦊',lion:'🦁',frog:'🐸',panda:'🐼',cat:'🐱',dog:'🐶',rabbit:'🐰',bear:'🐻',owl:'🦉',koala:'🐨'};
+const people={
+ thomas:{id:'thomas',login:'thomas.d',name:'Thomas D.',group:'Phase 2',alias:'DragonBleu',animal:'fox',color:'blue',total:3,score:80,trophies:['Débutant'],medals:['Bronze'],unlocks:['Additions 2'],approved:false},
+ emma:{id:'emma',login:'emma.l',name:'Emma L.',group:'Phase 2',alias:'MathLicorne',animal:'panda',color:'purple',total:5,score:92,trophies:['Débutant','Exploratrice'],medals:['Argent'],unlocks:['Additions 2','Additions 3'],approved:true}
+};
+let requestSeq=2;
+const requests=[{id:1,person:'thomas',device:'pc-a',code:'482731',kind:'activation',status:'pending'}];
+let devices={'pc-b':'emma'},selections={};
+const $=id=>document.getElementById(id);
+function notice(t){$('notice').textContent=t}
+function makeAvatar(p){const char=p.animal==='letter'?p.name[0]:animals[p.animal];return '<div class="avatar '+(p.animal==='letter'?'letter':'')+'" style="background:'+colors[p.color]+'">'+char+'</div>'}
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function setTab(tab){for(const t of ['teacher','student','shared'])$(t).hidden=t!==tab;document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));render()}
+function renderTeacher(){
+ const pending=requests.filter(r=>r.status==='pending');$('pendingCount').textContent=pending.length+' demande(s)';
+ $('requests').innerHTML=pending.length?pending.map(r=>{const p=people[r.person];return '<div class="empty"><div class="student-line">'+makeAvatar(p)+'<div><b>'+esc(p.name)+'</b><p>'+esc(r.kind==='activation'?'Première activation':'Nouvel appareil')+' · '+esc(r.device)+'</p><p>Identifiant : '+esc(p.login)+' · classe proposée : '+esc(p.group)+'</p><p class="bad">Code à vérifier sur le PC : <b>'+r.code+'</b></p></div></div><div class="actions"><button class="primary" data-approve="'+r.id+'">Vérifier et accepter</button><button data-refuse="'+r.id+'">Refuser</button></div></div>'}).join(''):'<div class="empty">Aucune demande en attente.</div>';
+ $('teacherStudents').innerHTML=Object.values(people).map(p=>'<div class="empty"><div class="student-line">'+makeAvatar(p)+'<div><b>'+esc(p.name)+'</b> <span class="tag">'+esc(p.group)+'</span><p>'+esc(p.login)+' · '+esc(p.alias)+'</p><p>Meilleur exemple : '+p.score+' % · '+p.total+' parties · '+p.trophies.length+' trophées</p></div></div></div>').join('');
+}
+function renderStudent(){
+ const pc=$('pc').value, person=devices[pc];
+ if(!person){
+  const rq=requests.find(r=>r.device===pc && r.status==='pending');
+  $('studentContent').innerHTML=rq?'<div class="empty"><p>Demande de <b>'+esc(people[rq.person].name)+'</b> en attente de validation.</p><p>Code : <b>'+rq.code+'</b></p><p>Le professeur doit comparer ce code et accepter individuellement.</p></div>':'<p>Choisis ton identifiant Math’as. L’enseignant validera la demande sur ce poste.</p><label for="login">Identifiant</label><select id="login"><option value="thomas">thomas.d</option><option value="emma">emma.l</option></select><button class="primary" id="request">Demander une autorisation</button>';
+  $('journey').innerHTML='<div class="empty">Aucun profil approuvé sur ce navigateur fictif.</div>';return;
+ }
+ const p=people[person];
+ $('studentContent').innerHTML='<div class="student-line">'+makeAvatar(p)+'<div><h3>Bonjour '+esc(p.name)+' !</h3><p>'+esc(p.group)+' · surnom : '+esc(p.alias)+'</p></div></div><h3>Personnalise ton avatar</h3><div class="animals">'+Object.entries(animals).map(([k,v])=>'<button data-animal="'+k+'" aria-label="'+k+'">'+v+'</button>').join('')+'</div><div class="actions"><button data-animal="letter">Utiliser ma lettre</button></div><h3>Couleur du fond</h3><div class="colors">'+Object.entries(colors).map(([k,v])=>'<button class="swatch '+(k===p.color?'current':'')+'" style="background:'+v+'" data-color="'+k+'" aria-label="'+k+'"></button>').join('')+'</div><div class="actions"><button id="play">Terminer une partie d’additions (fictive)</button><button id="revoke">Simuler une panne / perte de session</button></div>';
+ $('journey').innerHTML='<div class="row"><div class="stat"><b>'+p.score+' %</b><small>Meilleur résultat fictif</small></div><div class="stat"><b>'+p.total+'</b><small>Parties terminées</small></div></div><h3>Récompenses</h3><p>🏆 '+p.trophies.join(' · ')+'</p><p>🥇 '+p.medals.join(' · ')+'</p><h3>Déblocages</h3><p>🔓 '+p.unlocks.join(' · ')+'</p><p class="small">Ces données fictives sont conservées dans la simulation lorsque tu changes d’ordinateur.</p>';
+}
+function render(){renderTeacher();renderStudent()}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+$('pc').addEventListener('change',renderStudent);
+$('requests').addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;const id=Number(button.dataset.approve||button.dataset.refuse);const r=requests.find(x=>x.id===id);if(!r)return;if(button.dataset.approve){const input=prompt('Sur le PC de '+people[r.person].name+', lis le code à 6 chiffres, puis saisis-le ici :');if(input!==r.code){notice('Code non confirmé : activation refusée.');return;}r.status='approved';devices[r.device]=r.person;people[r.person].approved=true;notice('Appareil autorisé pour '+people[r.person].name+'.');}else{r.status='refused';notice('Demande refusée.')}render()});
+$('student').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;const pc=$('pc').value,pid=devices[pc];
+ if(t.id==='request'){const id=$('login').value;const r={id:++requestSeq,person:id,device:pc,code:String(100000+((requestSeq*171389)%900000)),kind:people[id].approved?'new-device':'activation',status:'pending'};requests.push(r);notice('Nouvelle demande envoyée (simulation).');render();}
+ if(t.dataset.animal&&pid){people[pid].animal=t.dataset.animal;renderStudent();}
+ if(t.dataset.color&&pid){people[pid].color=t.dataset.color;renderStudent();}
+ if(t.id==='play'&&pid){const p=people[pid];p.total++;p.score=Math.max(p.score,85);if(!p.trophies.includes('Assidu'))p.trophies.push('Assidu');if(!p.unlocks.includes('Additions 4'))p.unlocks.push('Additions 4');notice('Exercice fictif terminé : progression mise à jour.');render();}
+ if(t.id==='revoke'&&pid){delete devices[pc];notice('Session fictive effacée. L’historique permanent reste dans le profil.');render();}
+});
+let freeCount=0;$('freePlay').addEventListener('click',()=>{$('freeResult').textContent='Partie libre n°'+(++freeCount)+' terminée. Aucun résultat enregistré pour un élève.'});
+render();
+</script></body></html>
