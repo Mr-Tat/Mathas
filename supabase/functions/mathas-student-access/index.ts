@@ -64,6 +64,9 @@ Deno.serve(async req => {
   if (req.method === "OPTIONS") return response({ ok: true }, 200, origin);
   if (req.method !== "POST") return response({ error: "method_not_allowed" }, 405, origin);
   try {
+    // Prévenir un déploiement accidentel sur le projet principal.
+    required(URL_SUPA === "https://bzdflehyuowbawdzuawh.supabase.co",
+      "mathas_test_only", 503);
     required(URL_SUPA && SERVICE_KEY && PUBLISHABLE_KEY && PEPPER.length >= 32, "server_not_configured", 503);
     required(Number(req.headers.get("content-length") ?? "0") < 16384, "body_too_large", 413);
     const raw = await req.text();
