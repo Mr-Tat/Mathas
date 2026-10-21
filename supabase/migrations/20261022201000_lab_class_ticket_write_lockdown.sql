@@ -8,6 +8,10 @@ end $$;
 alter table public.mathas_lab_addition_progress
   add column if not exists revision bigint not null default 1
   constraint mathas_lab_addition_revision_nonnegative check (revision>=0);
+-- Defense in depth: withdraw old RLS write policies as well as grants.
+drop policy if exists mathas_lab_addition_progress_self_insert on public.mathas_lab_addition_progress;
+drop policy if exists mathas_lab_addition_progress_self_update on public.mathas_lab_addition_progress;
+drop policy if exists mathas_lab_real_addition_insert on public.mathas_student_attempts;
 revoke insert, update, delete on public.mathas_lab_addition_progress from authenticated, anon;
 revoke insert, update, delete on public.mathas_student_attempts from authenticated, anon;
 comment on column public.mathas_lab_addition_progress.revision is
