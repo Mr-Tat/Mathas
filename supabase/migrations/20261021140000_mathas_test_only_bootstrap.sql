@@ -33,9 +33,7 @@ grant execute on function public.is_teacher() to authenticated, service_role;
 -- Aucune copie des données du HUB de production.
 -- Ces URLs correspondent uniquement aux repos de test ; elles ne sont pas
 -- forcément déjà compatibles avec le SDK.
-insert into public.applications(id,nom,url,actif) values
- (8,'Addition simple — référence de test','https://mr-tat.github.io/Addition-ecrite-simple/',true),
- (14,'Boulier — référence outil','https://mr-tat.github.io/Boulier-1/',true)
-on conflict(id) do nothing;
-select pg_catalog.setval(pg_get_serial_sequence('public.applications','id'),14,true);
+insert into public.applications(nom,url,actif) values
+ ('Addition simple — référence de test','https://mr-tat.github.io/Addition-ecrite-simple/',true),
+ ('Boulier — référence outil','https://mr-tat.github.io/Boulier-1/',true);
 commit;
