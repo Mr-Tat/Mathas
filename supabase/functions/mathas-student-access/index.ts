@@ -37,9 +37,9 @@ class HttpError extends Error {
     super(code);
   }
 }
-const required = (ok: unknown, code: string, status = 400): asserts ok is true => {
+function required(ok: unknown, code: string, status = 400): asserts ok {
   if (!ok) throw new HttpError(code, status);
-};
+}
 function textField(data: Payload, key: string, min: number, max: number) {
   const val = data[key];
   required(typeof val === "string" && val.length >= min && val.length <= max, "invalid_" + key);
@@ -122,8 +122,8 @@ Deno.serve(async req => {
       const login = textField(body, "login", 3, 64).toLowerCase().trim();
       required(/^[a-z0-9][a-z0-9._-]{1,63}$/.test(login), "invalid_login");
       const { data: current } = await admin.from("mathas_device_authorizations")
-        .select("student_id").eq("auth_user_id", uid).is("revoked_at", null).maybeSingle();
-      required(!current, "already_authorized", 409);
+        .select("student_id,revoked_at").eq("auth_user_id", uid).maybeSingle();
+      required(!current, "identity_already_used_renew_anonymous_auth", 409);
       const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const { count, error: countErr } = await admin.from("mathas_device_requests")
         .select("id", { count: "exact", head: true }).eq("auth_user_id", uid).gte("requested_at", windowStart);
@@ -172,17 +172,9 @@ Deno.serve(async req => {
       const requestId = textField(body, "requestId", 36, 36);
       const code = textField(body, "verificationCode", 6, 6);
       required(uuid(requestId) && /^\d{6}$/.test(code), "invalid_code");
-      const { data: pending, error } = await admin.from("mathas_device_requests")
-        .select("*").eq("id", requestId).eq("status", "pending").gte("expires_at", ISO_NOW()).maybeSingle();
-      required(!error && pending, "request_expired_or_missing", 404);
-      required(pending.failed_checks < 5, "too_many_code_checks", 429);
+      // Le nombre d'échecs et la comparaison sont gérés avec verrou
+      // dans la même transaction SQL : pas de read-modify-write concurrent.
       const correct = await hashString(requestId + ":" + code + ":" + PEPPER);
-      if (correct !== pending.verification_code_hash) {
-        await admin.from("mathas_device_requests")
-          .update({ failed_checks: pending.failed_checks + 1 })
-          .eq("id", requestId).eq("status", "pending");
-        throw new HttpError("wrong_verification_code", 403);
-      }
       // Transaction serveur : l'enseignant est contrôlé dans la fonction SQL,
       // ainsi que le code et tous les liens d'identité/appareil.
       const firstName = typeof body.firstName === "string" ? body.firstName : null;
