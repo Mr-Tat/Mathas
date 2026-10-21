@@ -183,55 +183,23 @@ Deno.serve(async req => {
           .eq("id", requestId).eq("status", "pending");
         throw new HttpError("wrong_verification_code", 403);
       }
-      let studentId: string;
-      const { data: existing, error: findErr } = await admin.from("mathas_students")
-        .select("id,account_status").eq("login_name", pending.claimed_login).maybeSingle();
-      required(!findErr, "student_lookup_failed", 500);
-      if (existing) {
-        required(existing.account_status === "active", "student_inactive", 403);
-        studentId = existing.id;
-      } else {
-        const firstName = textField(body, "firstName", 1, 90).trim();
-        const initial = textField(body, "surnameInitial", 1, 1).toUpperCase();
-        required(/^[\p{L}' -]+$/u.test(firstName) && /^\p{L}$/u.test(initial), "invalid_identity");
-        const { data: created, error: createErr } = await admin.from("mathas_students").insert({
-          login_name: pending.claimed_login,
-          first_name: firstName,
-          surname_initial: initial,
-          private_display_name: firstName,
-        }).select("id").single();
-        required(!createErr && !!created, "create_student_failed", 500);
-        studentId = created.id;
-      }
-      // Optional real student group, explicitly confirmed by the teacher.
-      // For a new student, group is required (unless teacher is testing only).
-      const groupId = body.groupId;
-      if (groupId !== undefined && groupId !== null) {
-        required(uuid(groupId), "invalid_group");
-        const { data: group, error: groupErr } = await admin.from("mathas_student_groups")
-          .select("id").eq("id", groupId).eq("active", true).maybeSingle();
-        required(!groupErr && !!group, "unknown_group");
-        const { data: membership } = await admin.from("mathas_student_group_memberships")
-          .select("id,group_id").eq("student_id", studentId).is("ended_at", null).maybeSingle();
-        if (!membership) {
-          const { error: memberErr } = await admin.from("mathas_student_group_memberships").insert({
-            student_id: studentId, group_id: groupId, approved_by: uid,
-          });
-          required(!memberErr, "group_assignment_failed", 500);
-        } else required(membership.group_id === groupId, "existing_group_mismatch", 409);
-      }
-      // The approval is protected from double submission by marking the request.
-      const { data: claimed, error: claimErr } = await admin.from("mathas_device_requests")
-        .update({ status: "approved", linked_student_id: studentId, reviewed_at: ISO_NOW(), reviewed_by: uid })
-        .eq("id", requestId).eq("status", "pending")
-        .select("id").maybeSingle();
-      required(!claimErr && claimed, "already_reviewed", 409);
-      const { error: deviceErr } = await admin.from("mathas_device_authorizations").upsert({
-        auth_user_id: pending.auth_user_id, student_id: studentId,
-        approved_by: uid, revoked_at: null, approved_at: ISO_NOW(),
-      }, { onConflict: "auth_user_id" });
-      required(!deviceErr, "approve_device_failed", 500);
-      return response({ ok: true, approved: true, studentId }, 200, origin);
+      // Transaction serveur : l'enseignant est contrôlé dans la fonction SQL,
+      // ainsi que le code et tous les liens d'identité/appareil.
+      const firstName = typeof body.firstName === "string" ? body.firstName : null;
+      const initial = typeof body.surnameInitial === "string" ? body.surnameInitial : null;
+      const groupId = body.groupId === null || body.groupId === undefined ? null : body.groupId;
+      required(groupId === null || uuid(groupId), "invalid_group");
+      const { data: approval, error: rpcError } = await admin.rpc("mathas_approve_device_atomic", {
+        p_teacher_id: uid,
+        p_request_id: requestId,
+        p_code_hash: correct,
+        p_first_name: firstName,
+        p_initial: initial,
+        p_group_id: groupId,
+      });
+      required(!rpcError && approval, "approval_transaction_failed", 500);
+      required(approval.ok === true, String(approval.code || "approval_denied"), 403);
+      return response({ ok: true, approved: true, studentId: approval.studentId }, 200, origin);
     }
     if (action === "refuse_device") {
       await teacher();
