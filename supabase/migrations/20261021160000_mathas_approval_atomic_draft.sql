@@ -69,6 +69,12 @@ begin
     return jsonb_build_object('ok',false,'code','device_already_linked');
   end if;
 
+  -- Valider l'ensemble des entrées avant TOUT INSERT ; une erreur retournée
+  -- (sans exception) ne doit jamais laisser un compte partiellement créé.
+  if p_group_id is null or not exists (
+    select 1 from public.mathas_student_groups
+    where id=p_group_id and active=true
+  ) then return jsonb_build_object('ok',false,'code','valid_group_required'); end if;
   requested_login:=lower(trim(r.claimed_login));
   select * into st from public.mathas_students
     where login_name=requested_login for update;
@@ -90,14 +96,10 @@ begin
   select * into current_group from public.mathas_student_group_memberships
     where student_id=st.id and ended_at is null for update;
   if found then
-    if p_group_id is not null and current_group.group_id<>p_group_id then
+    if current_group.group_id<>p_group_id then
       return jsonb_build_object('ok',false,'code','group_mismatch');
     end if;
   else
-    if p_group_id is null or not exists(
-      select 1 from public.mathas_student_groups
-      where id=p_group_id and active=true
-    ) then return jsonb_build_object('ok',false,'code','valid_group_required'); end if;
     insert into public.mathas_student_group_memberships(student_id,group_id,approved_by)
       values(st.id,p_group_id,p_teacher_id);
   end if;
