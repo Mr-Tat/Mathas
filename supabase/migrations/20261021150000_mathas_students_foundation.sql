@@ -363,32 +363,32 @@ create policy mathas_groups_self_select on public.mathas_student_groups
 create policy mathas_members_self_select on public.mathas_student_group_memberships
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_student_group_memberships.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 create policy mathas_alias_self_select on public.mathas_alias_requests
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_alias_requests.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 create policy mathas_attempts_self_select on public.mathas_student_attempts
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_student_attempts.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 create policy mathas_progress_self_select on public.mathas_progress_events
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_progress_events.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 create policy mathas_states_self_select on public.mathas_student_app_states
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_student_app_states.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 create policy mathas_publications_self_select on public.mathas_score_publications
   for select to authenticated using (exists (
     select 1 from public.mathas_device_authorizations d
-    where d.student_id=student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
+    where d.student_id=public.mathas_score_publications.student_id and d.auth_user_id=(select auth.uid()) and d.revoked_at is null
   ));
 
 -- Pas de politique d'accès client aux secrets (tickets/session).
