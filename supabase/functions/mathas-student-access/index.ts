@@ -14,7 +14,10 @@ type Payload = Record<string, unknown>;
 const URL_SUPA = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PUBLISHABLE_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const PEPPER = Deno.env.get("MATHAS_APPROVAL_PEPPER") ?? "";
+// Clé d'empreinte de vérification : secret dédié conseillé. En LAB uniquement,
+// repli à partir de la clé serveur prédéfinie (jamais envoyée au navigateur).
+const PEPPER = Deno.env.get("MATHAS_APPROVAL_PEPPER") ||
+  (SERVICE_KEY ? "mathas-test:approval-code:v1:" + SERVICE_KEY : "");
 const allowedOrigin = (origin: string | null) =>
   origin === "https://mr-tat.github.io" ||
   !!origin && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
@@ -75,6 +78,11 @@ Deno.serve(async req => {
     try { body = JSON.parse(raw) as Payload; } catch { throw new HttpError("invalid_json"); }
     required(body !== null && typeof body === "object" && !Array.isArray(body), "invalid_body");
     const action = textField(body, "action", 3, 40);
+    // Le pilote actuel n'autorise QUE l'enrôlement contrôlé.
+    // Aucun lancement de jeu ni transmission de score avant validation E2E.
+    required(["request_device","device_status","teacher_requests",
+      "approve_device","refuse_device","revoke_device"].includes(action),
+      "pilot_action_disabled", 403);
     const bearer = req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
     required(!!bearer, "auth_required", 401);
     const admin = createClient(URL_SUPA, SERVICE_KEY, {
