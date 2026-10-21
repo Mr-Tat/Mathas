@@ -350,7 +350,7 @@ create policy mathas_students_self_select on public.mathas_students
   for select to authenticated using (
     account_status = 'active' and exists (
       select 1 from public.mathas_device_authorizations d
-      where d.student_id = id and d.auth_user_id = (select auth.uid()) and d.revoked_at is null
+      where d.student_id = public.mathas_students.id and d.auth_user_id = (select auth.uid()) and d.revoked_at is null
     )
   );
 create policy mathas_groups_self_select on public.mathas_student_groups
