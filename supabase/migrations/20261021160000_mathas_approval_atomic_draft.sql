@@ -60,13 +60,10 @@ begin
 
   select * into old_link from public.mathas_device_authorizations
     where auth_user_id=r.auth_user_id for update;
-  if found and old_link.student_id is distinct from r.linked_student_id and
-    r.linked_student_id is not null then
-    return jsonb_build_object('ok',false,'code','identity_conflict');
-  end if;
-  -- Ne jamais basculer l'appareil existant de l'élève A vers B.
-  if found and old_link.revoked_at is null then
-    return jsonb_build_object('ok',false,'code','device_already_linked');
+  -- Une identité technique déjà liée, même révoquée, ne peut plus être
+  -- réaffectée. Repartir d'une nouvelle session Auth anonyme.
+  if found then
+    return jsonb_build_object('ok',false,'code','identity_already_used');
   end if;
 
   -- Valider l'ensemble des entrées avant TOUT INSERT ; une erreur retournée
@@ -104,20 +101,9 @@ begin
       values(st.id,p_group_id,p_teacher_id);
   end if;
 
-  if old_link.id is not null and old_link.student_id<>st.id then
-    return jsonb_build_object('ok',false,'code','device_identity_conflict');
-  end if;
   insert into public.mathas_device_authorizations(
     auth_user_id,student_id,approved_by,approved_at,revoked_at
-  ) values(r.auth_user_id,st.id,p_teacher_id,now(),null)
-  on conflict(auth_user_id) do update set
-    approved_by=excluded.approved_by,
-    approved_at=excluded.approved_at,
-    revoked_at=null
-  where public.mathas_device_authorizations.student_id=excluded.student_id;
-  if not found then
-    return jsonb_build_object('ok',false,'code','device_identity_conflict');
-  end if;
+  ) values(r.auth_user_id,st.id,p_teacher_id,now(),null);
 
   update public.mathas_device_requests
     set status='approved',reviewed_at=now(),
