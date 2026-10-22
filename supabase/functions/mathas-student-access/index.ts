@@ -126,23 +126,7 @@ Deno.serve(async req => {
         .select("id,login_name,first_name,private_display_name,approved_public_alias,avatar_kind,avatar_value,avatar_color,public_opt_in,account_status")
         .eq("id", link.student_id).eq("account_status", "active").maybeSingle();
       required(!e2 && !!student, "student_inactive", 403);
-      // V1.9.7 LAB: class label returned with the existing approved-device
-      // response, without an additional request from the HUB browser.
-      // No group data is exposed unless the current device is authorized.
-      const { data: groupLink, error: groupError } = await admin
-        .from("mathas_student_group_memberships")
-        .select("mathas_student_groups(display_name,active)")
-        .eq("student_id", link.student_id)
-        .is("ended_at", null)
-        .order("started_at", { ascending: false })
-        .limit(1).maybeSingle();
-      required(!groupError, "group_lookup_failed", 500);
-      const grp = groupLink?.mathas_student_groups as
-        | { display_name?: string; active?: boolean } | null | undefined;
-      return { link, student: {
-        ...student,
-        class_display_name: grp?.active ? (grp.display_name ?? null) : null
-      } };
+      return { link, student };
     }
     async function approvedApplication(appId: number) {
       required(Number.isSafeInteger(appId) && appId > 0, "invalid_application");
@@ -161,6 +145,11 @@ Deno.serve(async req => {
     }
     // Anonymous Auth clients NEVER inherit a teacher's session, even on the
     // same GitHub Pages origin; teacher.js and student clients use separate keys.
+    async function managedGroups() {
+      const {data,error}=await admin.from("mathas_teacher_group_permissions").select("group_id").eq("teacher_id",uid).eq("can_manage_students",true);
+      required(!error,"group_lookup_failed",500);
+      return (data??[]).map(g=>g.group_id);
+    }
     if (action === "request_device") {
       required(caller.is_anonymous === true, "anonymous_session_required", 403);
       const login = textField(body, "login", 3, 64).toLowerCase().trim();
@@ -177,11 +166,17 @@ Deno.serve(async req => {
         .eq("auth_user_id", uid).eq("status", "pending");
       // Four-digit code is only returned to its owner and an authenticated teacher.
       // The teacher must still compare it with the student's screen before approval.
+      const {data:allGroups,error:groupError}=await admin.from("mathas_student_groups").select("id").eq("active",true).limit(2);
+      required(!groupError,"group_lookup_failed",500);
+      const selected=typeof body.groupId==="string"?body.groupId:(allGroups?.length===1?allGroups[0].id:null);
+      required(uuid(selected),"group_selection_required");
+      const {data:validGroup}=await admin.from("mathas_student_groups").select("id").eq("id",selected).eq("active",true).maybeSingle();
+      required(!!validGroup,"invalid_group",403);
       const requestId = crypto.randomUUID();
       const code = await fourDigitCode(requestId);
       const codeHash = await hashString(requestId + ":" + code + ":" + PEPPER);
       const { error } = await admin.from("mathas_device_requests").insert({
-        id: requestId, auth_user_id: uid, claimed_login: login,
+        id: requestId, auth_user_id: uid, claimed_login: login, suggested_group_id: selected,
         verification_code_hash: codeHash, expires_at: soon(10),
       });
       required(!error, "request_failed", 500);
@@ -206,8 +201,11 @@ Deno.serve(async req => {
     }
     if (action === "teacher_requests") {
       await teacher();
+      const allowed=await managedGroups();
+      if(!allowed.length)return response({ok:true,requests:[]},200,origin);
       const { data, error } = await admin.from("mathas_device_requests")
         .select("id,claimed_login,requested_at,expires_at,verification_code_hash")
+        .in("suggested_group_id",allowed)
         .eq("status", "pending").gte("expires_at", ISO_NOW())
         .order("requested_at", { ascending: true }).limit(100);
       required(!error, "lookup_failed", 500);
@@ -229,13 +227,17 @@ Deno.serve(async req => {
       // the five-attempt limit. Never bypass that counter with a pre-check.
       // Le nombre d'échecs et la comparaison sont gérés avec verrou
       // dans la même transaction SQL : pas de read-modify-write concurrent.
+      const groupId=body.groupId;
+      required(typeof groupId==="string"&&uuid(groupId),"invalid_group");
+      const allowed=await managedGroups();
+      required(allowed.includes(groupId),"group_not_authorized",403);
+      const {data:pending}=await admin.from("mathas_device_requests").select("suggested_group_id").eq("id",requestId).eq("status","pending").maybeSingle();
+      required(pending?.suggested_group_id===groupId,"request_group_mismatch",403);
       const correct = await hashString(requestId + ":" + code + ":" + PEPPER);
       // Transaction serveur : l'enseignant est contrôlé dans la fonction SQL,
       // ainsi que le code et tous les liens d'identité/appareil.
       const firstName = typeof body.firstName === "string" ? body.firstName : null;
       const initial = typeof body.surnameInitial === "string" ? body.surnameInitial : null;
-      const groupId = body.groupId === null || body.groupId === undefined ? null : body.groupId;
-      required(groupId === null || uuid(groupId), "invalid_group");
       const { data: approval, error: rpcError } = await admin.rpc("mathas_approve_device_atomic", {
         p_teacher_id: uid,
         p_request_id: requestId,
@@ -252,18 +254,25 @@ Deno.serve(async req => {
       await teacher();
       const requestId = textField(body, "requestId", 36, 36);
       required(uuid(requestId), "invalid_request_id");
-      const { error } = await admin.from("mathas_device_requests")
-        .update({ status: "refused", reviewed_at: ISO_NOW(), reviewed_by: uid })
-        .eq("id", requestId).eq("status", "pending");
+      const allowed=await managedGroups();
+      required(allowed.length>0,"group_not_authorized",403);
+      const {data:refused,error}=await admin.from("mathas_device_requests")
+        .update({status:"refused",reviewed_at:ISO_NOW(),reviewed_by:uid})
+        .eq("id",requestId).eq("status","pending").in("suggested_group_id",allowed).select("id");
       required(!error, "refusal_failed", 500);
+      required(refused?.length===1,"request_not_found_or_forbidden",403);
       return response({ ok: true }, 200, origin);
     }
     if (action === "revoke_device") {
       await teacher();
       const authorizationId = textField(body, "authorizationId", 36, 36);
       required(uuid(authorizationId), "invalid_authorization_id");
-      const { error } = await admin.from("mathas_device_authorizations")
-        .update({ revoked_at: ISO_NOW() }).eq("id", authorizationId).is("revoked_at", null);
+      const allowed=await managedGroups();
+      const {data:authz}=await admin.from("mathas_device_authorizations").select("student_id").eq("id",authorizationId).is("revoked_at",null).maybeSingle();
+      required(!!authz,"authorization_missing",404);
+      const {data:groups}=await admin.from("mathas_student_group_memberships").select("group_id").eq("student_id",authz.student_id).is("ended_at",null);
+      required((groups??[]).some(g=>allowed.includes(g.group_id)),"group_not_authorized",403);
+      const {error}=await admin.from("mathas_device_authorizations").update({revoked_at:ISO_NOW()}).eq("id",authorizationId).eq("student_id",authz.student_id).is("revoked_at",null);
       required(!error, "revocation_failed", 500);
       // Invalidate any active launch sessions for this technical identity.
       // Future API writes always check revoked_at too.
