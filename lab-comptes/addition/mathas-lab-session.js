@@ -69,6 +69,10 @@ async function init(){
   if(!w.supabase?.createClient)throw Error('supabase_js_absent');
   client=w.supabase.createClient(endpoint,publicKey,{auth:{storageKey,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
   const v=await call('redeem',{ticket});
+  // Fail closed: the local score namespace must match the server-verified pupil.
+  // Never send a result from an anonymous or previously selected pupil scope.
+  const scope=w.MathasLabStorage;
+  if(!scope?.scoped||scope.scope!==v.student?.id)throw Error('identite_stockage_incoherente');
   secret=v.launchSecret;
   state.student=v.student;
   state.mode='eleve';
