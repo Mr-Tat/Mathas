@@ -1,0 +1,50 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math’as — Validation des élèves (pilote)</title><style>
+:root{font:16px system-ui,sans-serif;color:#edf4ff;background:#101b30}body{margin:0}main{max-width:950px;margin:50px auto;padding:0 18px}.panel{background:#1b2c48;border:1px solid #425775;border-radius:16px;padding:24px;margin:17px 0}.warning{background:#403320;border:1px solid #88713c;border-radius:9px;padding:13px;color:#ffe1ad}.line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}p{color:#bacce7;line-height:1.5}label{display:block;margin:12px 0 6px;font-weight:700}input,select{font:inherit;background:#0c162a;border:1px solid #8da2bd;color:white;padding:12px;width:100%;border-radius:8px}button{font:inherit;font-weight:700;background:#7aaeff;border:0;border-radius:8px;padding:12px 17px;color:#0a203a;cursor:pointer}button[disabled]{opacity:.45;cursor:not-allowed}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #3e5274}.small{font-size:14px;color:#c2cee0}a{color:#bbdfff}.col{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:650px){.col{grid-template-columns:1fr}}.badge{border:1px solid #536781;padding:4px 10px;border-radius:30px;font-size:13px}</style></head><body><main>
+<div class="line"><div><h1>👩‍🏫 Autorisations Math’as</h1><p>Validation individuelle des ordinateurs et des profils élèves</p></div><a href="teacher.html">Administration actuelle</a></div>
+<div class="warning" id="pilotState"><b>Pilote non connecté.</b> Aucun compte ni aucune autorisation ne peut être créée depuis cette page. Elle sert à valider l'organisation des futurs écrans sans exposer d'élève réel.</div><div class="panel" id="testSignIn" hidden><h2>Connexion professeur de laboratoire</h2><p>Utiliser uniquement un compte professeur créé dans Mathas-Test, jamais le compte du HUB principal.</p><label for="pilotEmail">Adresse e-mail de test</label><input id="pilotEmail" autocomplete="username" type="email"><label for="pilotPassword">Mot de passe de test</label><input id="pilotPassword" type="password" autocomplete="current-password"><p><button id="pilotConnect" type="button">Se connecter au laboratoire</button></p><p role="status" id="pilotMessage"></p></div>
+<div class="panel"><div class="line"><h2>Demandes en attente</h2><span class="badge" id="requestCount">0 demande réelle</span></div><p>Aucune demande tant que les services Supabase n'ont pas été validés et activés.</p><table><thead><tr><th>Identifiant demandé</th><th>Classe à confirmer</th><th>Heure</th><th>Action</th></tr></thead><tbody id="requestRows"><tr><td colspan="4" class="small">La liste sera chargée uniquement après authentification du professeur.</td></tr></tbody></table></div>
+<div class="panel"><h2>Fiche de validation</h2><p>Pour chaque demande, le professeur devra constater le code affiché sur l'ordinateur et vérifier qui est réellement devant cet ordinateur.</p>
+<div class="col"><div><label for="login">Identifiant élève</label><input id="login" disabled placeholder="thomas.d"><label for="first">Prénom</label><input id="first" disabled placeholder="Thomas"><label for="initial">Initiale du nom</label><input id="initial" disabled placeholder="D"></div><div><label for="group">Groupe scolaire réel</label><select id="group" disabled><option>Sélectionner une classe</option></select><label for="code">Code sur le PC de l’élève</label><input id="code" disabled inputmode="numeric" maxlength="6" placeholder="●●●●●●"><label for="reason">État de la demande</label><input id="reason" disabled value="Aucune demande sélectionnée"></div></div>
+<p class="small">L'identifiant et le code seuls ne prouvent pas l'identité. La validation ne deviendra possible qu'après connexion professeur et vérifications serveur.</p><button id="approve" disabled>Vérifier et autoriser cet appareil</button> <button id="refuse" disabled>Refuser</button></div>
+<div class="panel"><h2>Appareils déjà autorisés</h2><p>Ici, tu pourras révoquer un PC défectueux ou perdu. L'historique restera attaché au profil permanent de l'élève.</p><p class="small">Aucun appareil réel affiché dans cette préversion.</p></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="client.js"></script>
+<script>
+(function(){
+'use strict';
+const api=window.MathasPilot,form=document.getElementById('testSignIn'),message=document.getElementById('pilotMessage');
+const rows=document.getElementById('requestRows');let selected=null;
+const inputs=['login','first','initial','group','code','approve','refuse'];
+if(!api||!api.ready)return;
+document.getElementById('pilotState').textContent='Mathas-Test uniquement. Utiliser des identités fictives.';
+form.hidden=false;
+const report=(t)=>{message.textContent=t};
+async function refresh(){
+ const result=await api.teacherRequests(),groups=await api.groups();
+ rows.replaceChildren();document.getElementById('requestCount').textContent=(result.requests||[]).length+' demande(s)';
+ const group=document.getElementById('group');group.replaceChildren(new Option('Choisir un groupe',''));
+ for(const g of groups)group.add(new Option(g.display_name,g.id));
+ for(const req of (result.requests||[])){
+  const tr=document.createElement('tr');
+  for(const content of [req.claimed_login,'À confirmer',new Date(req.requested_at).toLocaleString('fr-BE')]){
+    const td=document.createElement('td');td.textContent=content;tr.append(td);
+  }
+  const cell=document.createElement('td'),select=document.createElement('button');
+  select.type='button';select.textContent='Sélectionner';
+  select.onclick=()=>{selected=req;document.getElementById('login').value=req.claimed_login;document.getElementById('reason').value='Demande sélectionnée';for(const id of inputs.filter(x=>x!=='login'))document.getElementById(id).disabled=false;};
+  cell.append(select);tr.append(cell);rows.append(tr);
+ }
+ if(!rows.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='Aucune demande en attente';tr.append(td);rows.append(tr)}
+}
+document.getElementById('pilotConnect').onclick=async()=>{try{
+ await api.teacherSignIn(document.getElementById('pilotEmail').value,document.getElementById('pilotPassword').value);
+ document.getElementById('pilotPassword').value='';report('Professeur authentifié sur Mathas-Test');await refresh();
+}catch(e){report('Connexion refusée : '+e.message)}};
+document.getElementById('approve').onclick=async()=>{if(!selected)return;try{
+ await api.teacherApprove(selected.id,document.getElementById('code').value,document.getElementById('first').value,document.getElementById('initial').value,document.getElementById('group').value);
+ report('Appareil autorisé dans Mathas-Test');selected=null;await refresh();
+}catch(e){report('Validation refusée : '+e.message)}};
+document.getElementById('refuse').onclick=async()=>{if(!selected)return;try{
+ await api.teacherRefuse(selected.id);report('Demande refusée');selected=null;await refresh();
+}catch(e){report('Refus impossible : '+e.message)}};
+})();
+</script></body></html>
