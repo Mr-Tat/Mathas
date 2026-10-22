@@ -1,6 +1,6 @@
-/* LAB V0.1 — progression and trophies only. Records/points remain unchanged remotely.
- * Read-modify-write with server revision protects concurrent browser sessions.
- * This is not yet the full score-record restoration system.
+/* LAB — synchronisation des niveaux, trophées et records numériques.
+ * Points et Top 3 restent inchangés. Une seule écriture si changement.
+ * Le serveur contrôle les révisions pour éviter l'écrasement concurrent.
  */
 (function(w){
 'use strict';
@@ -20,12 +20,12 @@ function merge(local,remote){
  for(const k of ['bronze','silver','gold']){trophies.hardAwards[k]=both(ta.hardAwards?.[k],tb.hardAwards?.[k]);trophies.scoreOne[k]=ta.scoreOne?.[k]===true||tb.scoreOne?.[k]===true;}
  return {schema_version:1,progression,trophies};
 }
-// Numeric HARD records are monotonic; merge by max per level.
+// Les records numériques par niveau sont monotones : conserver le maximum.
 const cfg=w.MathasAppConfig?.storage;
 const recordKeys=[cfg?.hardRecords,cfg?.hardThree,cfg?.normal?.classic,cfg?.normal?.sudden].filter(Boolean);
 function readJson(key){try{return object(JSON.parse(localStorage.getItem(key)||'null'));}catch{return {};}}
 function numericMax(x,y,cap){
- const values=[x,y].map(Number).filter(n=>Number.isSafeInteger(n)&&n>=0&&n<=cap);
+ const values=[x,y].filter(v=>v!==null&&v!==undefined&&v!=='').map(Number).filter(n=>Number.isSafeInteger(n)&&n>=0&&n<=cap);
  return values.length?Math.max(...values):null;
 }
 function mergeRecords(remote){
@@ -44,7 +44,7 @@ function mergeRecords(remote){
   }else{
    const levels=key===cfg?.normal?.sudden?['3','5','7']:['1','2','3'];
    for(const level of levels){
-    const n=numericMax(a[level],b[level],10000);
+    const n=numericMax(a[level],b[level],key===cfg?.hardThree?5:10000);
     if(n!==null)out[level]=n;
    }
   }
@@ -71,7 +71,7 @@ async function sync(){
    const remote=await sdk.readState(),row=remote.state;
    const local=adapter.snapshot();
    const merged=merge(local,row);
-   // Preserve points untouched; merge only well-defined HARD numeric records.
+   // Préserver les points et fusionner uniquement les records numériques identifiés.
    const records={...object(row?.records),...mergeRecords(row?.records)};
    // Avoid server writes when trophies/progression are already in sync.
    if(row && JSON.stringify(merged.progression)===JSON.stringify(row.progression) &&
