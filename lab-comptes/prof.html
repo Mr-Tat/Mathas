@@ -1,6 +1,6 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math’as — Validation des élèves (pilote)</title><style>
 :root{font:16px system-ui,sans-serif;color:#edf4ff;background:#101b30}body{margin:0}main{max-width:950px;margin:50px auto;padding:0 18px}.panel{background:#1b2c48;border:1px solid #425775;border-radius:16px;padding:24px;margin:17px 0}.warning{background:#403320;border:1px solid #88713c;border-radius:9px;padding:13px;color:#ffe1ad}.line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}p{color:#bacce7;line-height:1.5}label{display:block;margin:12px 0 6px;font-weight:700}input,select{font:inherit;background:#0c162a;border:1px solid #8da2bd;color:white;padding:12px;width:100%;border-radius:8px}button{font:inherit;font-weight:700;background:#7aaeff;border:0;border-radius:8px;padding:12px 17px;color:#0a203a;cursor:pointer}button[disabled]{opacity:.45;cursor:not-allowed}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #3e5274}.small{font-size:14px;color:#c2cee0}a{color:#bbdfff}.col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.col>div{min-width:0}.col input,.col select{box-sizing:border-box;display:block;width:100%;min-width:0}@media(max-width:650px){.col{grid-template-columns:1fr}}[hidden]{display:none!important}.badge{border:1px solid #536781;padding:4px 10px;border-radius:30px;font-size:13px}</style></head><body><main>
-<div class="line"><div><h1>👩‍🏫 Autorisations Math’as <span class="badge" style="vertical-align:middle;font-size:13px;font-weight:600">V0.1.4</span></h1><p>Validation individuelle des ordinateurs et des profils élèves</p></div><a href="teacher.html">Administration actuelle</a></div>
+<div class="line"><div><h1>👩‍🏫 Autorisations Math’as <span class="badge" style="vertical-align:middle;font-size:13px;font-weight:600">V0.1.5</span></h1><p>Validation individuelle des ordinateurs et des profils élèves</p></div><a href="teacher.html">Administration actuelle</a></div>
 <div class="warning" id="pilotState"><b>Pilote non connecté.</b> Aucun compte ni aucune autorisation ne peut être créée depuis cette page. Elle sert à valider l'organisation des futurs écrans sans exposer d'élève réel.</div><div class="panel" id="testSignIn" hidden><h2>Connexion professeur de laboratoire</h2><p>Utiliser uniquement un compte professeur créé dans Mathas-Test, jamais le compte du HUB principal.</p><label for="pilotEmail">Adresse e-mail de test</label><input id="pilotEmail" autocomplete="username" type="email"><label for="pilotPassword">Mot de passe de test</label><input id="pilotPassword" type="password" autocomplete="current-password"><p><button id="pilotConnect" type="button">Se connecter au laboratoire</button></p><p role="status" id="pilotMessage"></p></div>
 <div class="panel"><div class="line"><h2>Demandes en attente</h2><span class="badge" id="requestCount">0 demande réelle</span></div><p>Aucune demande tant que les services Supabase n'ont pas été validés et activés.</p><table><thead><tr><th>Identifiant demandé</th><th>Classe à confirmer</th><th>Heure</th><th>Action</th></tr></thead><tbody id="requestRows"><tr><td colspan="4" class="small">La liste sera chargée uniquement après authentification du professeur.</td></tr></tbody></table></div>
 <div class="panel"><h2>Fiche de validation</h2><p>Pour chaque demande, le professeur devra constater le code affiché sur l'ordinateur et vérifier qui est réellement devant cet ordinateur.</p>
@@ -17,6 +17,9 @@ const inputs=['login','first','initial','group','code','approve','refuse'];
 if(!api||!api.ready)return;
 document.getElementById('pilotState').textContent='Mathas-Test uniquement. Utiliser des identités fictives.';
 form.hidden=false;
+const emailInput=document.getElementById('pilotEmail');
+try{const savedEmail=localStorage.getItem('mathas-lab-teacher-email');if(savedEmail)emailInput.value=savedEmail;}catch{}
+emailInput.addEventListener('change',()=>{try{localStorage.setItem('mathas-lab-teacher-email',emailInput.value.trim());}catch{}});
 const approvalStatus=document.getElementById("approvalStatus");
 const report=(t)=>{message.textContent=t;approvalStatus.textContent=t};
 async function refresh(){
@@ -51,7 +54,7 @@ async function refresh(){
 }
 document.getElementById('pilotConnect').onclick=async()=>{try{
  await api.teacherSignIn(document.getElementById('pilotEmail').value,document.getElementById('pilotPassword').value);
- localStorage.setItem('mathas-lab-teacher-email',emailInput.value.trim());document.getElementById('pilotPassword').value='';await refresh();form.hidden=true;
+ try{localStorage.setItem('mathas-lab-teacher-email',emailInput.value.trim());}catch{}document.getElementById('pilotPassword').value='';await refresh();form.hidden=true;
 }catch(e){report('Connexion refusée : '+e.message)}};
 document.getElementById('approve').onclick=async()=>{if(!selected){report('Sélectionne une demande avant de valider.');return;}report('Vérification en cours…');try{
  await api.teacherApprove(selected.id,document.getElementById('code').value,document.getElementById('first').value,document.getElementById('initial').value,document.getElementById('group').value);
