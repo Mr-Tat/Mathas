@@ -40,7 +40,7 @@ document.getElementById('pilotState').textContent='Laboratoire Mathas-Test actif
 send.disabled=false;
 api.initStudent().then(state=>{if(state.status==='approved'){show('active');document.getElementById('displayName').textContent=state.student?.private_display_name||'élève';say('Appareil autorisé')}else if(state.status==='pending'){show('pending');document.getElementById('code').textContent=state.verificationCode||'Code expiré';say('Demande en attente : montre ce code au professeur.')}else say('Tu peux demander une autorisation.')}).catch(err=>{send.disabled=true;say('Impossible d’ouvrir la session de test : '+err.message)});
 send.addEventListener('click',async()=>{
- send.disabled=true;try{const data=await api.studentRequest(document.getElementById('login').value);document.getElementById('code').textContent=data.verificationCode;show('pending');say('Montre le code au professeur sur ton écran.')}catch(err){say('Demande refusée : '+err.message)}finally{send.disabled=false}
+ send.disabled=true;try{await api.initStudent();const data=await api.studentRequest(document.getElementById('login').value);document.getElementById('code').textContent=data.verificationCode;show('pending');say('Montre le code au professeur sur ton écran.')}catch(err){say('Demande refusée : '+err.message)}finally{send.disabled=false}
 });
 document.getElementById('check').addEventListener('click',async()=>{
  try{const state=await api.studentStatus();if(state.status==='approved'){show('active');document.getElementById('displayName').textContent=state.student?.private_display_name||'élève';say('Appareil autorisé')}else say('Autorisation en attente.')}catch(err){say(err.message)}
