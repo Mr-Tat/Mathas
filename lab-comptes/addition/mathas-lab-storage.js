@@ -6,7 +6,7 @@
 'use strict';
 const scopeKey='mathas-lab-addition-pupil';
 let pupil='';
-try{const raw=w.sessionStorage.getItem(scopeKey);if(raw&&/^[0-9a-f-]{36}$/i.test(raw))pupil=raw;}catch{}
+try{const hasTicket=new URLSearchParams(w.location.search).has('mathas_lab_ticket');const raw=hasTicket?w.sessionStorage.getItem(scopeKey):null;if(raw&&/^[0-9a-f-]{36}$/i.test(raw))pupil=raw;}catch{}
 const namespace='mathas_lab_addition_v1_'+(pupil||'anonymous')+'__';
 const originalGet=Storage.prototype.getItem;
 const originalSet=Storage.prototype.setItem;
