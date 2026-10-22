@@ -55,7 +55,26 @@ async signOutStudent(){
 },
 studentStatus:()=>call(student,'device_status'),
 async teacherSession(){active();const r=await teacher.auth.getSession();if(r.error)throw r.error;return r.data.session},
-teacherResults:()=>call(teacher,'teacher_results'),
+async teacherResults(){
+ active();
+ const session=await teacher.auth.getSession();
+ if(session.error||!session.data.session)throw Error('Connexion professeur requise');
+ // Existing LAB RLS teacher_can_view_student independently scopes both reads.
+ const attempts=await teacher.from('mathas_student_attempts')
+  .select('student_id,score,score_max,received_at,validation_status,level_key')
+  .eq('application_id',1).eq('mode','laboratoire')
+  .order('received_at',{ascending:false}).limit(100);
+ if(attempts.error)throw attempts.error;
+ const ids=[...new Set((attempts.data||[]).map(x=>x.student_id))];
+ if(!ids.length)return {ok:true,results:[]};
+ const students=await teacher.from('mathas_students').select('id,login_name').in('id',ids);
+ if(students.error)throw students.error;
+ const names=new Map((students.data||[]).map(x=>[x.id,x.login_name]));
+ return {ok:true,results:(attempts.data||[]).map(a=>({
+  login:names.get(a.student_id)||'Élève',score:a.score,scoreMax:a.score_max,
+  receivedAt:a.received_at,status:a.validation_status,level:a.level_key
+ }))};
+},
 async teacherSignIn(email,password){active();const a=await teacher.auth.signInWithPassword({email,password});if(a.error)throw a.error;return call(teacher,'teacher_requests')},
 teacherRequests:()=>call(teacher,'teacher_requests'),
 async groups(){active();const r=await teacher.from('mathas_student_groups').select('id,display_name').eq('active',true);if(r.error)throw r.error;return r.data||[]},
