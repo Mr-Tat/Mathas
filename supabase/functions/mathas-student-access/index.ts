@@ -62,6 +62,23 @@ async function hashString(input: string) {
 const soon = (minutes: number) => new Date(Date.now() + minutes * 60000).toISOString();
 const ISO_NOW = () => new Date().toISOString();
 
+// V0.3 LAB: short human-readable comparison code. No reversible code in DB.
+// HMAC with a server-only key makes it reproducible for the teacher and the
+// requesting student, while the database keeps only a peppered hash.
+async function fourDigitCode(requestId: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(PEPPER),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key,
+    new TextEncoder().encode("mathas-device-approval-v2:" + requestId)));
+  const value = new DataView(sig.buffer, sig.byteOffset, sig.byteLength).getUint32(0);
+  return String(value % 10000).padStart(4, "0");
+}
+async function matchingV2Code(r: { id: string; verification_code_hash: string }): Promise<string | null> {
+  const code = await fourDigitCode(r.id);
+  const hash = await hashString(r.id + ":" + code + ":" + PEPPER);
+  return hash === r.verification_code_hash ? code : null;
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return response({ ok: true }, 200, origin);
@@ -142,10 +159,10 @@ Deno.serve(async req => {
       await admin.from("mathas_device_requests")
         .update({ status: "cancelled", reviewed_at: ISO_NOW() })
         .eq("auth_user_id", uid).eq("status", "pending");
-      // Random code is shown ONLY to the pupil; teacher must physically obtain it.
-      const num = crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000;
-      const code = String(num);
+      // Four-digit code is only returned to its owner and an authenticated teacher.
+      // The teacher must still compare it with the student's screen before approval.
       const requestId = crypto.randomUUID();
+      const code = await fourDigitCode(requestId);
       const codeHash = await hashString(requestId + ":" + code + ":" + PEPPER);
       const { error } = await admin.from("mathas_device_requests").insert({
         id: requestId, auth_user_id: uid, claimed_login: login,
@@ -163,26 +180,40 @@ Deno.serve(async req => {
         return response({ ok: true, status: "approved", student }, 200, origin);
       }
       const { data: pending } = await admin.from("mathas_device_requests")
-        .select("id,claimed_login,expires_at").eq("auth_user_id", uid)
+        .select("id,claimed_login,expires_at,verification_code_hash").eq("auth_user_id", uid)
         .eq("status", "pending").gte("expires_at", ISO_NOW())
         .order("requested_at", { ascending: false }).limit(1).maybeSingle();
+      const pupilCode = pending ? await matchingV2Code(pending) : null;
       return response({ ok: true, status: pending ? "pending" : "unregistered",
-        requestId: pending?.id ?? null, login: pending?.claimed_login ?? null }, 200, origin);
+        requestId: pending?.id ?? null, login: pending?.claimed_login ?? null,
+        verificationCode: pupilCode }, 200, origin);
     }
     if (action === "teacher_requests") {
       await teacher();
       const { data, error } = await admin.from("mathas_device_requests")
-        .select("id,claimed_login,requested_at,expires_at,auth_user_id")
+        .select("id,claimed_login,requested_at,expires_at,verification_code_hash")
         .eq("status", "pending").gte("expires_at", ISO_NOW())
         .order("requested_at", { ascending: true }).limit(100);
       required(!error, "lookup_failed", 500);
-      return response({ ok: true, requests: data ?? [] }, 200, origin);
+      const requests = await Promise.all((data ?? []).map(async r => ({
+        id: r.id,
+        claimed_login: r.claimed_login,
+        requested_at: r.requested_at,
+        expires_at: r.expires_at,
+        verificationCode: await matchingV2Code(r),
+      })));
+      return response({ ok: true, requests }, 200, origin);
     }
     if (action === "approve_device") {
       await teacher();
       const requestId = textField(body, "requestId", 36, 36);
-      const code = textField(body, "verificationCode", 6, 6);
-      required(uuid(requestId) && /^\d{6}$/.test(code), "invalid_code");
+      const code = textField(body, "verificationCode", 4, 4);
+      required(uuid(requestId) && /^\d{4}$/.test(code), "invalid_code");
+      // An older pending six-digit request cannot be approved in the new flow.
+      const { data: pendingCode } = await admin.from("mathas_device_requests")
+        .select("id,verification_code_hash").eq("id", requestId).eq("status", "pending").maybeSingle();
+      required(!!pendingCode && await matchingV2Code(pendingCode) === code,
+        "invalid_or_expired_code", 403);
       // Le nombre d'échecs et la comparaison sont gérés avec verrou
       // dans la même transaction SQL : pas de read-modify-write concurrent.
       const correct = await hashString(requestId + ":" + code + ":" + PEPPER);
