@@ -209,11 +209,8 @@ Deno.serve(async req => {
       const requestId = textField(body, "requestId", 36, 36);
       const code = textField(body, "verificationCode", 4, 4);
       required(uuid(requestId) && /^\d{4}$/.test(code), "invalid_code");
-      // An older pending six-digit request cannot be approved in the new flow.
-      const { data: pendingCode } = await admin.from("mathas_device_requests")
-        .select("id,verification_code_hash").eq("id", requestId).eq("status", "pending").maybeSingle();
-      required(!!pendingCode && await matchingV2Code(pendingCode) === code,
-        "invalid_or_expired_code", 403);
+      // The atomic database function counts all incorrect attempts and enforces
+      // the five-attempt limit. Never bypass that counter with a pre-check.
       // Le nombre d'échecs et la comparaison sont gérés avec verrou
       // dans la même transaction SQL : pas de read-modify-write concurrent.
       const correct = await hashString(requestId + ":" + code + ":" + PEPPER);
