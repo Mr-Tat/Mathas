@@ -23,11 +23,30 @@ Deno.serve(async req=>{
   if(!jwt)return err(401,"authorization_required");
   const raw=await req.text();if(raw.length>17000)return err(413,"too_large");
   let body;try{body=JSON.parse(raw)}catch{return err(400,"invalid_json")}
-  if(!body||typeof body!=="object"||Array.isArray(body)||body.applicationId!==1||!["issue","redeem","check","attempt","state_read","state_write"].includes(body.action))return err(400,"invalid_action");
+  if(!body||typeof body!=="object"||Array.isArray(body)||body.applicationId!==1||!["issue","redeem","check","attempt","state_read","state_write","end_session"].includes(body.action))return err(400,"invalid_action");
   const auth=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});
   const user=await auth.auth.getUser(jwt);if(user.error||!user.data.user)return err(401,"invalid_session");
   const uid=user.data.user.id;
   const admin=createClient(URL,SERVICE,{auth:{persistSession:false,autoRefreshToken:false}});
+  // V1.9.6 LAB: terminate an entire browser identity BEFORE local Auth signout.
+  // Revoke the device first; even if later cleanup fails, subsequent writes are blocked.
+  // This action is idempotent to allow safe retry after transient network failures.
+  if(body.action==="end_session"){
+   const stamp=NOW();
+   const dev=await admin.from("mathas_device_authorizations")
+    .update({revoked_at:stamp}).eq("auth_user_id",uid).is("revoked_at",null);
+   if(dev.error)return err(500,"device_revocation_failed");
+   const [games,tickets,requests]=await Promise.all([
+    admin.from("mathas_launch_sessions").update({revoked_at:stamp})
+     .eq("auth_user_id",uid).is("revoked_at",null),
+    admin.from("mathas_launch_tickets").update({expires_at:stamp})
+     .eq("auth_user_id",uid).gt("expires_at",stamp),
+    admin.from("mathas_device_requests").update({status:"cancelled",reviewed_at:stamp})
+     .eq("auth_user_id",uid).eq("status","pending")
+   ]);
+   if(games.error||tickets.error||requests.error)return err(500,"session_cleanup_incomplete");
+   return reply(200,{ok:true,ended:true});
+  }
   const d=await admin.from("mathas_device_authorizations").select("student_id").eq("auth_user_id",uid).is("revoked_at",null).maybeSingle();
   if(d.error||!d.data)return err(403,"device_not_authorized");
   const sid=d.data.student_id;
