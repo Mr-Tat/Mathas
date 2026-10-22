@@ -16,5 +16,17 @@ function render(){
  }else{el.textContent='🧪 Mathas-Test — vérification de la session…';}
 }
 render();
-Promise.resolve(w.MathasStudentSDK?.init?.()).then(render,render);
+const sdk=w.MathasStudentSDK;
+if(!sdk||typeof sdk.init!=='function'){render();return;}
+let finished=false;
+const timeout=setTimeout(()=>{
+ if(finished)return;
+ el.textContent='🧪 Connexion LAB trop longue — ne pas enregistrer de score. Retourne au compte élève puis relance le jeu.';
+},9000);
+Promise.resolve().then(()=>sdk.init()).then(()=>{
+ finished=true;clearTimeout(timeout);render();
+},e=>{
+ finished=true;clearTimeout(timeout);
+ el.textContent='🧪 Connexion LAB impossible : '+String(e?.message||e);
+});
 })(window);
