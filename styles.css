@@ -654,3 +654,6 @@ body.theme-partage {
     max-height: 90px;
   }
 }
+
+/* LAB V1.9.8 — mise en valeur du pseudo du compte connecté. */
+.mathas-hub-account .mathas-account-pseudo { color: #89ddff; }
