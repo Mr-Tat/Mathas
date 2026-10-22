@@ -8,7 +8,7 @@ function render(){
  const state=sdk&&typeof sdk.status==='function'?sdk.status():null;
  if(!state){el.textContent='🧪 Mathas-Test — session indisponible';return;}
  if(state.mode==='eleve'&&state.student?.login){
-  el.textContent='🧪 Connecté : '+state.student.login+' (Mathas-Test) · scores locaux non attribués';
+  el.textContent='🧪 Connecté : '+state.student.login+' (Mathas-Test) · '+(state.saveMessage||'résultats séparés par élève');
  }else if(state.error){
   el.textContent='🧪 Mode libre — connexion LAB refusée : '+state.error;
  }else if(state.ready){
@@ -16,6 +16,7 @@ function render(){
  }else{el.textContent='🧪 Mathas-Test — vérification de la session…';}
 }
 render();
+w.addEventListener('mathas:lab-save-status',render);
 const sdk=w.MathasStudentSDK;
 if(!sdk||typeof sdk.init!=='function'){render();return;}
 let finished=false;
