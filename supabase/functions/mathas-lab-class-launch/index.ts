@@ -9,12 +9,18 @@ const SHA = async s => Array.from(new Uint8Array(await crypto.subtle.digest("SHA
 const RANDOM = () => Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
 const NEXT = m=>new Date(Date.now()+m*60000).toISOString();
 const NOW = ()=>new Date().toISOString();
-const h={"content-type":"application/json","cache-control":"no-store","access-control-allow-origin":ORIGIN,"access-control-allow-headers":"apikey, authorization, content-type","access-control-allow-methods":"POST, OPTIONS","vary":"Origin"};
-const reply=(status,value)=>new Response(JSON.stringify(value),{status,headers:h});
-const err=(status,error)=>reply(status,{ok:false,error});
+const GITHUB_ORIGIN = "https://mr-tat.github.io";
+const ALLOWED_ORIGINS = new Set([ORIGIN,GITHUB_ORIGIN]);
 const isSecret=s=>typeof s==="string" && /^[0-9a-f]{64}$/.test(s);
 Deno.serve(async req=>{
- if(req.headers.get("origin")!==ORIGIN)return err(403,"origin_denied");
+ const origin=req.headers.get("origin")||"";
+ const h={"content-type":"application/json","cache-control":"no-store",
+  "access-control-allow-headers":"apikey, authorization, content-type",
+  "access-control-allow-methods":"POST, OPTIONS","vary":"Origin"};
+ if(ALLOWED_ORIGINS.has(origin))h["access-control-allow-origin"]=origin;
+ const reply=(status,value)=>new Response(JSON.stringify(value),{status,headers:h});
+ const err=(status,error)=>reply(status,{ok:false,error});
+ if(!ALLOWED_ORIGINS.has(origin))return err(403,"origin_denied");
  if(req.method==="OPTIONS")return reply(200,{ok:true});
  if(req.method!=="POST")return err(405,"method_not_allowed");
  if(URL!==LAB||!SERVICE||!ANON)return err(503,"lab_only");
