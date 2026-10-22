@@ -13,6 +13,7 @@ const v=await r.json().catch(()=>({}));if(!r.ok||v.ok!==true)throw Error(v.error
 w.MathasPilot=Object.freeze({ready,
 async initStudent(){active();const s=await student.auth.getSession();if(s.error)throw s.error;if(!s.data.session){const n=await student.auth.signInAnonymously();if(n.error)throw n.error;}return call(student,'device_status')},
 studentRequest:login=>call(student,'request_device',{login:String(login).trim().toLowerCase()}),
+async peekStudent(){if(!ready)return null;const v=await student.auth.getSession();if(v.error||!v.data.session)return null;return call(student,'device_status')},
 studentStatus:()=>call(student,'device_status'),
 async teacherSignIn(email,password){active();const a=await teacher.auth.signInWithPassword({email,password});if(a.error)throw a.error;return call(teacher,'teacher_requests')},
 teacherRequests:()=>call(teacher,'teacher_requests'),
