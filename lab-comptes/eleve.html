@@ -1,10 +1,10 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Math’as — Accès élève (pilote)</title><style>
 :root{font:16px system-ui,sans-serif;color:#eef4ff;background:#101d33}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% -20%,#325588,transparent 55%),#101d33}main{max-width:710px;margin:7vh auto;padding:0 17px}header,h1{margin:0 0 13px}.card{border:1px solid #3c5277;border-radius:18px;padding:25px;background:#1a2b48;box-shadow:0 12px 42px #0004}h1{font-size:clamp(25px,5vw,36px)}p{color:#bbcce6;line-height:1.5}label{display:block;margin:14px 0 7px;font-weight:700}input{border:1px solid #8aa5cc;background:#0c172b;color:#fff;padding:14px;width:100%;border-radius:10px;font:inherit}button{border:0;background:#77afff;color:#091a34;font:inherit;font-weight:750;border-radius:11px;padding:12px 18px;cursor:pointer}button[disabled]{opacity:.5;cursor:not-allowed}.warning{padding:13px;background:#3c3022;color:#f9e6b3;border:1px solid #8b7040;border-radius:12px}.code{font-size:37px;letter-spacing:7px;font-weight:900;color:#c0e8ff;margin:14px 0}#notice{margin-top:10px;min-height:20px;color:#b6e7c7}a{color:#b5d9ff}.small{font-size:14px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}section[hidden]{display:none}</style></head>
-<body><main><header><h1>🎒 Mon compte Math’as <span class="small" style="font-weight:600">V0.2.0 LAB</span></h1><p>Demande d’autorisation pour ton ordinateur scolaire</p></header><div class="card">
+<body><main><header><h1>🎒 Mon compte Math’as <span class="small" style="font-weight:600">V0.2.2 LAB</span></h1><p>Demande d’autorisation pour ton ordinateur scolaire</p></header><div class="card">
 <div class="warning" id="pilotState"><strong>Version de développement — désactivée.</strong> Aucune demande n’est actuellement envoyée et aucun compte n’est créé. Le professeur activera ce parcours après les tests de sécurité.</div>
 <section id="start"><label for="login">Mon identifiant Math’as</label><input id="login" placeholder="prenom.initiale" autocomplete="off" maxlength="64" autocapitalize="none" spellcheck="false" aria-describedby="loginHelp"/><p id="loginHelp" class="small">Exemple : thomas.d. Ce nom seul ne donne jamais accès à un compte.</p><div class="row"><button id="send" disabled>Demander l'autorisation</button><a href="index.html">Retour aux applications</a></div></section>
 <section id="pending" hidden><h2>Autorisation demandée</h2><p>Montre ton code au professeur sur cet ordinateur :</p><div class="code" id="code"></div><p>Le professeur vérifiera ton identité et acceptera ta demande individuellement.</p><button id="check">Vérifier l’autorisation</button></section>
-<section id="active" hidden><h2>Bienvenue <span id="displayName"></span> !</h2><p>Ton profil est approuvé. Tes résultats et tes récompenses seront retrouvés sur un autre PC une fois ce service déployé.</p><button id="launchAddition" type="button">Jouer à Addition écrite simple (LAB)</button><p class="small">Essai fictif uniquement. Les résultats seront enregistrés dans Mathas-Test.</p><a href="index.html">Retour au laboratoire</a></section>
+<section id="active" hidden><h2>Bienvenue <span id="displayName"></span> !</h2><p>Ton profil est approuvé. Tes résultats et tes récompenses seront retrouvés sur un autre PC une fois ce service déployé.</p><button id="launchAddition" type="button">Jouer à Addition écrite simple (LAB)</button><p class="small">Essai fictif uniquement. Les résultats seront enregistrés dans Mathas-Test.</p><button id="studentLogout" type="button" style="background:#eabf8a;margin-top:14px">Se déconnecter / Changer d’élève</button><p class="small">Déconnecter cet ordinateur révoque son autorisation. Le prochain élève devra demander une nouvelle validation au professeur. Les résultats sont conservés.</p><a href="index.html">Retour au laboratoire</a></section>
 <p id="notice" role="status" aria-live="polite">Aucune connexion en cours.</p></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script><script src="client.js"></script>
@@ -22,6 +22,16 @@ launch.addEventListener('click',async()=>{
   url.searchParams.set('mathas_lab_ticket',data.ticket);
   location.assign(url.href);
  }catch(e){say('Lancement impossible : '+e.message);launch.disabled=false;}
+});
+const logout=document.getElementById('studentLogout');
+logout.addEventListener('click',async()=>{
+ if(!confirm('Déconnecter cet ordinateur ? Le prochain élève devra obtenir une nouvelle autorisation du professeur.'))return;
+ logout.disabled=true;say('Déconnexion sécurisée en cours…');
+ try{
+  await api.signOutStudent();
+  document.getElementById('login').value='';
+  show('start');say('Appareil déconnecté. Le nouvel élève peut demander son autorisation.');
+ }catch(e){say('Déconnexion impossible : '+e.message)}finally{logout.disabled=false;}
 });
 const show=(id)=>{for(const key of ['start','pending','active'])document.getElementById(key).hidden=key!==id};
 const say=(msg)=>{notice.textContent=msg};
