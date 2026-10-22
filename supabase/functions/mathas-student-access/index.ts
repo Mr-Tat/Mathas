@@ -98,7 +98,7 @@ Deno.serve(async req => {
     // Le pilote actuel n'autorise QUE l'enrôlement contrôlé.
     // Aucun lancement de jeu ni transmission de score avant validation E2E.
     required(["request_device","device_status","teacher_requests",
-      "approve_device","refuse_device","revoke_device"].includes(action),
+      "approve_device","refuse_device","revoke_device","teacher_results"].includes(action),
       "pilot_action_disabled", 403);
     const bearer = req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
     required(!!bearer, "auth_required", 401);
@@ -198,6 +198,32 @@ Deno.serve(async req => {
       return response({ ok: true, status: pending ? "pending" : "unregistered",
         requestId: pending?.id ?? null, login: pending?.claimed_login ?? null,
         verificationCode: pupilCode }, 200, origin);
+    }
+    if (action === "teacher_results") {
+      await teacher();
+      const rights=await admin.from("mathas_teacher_group_permissions")
+        .select("group_id").eq("teacher_id",uid).eq("can_view_results",true);
+      required(!rights.error,"permissions_lookup_failed",500);
+      const groups=(rights.data??[]).map(x=>x.group_id);
+      if(!groups.length)return response({ok:true,results:[]},200,origin);
+      const memberships=await admin.from("mathas_student_group_memberships")
+        .select("student_id").in("group_id",groups).is("ended_at",null);
+      required(!memberships.error,"membership_lookup_failed",500);
+      const ids=[...new Set((memberships.data??[]).map(x=>x.student_id))];
+      if(!ids.length)return response({ok:true,results:[]},200,origin);
+      const [students,attempts]=await Promise.all([
+        admin.from("mathas_students").select("id,login_name").in("id",ids),
+        admin.from("mathas_student_attempts")
+          .select("student_id,score,score_max,received_at,validation_status,level_key")
+          .in("student_id",ids).eq("application_id",1).eq("mode","laboratoire")
+          .order("received_at",{ascending:false}).limit(100)
+      ]);
+      required(!students.error&&!attempts.error,"results_lookup_failed",500);
+      const names=new Map((students.data??[]).map(x=>[x.id,x.login_name]));
+      return response({ok:true,results:(attempts.data??[]).map(a=>({
+        login:names.get(a.student_id)??"Élève",score:a.score,scoreMax:a.score_max,
+        receivedAt:a.received_at,status:a.validation_status,level:a.level_key
+      }))},200,origin);
     }
     if (action === "teacher_requests") {
       await teacher();
