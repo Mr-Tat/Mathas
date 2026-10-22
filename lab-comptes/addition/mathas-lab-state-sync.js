@@ -22,25 +22,45 @@ function merge(local,remote){
 }
 // Numeric HARD records are monotonic; merge by max per level.
 const cfg=w.MathasAppConfig?.storage;
-const recordKeys=[cfg?.hardRecords,cfg?.hardThree].filter(Boolean);
+const recordKeys=[cfg?.hardRecords,cfg?.hardThree,cfg?.normal?.classic,cfg?.normal?.sudden].filter(Boolean);
 function readJson(key){try{return object(JSON.parse(localStorage.getItem(key)||'null'));}catch{return {};}}
-function hardRecords(remote){
+function numericMax(x,y,cap){
+ const values=[x,y].map(Number).filter(n=>Number.isSafeInteger(n)&&n>=0&&n<=cap);
+ return values.length?Math.max(...values):null;
+}
+function mergeRecords(remote){
  const result={};
  for(const key of recordKeys){
   const a=readJson(key),b=object(remote?.[key]),out={};
-  for(const level of ['1','2','3']){
-   const values=[Number(a[level]),Number(b[level])].filter(n=>Number.isFinite(n)&&n>=0);
-   if(values.length)out[level]=Math.max(...values);
+  if(key===cfg?.normal?.classic){
+   for(const level of ['3','5','7']){
+    const local=object(a[level]),server=object(b[level]),row={};
+    for(const total of ['4','10','20']){
+     const n=numericMax(local[total],server[total],Number(total));
+     if(n!==null)row[total]=n;
+    }
+    if(Object.keys(row).length)out[level]=row;
+   }
+  }else{
+   const levels=key===cfg?.normal?.sudden?['3','5','7']:['1','2','3'];
+   for(const level of levels){
+    const n=numericMax(a[level],b[level],10000);
+    if(n!==null)out[level]=n;
+   }
   }
   result[key]=out;
  }
  return result;
 }
-function restoreHard(records){
+function restoreRecords(records){
+ let changed=false;
  for(const key of recordKeys){
   const before=readJson(key),after=object(records[key]);
-  if(JSON.stringify(before)!==JSON.stringify(after))localStorage.setItem(key,JSON.stringify(after));
+  if(JSON.stringify(before)!==JSON.stringify(after)){
+   localStorage.setItem(key,JSON.stringify(after));changed=true;
+  }
  }
+ if(changed)w.dispatchEvent(new CustomEvent('mathas:lab-records-restored'));
 }
 async function sync(){
  if(busy){requested=true;return;}
@@ -52,21 +72,21 @@ async function sync(){
    const local=adapter.snapshot();
    const merged=merge(local,row);
    // Preserve points untouched; merge only well-defined HARD numeric records.
-   const records={...object(row?.records),...hardRecords(row?.records)};
+   const records={...object(row?.records),...mergeRecords(row?.records)};
    // Avoid server writes when trophies/progression are already in sync.
    if(row && JSON.stringify(merged.progression)===JSON.stringify(row.progression) &&
       JSON.stringify(merged.trophies)===JSON.stringify(row.trophies) &&
       JSON.stringify(records)===JSON.stringify(object(row.records))){
     adapter.restore(merged);
-    restoreHard(records);
+    restoreRecords(records);
     return;
    }
    const payload={...merged,records,points_state:object(row?.points_state)};
    try{
     await sdk.writeState(payload,Number(row?.revision)||0);
     adapter.restore(merged);
-    restoreHard(records);
-    message('✅ Progression, trophées et records HARD synchronisés (LAB)');
+    restoreRecords(records);
+    message('✅ Progression, trophées et records synchronisés (LAB)');
     return;
    }catch(e){
     if(String(e.message||e)!=='revision_conflict'||attempt===2)throw e;
