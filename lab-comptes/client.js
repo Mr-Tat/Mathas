@@ -10,6 +10,17 @@ if(!s.data.session?.access_token)throw Error('Connexion requise');
 const r=await w.fetch(cfg.supabaseUrl+'/functions/v1/mathas-student-access',{method:'POST',cache:'no-store',headers:{'content-type':'application/json',apikey:cfg.publishableKey,authorization:'Bearer '+s.data.session.access_token},body:JSON.stringify({action,...values})});
 const v=await r.json().catch(()=>({}));if(!r.ok||v.ok!==true)throw Error(v.error||'Service indisponible');return v;
 }
+async function launchCall(action,values={}){
+ const session=await student.auth.getSession();
+ if(session.error||!session.data.session)throw Error('Session élève absente');
+ const response=await w.fetch(cfg.supabaseUrl+'/functions/v1/mathas-lab-class-launch',{
+ method:'POST',cache:'no-store',headers:{'content-type':'application/json',apikey:cfg.publishableKey,authorization:'Bearer '+session.data.session.access_token},
+ body:JSON.stringify({action,applicationId:1,...values})
+ });
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok||data.ok!==true)throw Error(data.error||'Service LAB indisponible');
+ return data;
+}
 w.MathasPilot=Object.freeze({ready,
 async initStudent(){active();const s=await student.auth.getSession();if(s.error)throw s.error;if(!s.data.session){const n=await student.auth.signInAnonymously();if(n.error)throw n.error;}return call(student,'device_status')},
 studentRequest:login=>call(student,'request_device',{login:String(login).trim().toLowerCase()}),
@@ -30,6 +41,17 @@ async issueAdditionTicket(){
  const data=await response.json().catch(()=>({}));
  if(!response.ok||data.ok!==true)throw Error(data.error||'Ticket indisponible');
  return data;
+},
+async signOutStudent(){
+ active();
+ // Server revokes this browser authorization and any active game session.
+ const current=await student.auth.getSession();
+ if(current.error)throw current.error;
+ if(current.data.session)await launchCall('end_session');
+ const out=await student.auth.signOut({scope:'local'});
+ if(out.error)throw out.error;
+ w.sessionStorage.removeItem('mathas-lab-addition-pupil');
+ return {ok:true};
 },
 studentStatus:()=>call(student,'device_status'),
 async teacherSignIn(email,password){active();const a=await teacher.auth.signInWithPassword({email,password});if(a.error)throw a.error;return call(teacher,'teacher_requests')},
