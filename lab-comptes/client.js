@@ -14,6 +14,21 @@ w.MathasPilot=Object.freeze({ready,
 async initStudent(){active();const s=await student.auth.getSession();if(s.error)throw s.error;if(!s.data.session){const n=await student.auth.signInAnonymously();if(n.error)throw n.error;}return call(student,'device_status')},
 studentRequest:login=>call(student,'request_device',{login:String(login).trim().toLowerCase()}),
 async peekStudent(){if(!ready)return null;const v=await student.auth.getSession();if(v.error||!v.data.session)return null;return call(student,'device_status')},
+async issueAdditionTicket(){
+ active();
+ const session=await student.auth.getSession();
+ if(session.error)throw session.error;
+ if(!session.data.session?.access_token)throw Error('Session élève absente');
+ const status=await call(student,'device_status');
+ if(status.status!=='approved')throw Error('Appareil non autorisé');
+ const response=await w.fetch(cfg.supabaseUrl+'/functions/v1/mathas-lab-class-launch',{
+  method:'POST',cache:'no-store',headers:{'content-type':'application/json',apikey:cfg.publishableKey,authorization:'Bearer '+session.data.session.access_token},
+  body:JSON.stringify({action:'issue',applicationId:1})
+ });
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok||data.ok!==true)throw Error(data.error||'Ticket indisponible');
+ return data;
+},
 studentStatus:()=>call(student,'device_status'),
 async teacherSignIn(email,password){active();const a=await teacher.auth.signInWithPassword({email,password});if(a.error)throw a.error;return call(teacher,'teacher_requests')},
 teacherRequests:()=>call(teacher,'teacher_requests'),
