@@ -3,5 +3,5 @@ window.MATHAS_TEST_CONFIG = Object.freeze({
   projectRef: 'bzdflehyuowbawdzuawh',
   supabaseUrl: 'https://bzdflehyuowbawdzuawh.supabase.co',
   publishableKey: 'sb_publishable_GK3FD97w8jK-WunbXqG61A_mJbLqyQ6',
-  enabled: false // Activer uniquement après validation des tests Auth/RLS.
+  enabled: true // Uniquement sur la branche pilote, Supabase Mathas-Test.
 });
