@@ -36,10 +36,5 @@
   if(!base||!server)return 'conflict';
   return base.revision===server.revision&&base.resetEpoch===server.resetEpoch?'allowed':'conflict';
  }
- function weeklyStartIso(date){
-  if(!(date instanceof Date)||!Number.isFinite(date.getTime()))throw Error('invalid_date');
-  // UTC helper only; weekly cutoffs for Belgium must be determined on the server.
-  throw Error('week_bounds_are_server_only');
- }
  return Object.freeze({MODE,activity,save,decideWrite});
 });
