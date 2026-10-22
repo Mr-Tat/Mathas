@@ -54,6 +54,8 @@ async signOutStudent(){
  return {ok:true};
 },
 studentStatus:()=>call(student,'device_status'),
+async teacherSession(){active();const r=await teacher.auth.getSession();if(r.error)throw r.error;return r.data.session},
+teacherResults:()=>call(teacher,'teacher_results'),
 async teacherSignIn(email,password){active();const a=await teacher.auth.signInWithPassword({email,password});if(a.error)throw a.error;return call(teacher,'teacher_requests')},
 teacherRequests:()=>call(teacher,'teacher_requests'),
 async groups(){active();const r=await teacher.from('mathas_student_groups').select('id,display_name').eq('active',true);if(r.error)throw r.error;return r.data||[]},
