@@ -21,6 +21,8 @@ async issueAdditionTicket(){
  if(!session.data.session?.access_token)throw Error('Session élève absente');
  const status=await call(student,'device_status');
  if(status.status!=='approved')throw Error('Appareil non autorisé');
+ if(!/^[0-9a-f-]{36}$/i.test(status.student?.id||''))throw Error('Identité élève non vérifiée');
+ w.sessionStorage.setItem('mathas-lab-addition-pupil',status.student.id);
  const response=await w.fetch(cfg.supabaseUrl+'/functions/v1/mathas-lab-class-launch',{
   method:'POST',cache:'no-store',headers:{'content-type':'application/json',apikey:cfg.publishableKey,authorization:'Bearer '+session.data.session.access_token},
   body:JSON.stringify({action:'issue',applicationId:1})
