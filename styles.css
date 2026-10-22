@@ -44,6 +44,31 @@ body {
   margin-inline: auto;
 }
 
+.account-indicator {
+  margin-left: auto;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 10px 13px;
+  border: 1px solid rgba(147, 211, 231, .3);
+  border-radius: 14px;
+  background: rgba(10, 41, 57, .64);
+  color: var(--text);
+  text-align: right;
+  flex-shrink: 0;
+}
+.account-mode { font-weight: 900; font-size: .94rem; }
+.account-modify { color: #a7e0ff; font-size: .82rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.account-modify:focus-visible { outline: 2px solid #a7e0ff; outline-offset: 4px; }
+@media (max-width: 520px) {
+  .topbar { align-items: flex-start; gap: 10px; }
+  .account-indicator { padding: 8px 10px; }
+  .account-mode { font-size: .82rem; }
+  .account-modify { font-size: .75rem; }
+}
+
 .topbar {
   display: flex;
   align-items: center;
