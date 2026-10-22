@@ -20,13 +20,43 @@ async function call(action,body={}){
  return result;
 }
 function mode(){return {mode:state.mode,student:state.student};}
+const queueKey='mathas_lab_pending_attempts_v1';
+function savedQueue(){try{const a=JSON.parse(localStorage.getItem(queueKey)||'[]');return Array.isArray(a)?a.slice(0,100):[];}catch{return [];}}
+function persist(items){localStorage.setItem(queueKey,JSON.stringify(items));}
+function notify(message){state.saveMessage=message;w.dispatchEvent(new CustomEvent('mathas:lab-save-status',{detail:{message}}));}
+let sending=null;
+async function flush(){
+ if(state.mode!=='eleve'||!secret)return;
+ if(sending)return sending;
+ sending=(async()=>{
+  const queued=savedQueue();
+  for(const attempt of queued){
+   try{
+    await call('attempt',{launchSecret:secret,attempt});
+    persist(savedQueue().filter(x=>x.eventId!==attempt.eventId));
+    notify('✅ Résultat sauvegardé dans Mathas-Test');
+   }catch(e){
+    notify('⚠️ Résultat en attente de sauvegarde : '+String(e.message||e));
+    throw e;
+   }
+  }
+ })();
+ try{await sending;}finally{sending=null;}
+}
 async function submitCompletedActivity(event){
  if(state.mode!=='eleve'||!secret)throw Error('mode_libre');
- return call('attempt',{launchSecret:secret,attempt:{
- eventId:event.clientEventId,gameMode:event.mode,levelKey:event.levelKey,
- score:event.score,scoreMax:event.scoreMax,aidUsed:event.aidUsed,appVersion:event.appVersion,
- termination:event.termination
- }});
+ const attempt={
+  eventId:event.clientEventId,gameMode:event.mode,levelKey:event.levelKey,
+  score:event.score,scoreMax:event.scoreMax,aidUsed:event.aidUsed,appVersion:event.appVersion,
+  termination:event.termination
+ };
+ if(!/^[0-9a-f-]{36}$/i.test(attempt.eventId||''))throw Error('identifiant_de_partie_invalide');
+ const pending=savedQueue();
+ if(!pending.some(x=>x.eventId===attempt.eventId))pending.push(attempt);
+ if(pending.length>100)throw Error('file_de_sauvegarde_pleine');
+ persist(pending);
+ notify('⏳ Enregistrement du résultat…');
+ await flush();
 }
 async function init(){
  if(!ticket)return;
@@ -42,9 +72,11 @@ async function init(){
   secret=v.launchSecret;
   state.student=v.student;
   state.mode='eleve';
+  try{await flush();}catch{}
  }catch(e){state.error=String(e.message||e);}
  finally{state.ready=true;}
 }
-w.MathasStudentSDK=Object.freeze({getMode:mode,submitCompletedActivity,init:()=>started,status:()=>({...state})});
+w.MathasStudentSDK=Object.freeze({getMode:mode,submitCompletedActivity,init:()=>started,status:()=>({...state}),retryPending:flush});
+w.addEventListener('online',()=>{if(state.mode==='eleve')flush().catch(()=>{});});
 const started=init();
 })(window);
