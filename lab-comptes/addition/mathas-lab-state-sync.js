@@ -20,6 +20,28 @@ function merge(local,remote){
  for(const k of ['bronze','silver','gold']){trophies.hardAwards[k]=both(ta.hardAwards?.[k],tb.hardAwards?.[k]);trophies.scoreOne[k]=ta.scoreOne?.[k]===true||tb.scoreOne?.[k]===true;}
  return {schema_version:1,progression,trophies};
 }
+// Numeric HARD records are monotonic; merge by max per level.
+const cfg=w.MathasAppConfig?.storage;
+const recordKeys=[cfg?.hardRecords,cfg?.hardThree].filter(Boolean);
+function readJson(key){try{return object(JSON.parse(localStorage.getItem(key)||'null'));}catch{return {};}}
+function hardRecords(remote){
+ const result={};
+ for(const key of recordKeys){
+  const a=readJson(key),b=object(remote?.[key]),out={};
+  for(const level of ['1','2','3']){
+   const values=[Number(a[level]),Number(b[level])].filter(n=>Number.isFinite(n)&&n>=0);
+   if(values.length)out[level]=Math.max(...values);
+  }
+  result[key]=out;
+ }
+ return result;
+}
+function restoreHard(records){
+ for(const key of recordKeys){
+  const before=readJson(key),after=object(records[key]);
+  if(JSON.stringify(before)!==JSON.stringify(after))localStorage.setItem(key,JSON.stringify(after));
+ }
+}
 async function sync(){
  if(busy){requested=true;return;}
  busy=true;
@@ -29,18 +51,22 @@ async function sync(){
    const remote=await sdk.readState(),row=remote.state;
    const local=adapter.snapshot();
    const merged=merge(local,row);
-   // Preserve records/points untouched while their formats are being audited.
+   // Preserve points untouched; merge only well-defined HARD numeric records.
+   const records={...object(row?.records),...hardRecords(row?.records)};
    // Avoid server writes when trophies/progression are already in sync.
    if(row && JSON.stringify(merged.progression)===JSON.stringify(row.progression) &&
-      JSON.stringify(merged.trophies)===JSON.stringify(row.trophies)){
+      JSON.stringify(merged.trophies)===JSON.stringify(row.trophies) &&
+      JSON.stringify(records)===JSON.stringify(object(row.records))){
     adapter.restore(merged);
+    restoreHard(records);
     return;
    }
-   const payload={...merged,records:object(row?.records),points_state:object(row?.points_state)};
+   const payload={...merged,records,points_state:object(row?.points_state)};
    try{
     await sdk.writeState(payload,Number(row?.revision)||0);
     adapter.restore(merged);
-    message('✅ Progression et trophées synchronisés (LAB)');
+    restoreHard(records);
+    message('✅ Progression, trophées et records HARD synchronisés (LAB)');
     return;
    }catch(e){
     if(String(e.message||e)!=='revision_conflict'||attempt===2)throw e;
