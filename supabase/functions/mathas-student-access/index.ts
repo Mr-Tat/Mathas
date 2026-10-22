@@ -126,7 +126,23 @@ Deno.serve(async req => {
         .select("id,login_name,first_name,private_display_name,approved_public_alias,avatar_kind,avatar_value,avatar_color,public_opt_in,account_status")
         .eq("id", link.student_id).eq("account_status", "active").maybeSingle();
       required(!e2 && !!student, "student_inactive", 403);
-      return { link, student };
+      // V1.9.7 LAB: class label returned with the existing approved-device
+      // response, without an additional request from the HUB browser.
+      // No group data is exposed unless the current device is authorized.
+      const { data: groupLink, error: groupError } = await admin
+        .from("mathas_student_group_memberships")
+        .select("mathas_student_groups(display_name,active)")
+        .eq("student_id", link.student_id)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1).maybeSingle();
+      required(!groupError, "group_lookup_failed", 500);
+      const grp = groupLink?.mathas_student_groups as
+        | { display_name?: string; active?: boolean } | null | undefined;
+      return { link, student: {
+        ...student,
+        class_display_name: grp?.active ? (grp.display_name ?? null) : null
+      } };
     }
     async function approvedApplication(appId: number) {
       required(Number.isSafeInteger(appId) && appId > 0, "invalid_application");
