@@ -1,0 +1,29 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Math’as — Accès élève (pilote)</title><style>
+:root{font:16px system-ui,sans-serif;color:#eef4ff;background:#101d33}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% -20%,#325588,transparent 55%),#101d33}main{max-width:710px;margin:7vh auto;padding:0 17px}header,h1{margin:0 0 13px}.card{border:1px solid #3c5277;border-radius:18px;padding:25px;background:#1a2b48;box-shadow:0 12px 42px #0004}h1{font-size:clamp(25px,5vw,36px)}p{color:#bbcce6;line-height:1.5}label{display:block;margin:14px 0 7px;font-weight:700}input{border:1px solid #8aa5cc;background:#0c172b;color:#fff;padding:14px;width:100%;border-radius:10px;font:inherit}button{border:0;background:#77afff;color:#091a34;font:inherit;font-weight:750;border-radius:11px;padding:12px 18px;cursor:pointer}button[disabled]{opacity:.5;cursor:not-allowed}.warning{padding:13px;background:#3c3022;color:#f9e6b3;border:1px solid #8b7040;border-radius:12px}.code{font-size:37px;letter-spacing:7px;font-weight:900;color:#c0e8ff;margin:14px 0}#notice{margin-top:10px;min-height:20px;color:#b6e7c7}a{color:#b5d9ff}.small{font-size:14px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}section[hidden]{display:none}</style></head>
+<body><main><header><h1>🎒 Mon compte Math’as</h1><p>Demande d’autorisation pour ton ordinateur scolaire</p></header><div class="card">
+<div class="warning" id="pilotState"><strong>Version de développement — désactivée.</strong> Aucune demande n’est actuellement envoyée et aucun compte n’est créé. Le professeur activera ce parcours après les tests de sécurité.</div>
+<section id="start"><label for="login">Mon identifiant Math’as</label><input id="login" placeholder="prenom.initiale" autocomplete="off" maxlength="64" autocapitalize="none" spellcheck="false" aria-describedby="loginHelp"/><p id="loginHelp" class="small">Exemple : thomas.d. Ce nom seul ne donne jamais accès à un compte.</p><div class="row"><button id="send" disabled>Demander l'autorisation</button><a href="index.html">Retour aux applications</a></div></section>
+<section id="pending" hidden><h2>Autorisation demandée</h2><p>Montre ton code au professeur sur cet ordinateur :</p><div class="code" id="code"></div><p>Le professeur vérifiera ton identité et acceptera ta demande individuellement.</p><button id="check">Vérifier l’autorisation</button></section>
+<section id="active" hidden><h2>Bienvenue <span id="displayName"></span> !</h2><p>Ton profil est approuvé. Tes résultats et tes récompenses seront retrouvés sur un autre PC une fois ce service déployé.</p><a href="index.html">Ouvrir Math’as</a></section>
+<p id="notice" role="status" aria-live="polite">Aucune connexion en cours.</p></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="client.js"></script>
+<script>
+(function(){
+'use strict';
+const api=window.MathasPilot,notice=document.getElementById('notice'),send=document.getElementById('send');
+const show=(id)=>{for(const key of ['start','pending','active'])document.getElementById(key).hidden=key!==id};
+const say=(msg)=>{notice.textContent=msg};
+if(!api || !api.ready)return;
+document.getElementById('pilotState').textContent='Laboratoire Mathas-Test actif. Aucun élève réel ne doit utiliser cette page.';
+send.disabled=false;
+api.initStudent().then(state=>{if(state.status==='approved'){show('active');document.getElementById('displayName').textContent=state.student?.private_display_name||'élève';say('Appareil autorisé')}else if(state.status==='pending'){show('pending');document.getElementById('code').textContent=state.verificationCode||'Code expiré';say('Demande en attente : montre ce code au professeur.')}else say('Tu peux demander une autorisation.')}).catch(err=>{send.disabled=true;say('Impossible d’ouvrir la session de test : '+err.message)});
+send.addEventListener('click',async()=>{
+ send.disabled=true;try{const data=await api.studentRequest(document.getElementById('login').value);document.getElementById('code').textContent=data.verificationCode;show('pending');say('Montre le code au professeur sur ton écran.')}catch(err){say('Demande refusée : '+err.message)}finally{send.disabled=false}
+});
+document.getElementById('check').addEventListener('click',async()=>{
+ try{const state=await api.studentStatus();if(state.status==='approved'){show('active');document.getElementById('displayName').textContent=state.student?.private_display_name||'élève';say('Appareil autorisé')}else say('Autorisation en attente.')}catch(err){say(err.message)}
+});
+})();
+</script>
+</body></html>
