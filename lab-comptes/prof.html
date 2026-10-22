@@ -1,11 +1,12 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math’as — Validation des élèves (pilote)</title><style>
 :root{font:16px system-ui,sans-serif;color:#edf4ff;background:#101b30}body{margin:0}main{max-width:950px;margin:50px auto;padding:0 18px}.panel{background:#1b2c48;border:1px solid #425775;border-radius:16px;padding:24px;margin:17px 0}.warning{background:#403320;border:1px solid #88713c;border-radius:9px;padding:13px;color:#ffe1ad}.line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}p{color:#bacce7;line-height:1.5}label{display:block;margin:12px 0 6px;font-weight:700}input,select{font:inherit;background:#0c162a;border:1px solid #8da2bd;color:white;padding:12px;width:100%;border-radius:8px}button{font:inherit;font-weight:700;background:#7aaeff;border:0;border-radius:8px;padding:12px 17px;color:#0a203a;cursor:pointer}button[disabled]{opacity:.45;cursor:not-allowed}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #3e5274}.small{font-size:14px;color:#c2cee0}a{color:#bbdfff}.col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.col>div{min-width:0}.col input,.col select{box-sizing:border-box;display:block;width:100%;min-width:0}@media(max-width:650px){.col{grid-template-columns:1fr}}[hidden]{display:none!important}.badge{border:1px solid #536781;padding:4px 10px;border-radius:30px;font-size:13px}</style></head><body><main>
-<div class="line"><div><h1>👩‍🏫 Autorisations Math’as <span class="badge" style="vertical-align:middle;font-size:13px;font-weight:600">V0.1.5</span></h1><p>Validation individuelle des ordinateurs et des profils élèves</p></div><a href="teacher.html">Administration actuelle</a></div>
+<div class="line"><div><h1>👩‍🏫 Autorisations Math’as <span class="badge" style="vertical-align:middle;font-size:13px;font-weight:600">V0.1.6</span></h1><p>Validation individuelle des ordinateurs et des profils élèves</p></div><a href="teacher.html">Administration actuelle</a></div>
 <div class="warning" id="pilotState"><b>Pilote non connecté.</b> Aucun compte ni aucune autorisation ne peut être créée depuis cette page. Elle sert à valider l'organisation des futurs écrans sans exposer d'élève réel.</div><div class="panel" id="testSignIn" hidden><h2>Connexion professeur de laboratoire</h2><p>Utiliser uniquement un compte professeur créé dans Mathas-Test, jamais le compte du HUB principal.</p><label for="pilotEmail">Adresse e-mail de test</label><input id="pilotEmail" autocomplete="username" type="email"><label for="pilotPassword">Mot de passe de test</label><input id="pilotPassword" type="password" autocomplete="current-password"><p><button id="pilotConnect" type="button">Se connecter au laboratoire</button></p><p role="status" id="pilotMessage"></p></div>
-<div class="panel"><div class="line"><h2>Demandes en attente</h2><span class="badge" id="requestCount">0 demande réelle</span></div><p>Aucune demande tant que les services Supabase n'ont pas été validés et activés.</p><table><thead><tr><th>Identifiant demandé</th><th>Classe à confirmer</th><th>Heure</th><th>Action</th></tr></thead><tbody id="requestRows"><tr><td colspan="4" class="small">La liste sera chargée uniquement après authentification du professeur.</td></tr></tbody></table></div>
+<div class="panel"><div class="line"><h2>Demandes en attente</h2><button id="refreshRequests" type="button" disabled>↻ Actualiser</button><span class="badge" id="requestCount">0 demande réelle</span></div><p>Aucune demande tant que les services Supabase n'ont pas été validés et activés.</p><table><thead><tr><th>Identifiant demandé</th><th>Classe à confirmer</th><th>Heure</th><th>Action</th></tr></thead><tbody id="requestRows"><tr><td colspan="4" class="small">La liste sera chargée uniquement après authentification du professeur.</td></tr></tbody></table></div>
 <div class="panel"><h2>Fiche de validation</h2><p>Pour chaque demande, le professeur devra constater le code affiché sur l'ordinateur et vérifier qui est réellement devant cet ordinateur.</p>
 <div class="col"><div><label for="login">Identifiant élève</label><input id="login" disabled placeholder="thomas.d"><label for="first">Prénom</label><input id="first" disabled placeholder="Thomas"><label for="initial">Initiale du nom</label><input id="initial" disabled placeholder="D"></div><div><label for="group">Groupe scolaire réel</label><select id="group" disabled><option>Sélectionner une classe</option></select><label for="code">Code sur le PC de l’élève</label><input id="code" disabled inputmode="numeric" maxlength="4" placeholder="●●●●"><label for="reason">État de la demande</label><input id="reason" disabled value="Aucune demande sélectionnée"></div></div>
 <p class="small">Le code est prérempli pour faciliter la comparaison : vérifie-le impérativement avec l'écran de l'élève. Le prénom et l'initiale proposés à partir du format prenom.n doivent être confirmés par le professeur. L'identifiant et le code seuls ne prouvent pas l'identité. La validation ne deviendra possible qu'après connexion professeur et vérifications serveur.</p><button id="approve" disabled>Vérifier et autoriser cet appareil</button> <button id="refuse" disabled>Refuser</button><p id="approvalStatus" role="status" aria-live="polite" style="font-weight:700;color:#bde4ff"></p></div>
+<div class="panel"><div class="line"><h2>Résultats enregistrés — LAB</h2><button id="refreshResults" type="button" disabled>↻ Actualiser les résultats</button></div><p class="small">Tentatives reçues sur Supabase-Test, non homologuées pour les classements.</p><p id="resultMessage" role="status"></p><table><thead><tr><th>Élève</th><th>Score</th><th>Niveau</th><th>Reçu le</th></tr></thead><tbody id="resultRows"><tr><td colspan="4">Connexion professeur nécessaire</td></tr></tbody></table></div>
 <div class="panel"><h2>Appareils déjà autorisés</h2><p>Ici, tu pourras révoquer un PC défectueux ou perdu. L'historique restera attaché au profil permanent de l'élève.</p><p class="small">Aucun appareil réel affiché dans cette préversion.</p></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script><script src="client.js"></script>
 <script>
@@ -22,6 +23,27 @@ try{const savedEmail=localStorage.getItem('mathas-lab-teacher-email');if(savedEm
 emailInput.addEventListener('change',()=>{try{localStorage.setItem('mathas-lab-teacher-email',emailInput.value.trim());}catch{}});
 const approvalStatus=document.getElementById("approvalStatus");
 const report=(t)=>{message.textContent=t;approvalStatus.textContent=t};
+const reqRefresh=document.getElementById('refreshRequests'),resRefresh=document.getElementById('refreshResults');
+async function loadResults(){
+ const note=document.getElementById('resultMessage'),body=document.getElementById('resultRows');
+ note.textContent='Chargement des résultats…';
+ try{
+  const data=await api.teacherResults();body.replaceChildren();
+  for(const a of data.results||[]){
+   const tr=document.createElement('tr');
+   for(const value of [a.login,a.scoreMax==null?String(a.score):a.score+' / '+a.scoreMax,a.level,new Date(a.receivedAt).toLocaleString('fr-BE')]){
+    const td=document.createElement('td');td.textContent=value??'';tr.append(td);
+   }body.append(tr);
+  }
+  if(!body.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='Aucun résultat enregistré';tr.append(td);body.append(tr);}
+  note.textContent=(data.results||[]).length+' résultat(s) enregistré(s) dans le laboratoire';
+ }catch(e){note.textContent='Résultats indisponibles : '+e.message;}
+}
+async function signedIn(){await signedIn();reqRefresh.disabled=false;resRefresh.disabled=false;await loadResults();}
+reqRefresh.onclick=async()=>{try{await refresh();approvalStatus.textContent='Demandes actualisées';}catch(e){approvalStatus.textContent='Actualisation impossible : '+e.message;}};
+resRefresh.onclick=loadResults;
+api.teacherSession().then(async session=>{if(session){try{await signedIn();}catch(e){report('Session à renouveler : '+e.message);}}}).catch(()=>{});
+
 async function refresh(){
  const result=await api.teacherRequests(),groups=await api.groups();availableGroups=groups;
  rows.replaceChildren();document.getElementById('requestCount').textContent=(result.requests||[]).length+' demande(s)';
