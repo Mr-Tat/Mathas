@@ -58,6 +58,10 @@ async function submitCompletedActivity(event){
  notify('⏳ Enregistrement du résultat…');
  await flush();
 }
+async function classState(action, values={}){
+ if(state.mode!=='eleve'||!secret)throw Error('session_classe_absente');
+ return call(action,{launchSecret:secret,...values});
+}
 async function init(){
  if(!ticket)return;
  // Retirer le ticket de l'adresse avant tout appel réseau et avant le chargement d'autres pages.
@@ -80,7 +84,7 @@ async function init(){
  }catch(e){state.error=String(e.message||e);}
  finally{state.ready=true;}
 }
-w.MathasStudentSDK=Object.freeze({getMode:mode,submitCompletedActivity,init:()=>started,status:()=>({...state}),retryPending:flush});
+w.MathasStudentSDK=Object.freeze({getMode:mode,submitCompletedActivity,init:()=>started,status:()=>({...state}),retryPending:flush,readState:()=>classState('state_read'),writeState:(state,revision)=>classState('state_write',{state,revision})});
 w.addEventListener('online',()=>{if(state.mode==='eleve')flush().catch(()=>{});});
 const started=init();
 })(window);
