@@ -29,7 +29,13 @@ async function sync(){
    const remote=await sdk.readState(),row=remote.state;
    const local=adapter.snapshot();
    const merged=merge(local,row);
-   // Never replace past records or points in a partially migrated schema.
+   // Preserve records/points untouched while their formats are being audited.
+   // Avoid server writes when trophies/progression are already in sync.
+   if(row && JSON.stringify(merged.progression)===JSON.stringify(row.progression) &&
+      JSON.stringify(merged.trophies)===JSON.stringify(row.trophies)){
+    adapter.restore(merged);
+    return;
+   }
    const payload={...merged,records:object(row?.records),points_state:object(row?.points_state)};
    try{
     await sdk.writeState(payload,Number(row?.revision)||0);
