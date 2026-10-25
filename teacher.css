@@ -3994,3 +3994,6 @@ textarea {
     min-height: 38px;
   }
 }
+
+/* Migration images 2026-10-25 : raccourci volontairement indisponible. */
+.core-quick-links .images-disabled{opacity:.48;cursor:not-allowed;filter:grayscale(.7);pointer-events:none;user-select:none}
