@@ -10249,7 +10249,7 @@ body.light .mathas-points-detail,body.light-mode .mathas-points-detail{backgroun
 .mathas-sudden-pulse-mark{position:relative;z-index:3;font-size:clamp(.70rem,2.1vw,.95rem);font-weight:950;letter-spacing:.07em;text-transform:uppercase;line-height:1.15;animation:mathas-pulse-mark var(--pulse-duration,.84s) ease-out both}
 @keyframes mathas-pulse-mark{0%,16%{opacity:0;transform:translateY(7px)}32%,72%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-12px)}}
 @media (max-width:440px){.mathas-celebration{padding:11px 10px 12px;top:clamp(72px,14vh,120px)}.mathas-sudden-pulse-text{font-size:clamp(.86rem,3.6vw,1.18rem)}.mathas-sudden-pulse-mark{font-size:.67rem}}
-@media (prefers-reduced-motion:reduce){.mathas-celebration,.mathas-celebration-icon,.mathas-celebration-spark,.mathas-sudden-pulse,.mathas-sudden-pulse-text,.mathas-sudden-pulse-ring,.mathas-sudden-pulse-mark,.mathas-pulse-spark{animation:none!important;transition:none!important}.mathas-celebration-spark,.mathas-pulse-spark,.mathas-sudden-pulse-ring{display:none!important}.mathas-sudden-pulse-text,.mathas-sudden-pulse-mark{opacity:1!important}.mathas-celebration{opacity:1!important}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){.mathas-celebration,.mathas-celebration-icon,.mathas-celebration-spark,.mathas-sudden-pulse,.mathas-sudden-pulse-text,.mathas-sudden-pulse-ring,.mathas-sudden-pulse-mark,.mathas-pulse-spark{animation:none!important;transition:none!important}.mathas-celebration-spark,.mathas-pulse-spark,.mathas-sudden-pulse-ring{display:none!important}.mathas-sudden-pulse-text,.mathas-sudden-pulse-mark{opacity:1!important}.mathas-celebration{opacity:1!important}}
 </style>
 <script id="mathas-p21-points-script">
 (()=>{
@@ -10445,7 +10445,7 @@ function parse(item){
 const celebrateQueue=[];
 let celebrateActive=false;
 const idleWaiters=[];
-const reducedMotion=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion=()=>false; // Animations du jeu maintenues, même si l'OS réduit les mouvements
 const awardNames={bronze:'bronze',silver:'argent',gold:'or'};
 function addSparks(parent,count,palette,distance){
   if(reducedMotion())return;
@@ -10741,7 +10741,7 @@ makeUI();render();syncUnlockGold();setInterval(watch,650);document.addEventListe
 #menuScreen button[data-count="20"].classic-count-btn:hover,#menuScreen button[data-count="20"].countBtn:hover{
   filter:brightness(1.15)!important;
 }
-@media(prefers-reduced-motion:reduce){#menuScreen button[data-count].classic-count-btn,#menuScreen button[data-count].countBtn{transition:none!important}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){#menuScreen button[data-count].classic-count-btn,#menuScreen button[data-count].countBtn{transition:none!important}}
 </style>
 
 <script id="mathas-v535-summary-script">
@@ -11024,7 +11024,7 @@ body.light #masterModePanel #masterAidSettings {
 }
 body.light-mode #masterModePanel .master-aid-option,
 body.light #masterModePanel .master-aid-option {color:#224054!important}
-@media (prefers-reduced-motion:reduce) {
+@media (prefers-reduced-motion: reduce) and (max-width: 0px) {
   #masterModePanel .master-aid-switch,
   #masterModePanel .master-aid-switch::before {transition:none}
 }
@@ -11954,7 +11954,7 @@ body.light-mode #mathasTrophiesStrip .mathas-trophies-hint{color:#36657d}
   #mathasTrophiesStrip .mathas-trophy-count{font-size:.96rem}
   #mathasTrophiesStrip .mathas-trophy-name{font-size:.61rem}
 }
-@media(prefers-reduced-motion:reduce){#mathasTrophiesStrip .mathas-trophy-badge{transition:none}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){#mathasTrophiesStrip .mathas-trophy-badge{transition:none}}
 </style>
 
 
@@ -11989,7 +11989,7 @@ html.mathas-p29-trophies-off .mathas-celebration[data-kind^="collection-"] {disp
 #masterGamificationSettings .mathas-p29-setting-note{font-size:.66rem;font-weight:650;line-height:1.38;color:#bad2e0;margin-top:7px}
 body.light #masterGamificationSettings,body.light-mode #masterGamificationSettings{color:#224054;border-color:rgba(69,125,162,.25);background:rgba(58,143,178,.08)}
 body.light #masterGamificationSettings .mathas-p29-setting-note,body.light-mode #masterGamificationSettings .mathas-p29-setting-note{color:#526b7a}
-@media(prefers-reduced-motion:reduce){#masterGamificationSettings .mathas-p29-switch,#masterGamificationSettings .mathas-p29-switch::before{transition:none}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){#masterGamificationSettings .mathas-p29-switch,#masterGamificationSettings .mathas-p29-switch::before{transition:none}}
 </style>
 
 
@@ -12011,7 +12011,7 @@ body.light #masterGamificationSettings .mathas-p29-setting-note,body.light-mode 
 @keyframes mathas-trophy-count-pop{0%{transform:scale(1)}38%{transform:scale(2.6);color:#fff6ab;text-shadow:0 0 13px #ffe784}70%{transform:scale(1.24)}100%{transform:scale(1)}}
 @keyframes mathas-trophy-badge-pop{0%,100%{transform:scale(1)}36%{transform:scale(1.1);filter:brightness(1.75)}70%{transform:scale(1.02)}}
 @media(max-width:400px){.mathas-trophy-dock{min-width:0;padding:9px 10px;gap:6px}.mathas-trophy-dock-symbol{font-size:1.7rem}.mathas-trophy-dock-count{font-size:1.06rem}.mathas-trophy-dock-text{font-size:.69rem}}
-@media(prefers-reduced-motion:reduce){.mathas-trophy-dock,.mathas-trophy-dock.is-blinking,.mathas-trophy-dock.is-blinking .mathas-trophy-dock-count,#mathasTrophiesStrip .mathas-trophy-badge.is-trophy-arrival{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){.mathas-trophy-dock,.mathas-trophy-dock.is-blinking,.mathas-trophy-dock.is-blinking .mathas-trophy-dock-count,#mathasTrophiesStrip .mathas-trophy-badge.is-trophy-arrival{animation:none!important;transition:none!important}}
 html.mathas-p29-trophies-off .mathas-trophy-dock,html.mathas-p29-trophies-off .mathas-trophy-flyer{display:none!important}
 </style>
 
@@ -12066,7 +12066,7 @@ body.light #mathasTrophiesStrip.is-platinum,body.light-mode #mathasTrophiesStrip
 body.light #mathasTrophiesStrip.is-platinum .mathas-platinum-heading,body.light-mode #mathasTrophiesStrip.is-platinum .mathas-platinum-heading{color:#25466b;text-shadow:0 1px rgba(255,255,255,.55),0 0 10px rgba(255,255,255,.7)}
 body.light #mathasTrophiesStrip.is-platinum .mathas-platinum-caption,body.light-mode #mathasTrophiesStrip.is-platinum .mathas-platinum-caption,body.light #mathasTrophiesStrip.is-platinum .mathas-platinum-action,body.light-mode #mathasTrophiesStrip.is-platinum .mathas-platinum-action{color:#2d4f72}
 @media(max-width:390px){#mathasTrophiesStrip.is-platinum{min-height:142px}#mathasTrophiesStrip.is-platinum .mathas-platinum-panel{min-height:140px;gap:7px}.mathas-platinum-emblem{width:82px}.mathas-platinum-heading{font-size:clamp(1.4rem,7vw,1.8rem)}.mathas-platinum-caption{font-size:.65rem}}
-@media(prefers-reduced-motion:reduce){#mathasTrophiesStrip.is-platinum:before{animation:none}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){#mathasTrophiesStrip.is-platinum:before{animation:none}}
 </style>
 
 <style id="mathas-v521-phone-launch-layout">
@@ -12274,7 +12274,7 @@ body.light-mode .mathas-platinum-entry .mathas-platinum-entry-state{color:#4d6a8
 body.light #mathasTrophiesStrip .mathas-platinum-progress,
 body.light-mode #mathasTrophiesStrip .mathas-platinum-progress{color:#315a81}
 @media(max-width:360px){.mathas-platinum-entry .mathas-platinum-emblem{width:53px;height:53px}.mathas-platinum-entry .mathas-platinum-entry-content{gap:8px}}
-@media(prefers-reduced-motion:reduce){html body #menuScreen .mode-card.classic.mode-card,html body #menuScreen .mode-card.sudden.mode-card{transition:none!important}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){html body #menuScreen .mode-card.classic.mode-card,html body #menuScreen .mode-card.sudden.mode-card{transition:none!important}}
 </style>
 
 <script id="mathas-v530-live-halo">
@@ -12489,7 +12489,7 @@ body.light-mode #menuScreen .mathas-v531-results > #mathasTrophiesStrip.is-plati
    display:none!important;
  }
 }
-@media(prefers-reduced-motion:reduce){
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){
  html body #menuScreen .mode-card.classic.mode-card,
  html body #menuScreen .mode-card.sudden.mode-card{transition:none!important}
 }
@@ -12767,7 +12767,7 @@ body.light #menuScreen .mathas-v535-score-badge,body.light-mode #menuScreen .mat
   #menuScreen .mathas-v535-table .mathas-v535-level-label{font-size:clamp(.60rem,2.65vw,.77rem)!important}
   #menuScreen .mathas-v535-score-badge{padding:5px 2px;border-radius:6px}
 }
-@media(prefers-reduced-motion:reduce){#menuScreen .mathas-v535-score-badge{transition:none!important}}
+@media (prefers-reduced-motion: reduce) and (max-width: 0px){#menuScreen .mathas-v535-score-badge{transition:none!important}}
 
 </style>
 
