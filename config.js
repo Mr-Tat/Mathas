@@ -3,31 +3,31 @@ window.MATHAS_CONFIG = {
     observation: {
       label: "Observation",
       theme: "theme-observation",
-      tabTitle: "Math'as Obs",
+      tabTitle: "Accueil Observation | Math’as",
       mode: "standard"
     },
     phase1: {
       label: "Phase 1",
       theme: "theme-phase1",
-      tabTitle: "Math'as Ph1",
+      tabTitle: "Accueil Ph1 | Math’as",
       mode: "standard"
     },
     phase2: {
       label: "Phase 2",
       theme: "theme-phase2",
-      tabTitle: "Math'as Ph2",
+      tabTitle: "Accueil Ph2 | Math’as",
       mode: "standard"
     },
     "2eco": {
       label: "2 ECO",
       theme: "theme-2eco",
-      tabTitle: "Math'as 2 ECO",
+      tabTitle: "Accueil 2 ECO | Math’as",
       mode: "standard"
     },
     toutes: {
       label: "Toutes les applis",
       theme: "theme-toutes",
-      tabTitle: "Math'as — Toutes les applis",
+      tabTitle: "Toutes les activités | Math’as",
       simpleView: true,
       showScores: true,
       sectionKeys: ["niveau1", "niveau2", "niveau3", "outil", "autre", "exterieur"]
@@ -35,7 +35,7 @@ window.MATHAS_CONFIG = {
     thibault: {
       label: "Thibault",
       theme: "theme-thibault",
-      tabTitle: "Math'as — Thibault",
+      tabTitle: "Accueil Thibault | Math’as",
       simpleView: true,
       showScores: true,
       sectionKeys: ["niveau1", "niveau2", "niveau3", "outil", "autre"]
@@ -43,7 +43,7 @@ window.MATHAS_CONFIG = {
     lise: {
       label: "Lise",
       theme: "theme-lise",
-      tabTitle: "Math'as — Lise",
+      tabTitle: "Accueil Lise | Math’as",
       simpleView: true,
       showScores: true,
       sectionKeys: ["niveau1", "niveau2", "niveau3", "outil", "autre"]
