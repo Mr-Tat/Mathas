@@ -23,7 +23,7 @@
       currentClass = {
         label: 'Partage',
         theme: 'theme-partage',
-        tabTitle: "Math'as — Partage",
+        tabTitle: "Jeux partagés | Math’as",
         simpleView: true,
         showScores: false,
         sectionKeys: ['niveau1', 'niveau2', 'niveau3', 'outil', 'autre']
@@ -46,7 +46,7 @@
       currentClass = {
         label: 'Math’as',
         theme: 'theme-observation',
-        tabTitle: "Math'as",
+        tabTitle: "Accueil | Math’as",
         simpleView: false,
         showScores: true
       };
@@ -78,7 +78,7 @@
     line.appendChild(simpleTopCount);
   }
 
-  document.title = currentClass.tabTitle || `Math'as ${currentClass.label}`;
+  document.title = currentClass.tabTitle || `Accueil ${currentClass.label} | Math’as`;
 
   const levelsDef = [
     { key: 'objectif', label: 'Objectif', description: 'Niveau visé', openByDefault: true },
